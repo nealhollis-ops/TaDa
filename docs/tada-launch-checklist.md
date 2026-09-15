@@ -20,23 +20,23 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 1: Scaffold the project with Claude Code
 
-- [ ] Install Claude Code on the desktop
-- [ ] Make an empty folder, open Claude Code in it, and give it well-done.jsx plus this checklist as the spec
-- [ ] Have it scaffold a Next.js app with Tailwind, the Supabase client, and a PWA manifest so the app installs to phone home screens
-- [ ] Create a private GitHub repo and connect it to the Vercel project from Phase 0
-- [ ] Add environment variables in both Vercel and the local .env: Supabase URL, anon key, service role key, Stripe secret key, Stripe webhook secret, Anthropic key, Resend key, and NEXT_PUBLIC_APP_URL set to https://gettada.me
+- [x] Install Claude Code on the desktop
+- [x] Make an empty folder, open Claude Code in it, and give it well-done.jsx plus this checklist as the spec
+- [x] Have it scaffold a Next.js app with Tailwind, the Supabase client, and a PWA manifest so the app installs to phone home screens
+- [x] Create a private GitHub repo and connect it to the Vercel project from Phase 0
+- [x] Add environment variables in both Vercel and the local .env: Supabase URL, anon key, service role key, Stripe secret key, Stripe webhook secret, Anthropic key, Resend key, and NEXT_PUBLIC_APP_URL set to https://gettada.me
 
 ## Phase 2: Database, accounts, and the two founders
 
-- [ ] Auth on: email magic link plus password, with branded email templates
-- [ ] Tables: profiles, tasks, teams, team_members, team_invites, assignments, partnerships, partner_requests, messages, team_messages, posts, replies, reactions, stats, blocks, entitlements
-- [ ] The entitlements table is the paywall's brain: user_id, plan (standard, teams, boss), source (stripe, comp, admin), stripe_sub_id, seats_included, optional expires_at
-- [ ] Rule carved in stone: Stripe webhooks may only touch rows where source is stripe. Rows with source comp or admin are untouchable by billing. This is what protects the free Faith Hub Unleashed accounts
-- [ ] Add a role column on profiles: member or admin
-- [ ] Row level security on every table, enforcing the privacy promises server side: tasks visible to their owner only, assignments visible to boss and assignee, messages visible to sender and recipient only, hidden and private profile respected everywhere except inside a shared boss team
-- [ ] Seed script: create Deb and Neal, set role to admin, and give each an entitlement of plan boss with source admin, no expiry. Admins ride at the top level free, forever
-- [ ] Keep history: no monthly data deletion. The month flip becomes a query filter, and repeaters regenerate by rule
-- [ ] Storage buckets: avatars, audio (the ta-da mp3), assets (tour video if self-hosted)
+- [x] Auth on: email magic link plus password, with branded email templates
+- [x] Tables: profiles, tasks, teams, team_members, team_invites, assignments, partnerships, partner_requests, messages, team_messages, posts, replies, reactions, stats, blocks, entitlements
+- [x] The entitlements table is the paywall's brain: user_id, plan (standard, teams, boss), source (stripe, comp, admin), stripe_sub_id, seats_included, optional expires_at
+- [x] Rule carved in stone: Stripe webhooks may only touch rows where source is stripe. Rows with source comp or admin are untouchable by billing. This is what protects the free Faith Hub Unleashed accounts
+- [x] Add a role column on profiles: member or admin
+- [x] Row level security on every table, enforcing the privacy promises server side: tasks visible to their owner only, assignments visible to boss and assignee, messages visible to sender and recipient only, hidden and private profile respected everywhere except inside a shared boss team
+- [x] Seed script: create Deb and Neal, set role to admin, and give each an entitlement of plan boss with source admin, no expiry. Admins ride at the top level free, forever
+- [x] Keep history: no monthly data deletion. The month flip becomes a query filter, and repeaters regenerate by rule
+- [x] Storage buckets: avatars, audio (the ta-da mp3), assets (tour video if self-hosted)
 
 ## Phase 3: Port the app screen by screen
 
