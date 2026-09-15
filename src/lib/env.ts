@@ -7,8 +7,34 @@
  *   required secret is missing instead of failing somewhere deep inside an SDK.
  */
 
+/**
+ * Resolves the public app URL and guarantees it is a valid absolute URL.
+ * Order: NEXT_PUBLIC_APP_URL, then Vercel's own URLs, then localhost.
+ * A value without a scheme (e.g. "app.gettada.me") gets https:// added, and an
+ * empty or unparsable value falls through instead of crashing the build.
+ */
+function resolveAppUrl(): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.VERCEL_URL,
+    "http://localhost:3000",
+  ];
+  for (const raw of candidates) {
+    const trimmed = raw?.trim();
+    if (!trimmed) continue;
+    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    try {
+      return new URL(withScheme).origin;
+    } catch {
+      // try the next candidate
+    }
+  }
+  return "http://localhost:3000";
+}
+
 export const publicEnv = {
-  appUrl: (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, ""),
+  appUrl: resolveAppUrl(),
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey:
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
