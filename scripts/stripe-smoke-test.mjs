@@ -23,7 +23,6 @@ const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUP
 const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const log = (...a) => console.log(...a);
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function replay(type, object) {
   const payload = JSON.stringify({ id: `evt_test_${Date.now()}`, object: "event", api_version: stripe.getApiField("version"), created: Math.floor(Date.now() / 1000), type, data: { object }, livemode: false, pending_webhooks: 0, request: { id: null, idempotency_key: null } });
