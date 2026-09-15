@@ -4,6 +4,7 @@ import { publicEnv, supabaseConfigured } from "@/lib/env";
 
 /** Paths that never require a session. Everything else under the app does. */
 const PUBLIC_PATHS = ["/login", "/auth", "/offline", "/api", "/manifest.webmanifest", "/sw.js", "/icons", "/legal"];
+// /api routes check the session themselves and answer 401 instead of redirecting.
 
 function isPublic(pathname: string) {
   return pathname === "/" || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
