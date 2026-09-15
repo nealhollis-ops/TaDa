@@ -21,6 +21,9 @@ export async function GET() {
       STRIPE_WEBHOOK_SECRET: present("STRIPE_WEBHOOK_SECRET"),
       ANTHROPIC_API_KEY: present("ANTHROPIC_API_KEY"),
       RESEND_API_KEY: present("RESEND_API_KEY"),
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: present("NEXT_PUBLIC_VAPID_PUBLIC_KEY"),
+      VAPID_PRIVATE_KEY: present("VAPID_PRIVATE_KEY"),
+      CRON_SECRET: present("CRON_SECRET"),
     },
   });
 }
