@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:admins": "node --env-file=.env.local scripts/seed-admins.mjs",
+    "test:rls": "node --env-file=.env.local scripts/rls-smoke-test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

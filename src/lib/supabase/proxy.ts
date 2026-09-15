@@ -2,10 +2,18 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv, supabaseConfigured } from "@/lib/env";
 
+/** Paths that never require a session. Everything else under the app does. */
+const PUBLIC_PATHS = ["/login", "/auth", "/offline", "/api", "/manifest.webmanifest", "/sw.js", "/icons", "/legal"];
+
+function isPublic(pathname: string) {
+  return pathname === "/" || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 /**
- * Refreshes the Supabase auth session on every matched request and keeps the
- * auth cookies in sync between the request and the response.
- * Called from src/proxy.ts.
+ * Runs on every matched request (see src/proxy.ts):
+ *  1. refreshes the Supabase session and keeps auth cookies in sync
+ *  2. sends signed-out visitors on protected paths to /login (remembering where they were going)
+ *  3. sends signed-in visitors away from /login
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -26,8 +34,25 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Do not remove: getUser() is what actually refreshes an expiring session.
-  // Route protection (redirecting signed-out users) is added in Phase 2.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname, search } = request.nextUrl;
+
+  if (!user && !isPublic(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    return NextResponse.redirect(url);
+  }
+
+  if (user && pathname === "/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/today";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

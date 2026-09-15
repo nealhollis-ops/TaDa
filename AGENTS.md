@@ -18,3 +18,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Paywall rule: features gate off the `entitlements` table, never off Stripe directly. Stripe webhooks may only touch entitlement rows where `source = 'stripe'`.
 - Brand colors are Tailwind tokens in `src/app/globals.css` (navy, coral, teal, gold, cream, ink, fade, line).
 - Bump `CACHE_VERSION` in `public/sw.js` when the service worker changes.
+- Database schema lives in `supabase/migrations/` (idempotent SQL). Apply new migrations in the Supabase SQL Editor; keep the files in git as the source of truth.
+- Auth: server actions in `src/app/login/actions.ts`; email links land on `/auth/callback` or `/auth/confirm` (both use `src/lib/supabase/verify.ts`). Signed-in screens go under `src/app/(app)/` and use `getMe()`.
+- Members must never be able to change `profiles.role`; a trigger enforces it. Run `npm run test:rls` after touching policies.

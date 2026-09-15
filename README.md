@@ -29,10 +29,32 @@ Vercel > Project > Settings > Environment Variables. `NEXT_PUBLIC_APP_URL` is
 
 ## Supabase setup (one time)
 
-In Supabase > Authentication > URL Configuration:
+1. Run `supabase/migrations/*.sql` in order in the SQL Editor (or `supabase db push`).
+   Migrations are idempotent; re-running is safe.
+2. Authentication > URL Configuration:
+   - Site URL: `https://app.gettada.me`
+   - Redirect URLs: `https://app.gettada.me/auth/callback`, `https://app.gettada.me/auth/confirm`,
+     `http://localhost:3000/auth/callback`, `http://localhost:3000/auth/confirm`
+3. Authentication > Emails > Templates: paste the branded templates from `supabase/templates/` (see its README).
+4. Seed the founders as admins with permanent Boss access:
 
-- Site URL: `https://app.gettada.me`
-- Redirect URLs: `https://app.gettada.me/auth/callback` and `http://localhost:3000/auth/callback`
+```bash
+npm run seed:admins
+```
+
+5. Optional: prove the privacy rules hold with two throwaway users:
+
+```bash
+npm run test:rls
+```
+
+## Accounts and the paywall
+
+- Sign in at `/login`: email + password, magic link, or password reset. New accounts confirm by email.
+- Every signed-in screen lives under `src/app/(app)/` and is protected by `src/proxy.ts` plus `getMe()` in `src/lib/auth.ts`.
+- Access is decided by the `entitlements` table (`effective_plan(uid)`), never by Stripe directly.
+  Rows with `source = 'comp'` or `'admin'` are never touched by billing; Stripe may only call `apply_stripe_entitlement()`.
+- Admins are `profiles.role = 'admin'`. Members cannot change their own role (database trigger).
 
 ## Project layout
 
@@ -43,7 +65,13 @@ src/app/              routes (App Router)
   api/health/         deploy check
   offline/            page shown by the service worker when offline
 src/lib/env.ts        typed access to env vars (public vs server-only)
-src/lib/supabase/     client.ts (browser), server.ts (RSC/routes), admin.ts (service role), proxy.ts (session refresh)
+src/lib/supabase/     client.ts (browser), server.ts (RSC/routes), admin.ts (service role), proxy.ts (session + route guard), verify.ts (email links)
+src/lib/auth.ts       requireUser / getMe / requireAdmin helpers
+src/app/login/        sign-in screen and its server action
+src/app/(app)/        signed-in screens (today, account/password)
+supabase/migrations/  schema, RLS policies, storage buckets, realtime
+supabase/templates/   branded auth emails
+scripts/              seed-admins.mjs, rls-smoke-test.mjs
 src/proxy.ts          Next 16 proxy (formerly middleware): refreshes the Supabase session
 src/components/pwa/   service worker registration + install prompt
 public/sw.js          service worker: offline fallback + push handlers
