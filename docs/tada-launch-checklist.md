@@ -52,14 +52,14 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 4: Stripe paywall
 
-- [ ] Create products and prices: Standard 17 monthly and 170 yearly, Teams 27 and 270, Boss 97 and 970, plus a Boss extra seat price at 9 monthly and 90 yearly
-- [ ] Checkout: 14 day trial, card required up front, trial rolls into Standard unless a higher plan was chosen
-- [ ] Webhook endpoint at gettada.me/api/stripe: on checkout completed and subscription updated or deleted, write the entitlement (source stripe rows only)
-- [ ] Proration on upgrades left at Stripe's default, which credits unused time automatically
-- [ ] Seat sync function: whenever a boss team roster changes, recount unique members across that boss's teams and set the extra-seat quantity to anything above 7
-- [ ] Turn on the Stripe Customer Portal so members change cards, switch plans, and cancel without you building billing screens
-- [ ] The app gates every feature off the entitlements table, never off Stripe directly
-- [ ] Test in test mode with Stripe's test cards: trial start, roll to Standard, upgrade with proration, boss seat added past 7, seat removed, cancel
+- [x] Create products and prices: Standard 17 monthly and 170 yearly, Teams 27 and 270, Boss 97 and 970, plus a Boss extra seat price at 9 monthly and 90 yearly
+- [x] Checkout: 14 day trial, card required up front, trial rolls into Standard unless a higher plan was chosen
+- [x] Webhook endpoint at gettada.me/api/stripe: on checkout completed and subscription updated or deleted, write the entitlement (source stripe rows only)
+- [x] Proration on upgrades left at Stripe's default, which credits unused time automatically
+- [x] Seat sync function: whenever a boss team roster changes, recount unique members across that boss's teams and set the extra-seat quantity to anything above 7
+- [x] Turn on the Stripe Customer Portal so members change cards, switch plans, and cancel without you building billing screens
+- [x] The app gates every feature off the entitlements table, never off Stripe directly
+- [x] Test in test mode with Stripe's test cards: trial start, roll to Standard, upgrade with proration, boss seat added past 7, seat removed, cancel
 
 ## Phase 5: Admin panel at /admin, role gated
 

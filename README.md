@@ -68,6 +68,18 @@ npm run test:rls
 - `/api/cron/digest` (nightly, Vercel cron) rolls a busy day's milestone posts into one digest. Needs `CRON_SECRET`.
 - `NEXT_PUBLIC_TADA_URL` (Deb's recorded ta-da) and `NEXT_PUBLIC_TOUR_URL` (tour video embed) are filled in Phase 6.
 
+## Billing (Phase 4)
+
+- `npm run stripe:setup` creates the TaDa products, prices (lookup keys `tada_<plan>_<interval>`), a TaDa-only
+  Customer Portal configuration, and the webhook endpoint for `/api/stripe`. Run it once per Stripe mode
+  (test now, live at launch). It writes the new webhook signing secret to `.env.local`; copy it to Vercel.
+- The Stripe account is shared with other products. Everything TaDa creates carries `metadata.app = tada`,
+  and the webhook ignores subscriptions whose prices are not `tada_*`.
+- Members with no active entitlement see the paywall; checkout gives 14 days free with a card up front.
+- Boss seats: `/api/stripe/seats` runs after roster changes and `/api/cron/seats` re-syncs nightly.
+- `npm run test:stripe` (dev server running, test keys) replays real Stripe events into the local webhook
+  and checks trial start, seat sync, plan change, cancel, and that comp rows are untouched.
+
 ## Project layout
 
 ```
