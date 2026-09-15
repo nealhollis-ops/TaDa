@@ -99,6 +99,8 @@ export async function applySubscription(admin: SupabaseClient, sub: Stripe.Subsc
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
   const userId = sub.metadata?.user_id || (await userIdForCustomer(admin, customerId));
   if (!userId) return null;
+  // Keep the member <-> customer map current so the portal works however the subscription was created.
+  await admin.from("billing_customers").upsert({ user_id: userId, stripe_customer_id: customerId }, { onConflict: "user_id" });
 
   const periodEnd = (info.baseItem as unknown as { current_period_end?: number }).current_period_end ?? (sub as SubLike).current_period_end ?? null;
   // Keep access through the paid period even after a cancel-at-period-end.
