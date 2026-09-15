@@ -40,15 +40,15 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 3: Port the app screen by screen
 
-- [ ] Planner core: Today, Plan, Timeline, the Organize button, repeats with pinned days, calendar weeks Monday through Sunday
-- [ ] Brain dump and the voice command bar call a server route that holds your Anthropic key, with a per-member daily cap of about 30 calls so costs stay at pennies
-- [ ] Celebrations, the ta-da voice, streaks with the Saturday and Sunday rules, badges, Mountain Levels, and ceremonies port as they are
-- [ ] Partners: seeking, requests, accepts, and direct messages running on Supabase Realtime so chat is live with no refresh button
-- [ ] Teams and Boss: rosters, invitations sent BY EMAIL with a magic link, assignments with deadlines, the holding tank, member removal with confirmation, and the seat counter
-- [ ] Community: three rooms, Active and New and Top sorting, collapsed reply counts, @tags, reactions, milestone auto-posts, and a nightly digest job that rolls the day's milestones into one post once volume grows
-- [ ] Blocking, reporting (add a report button beside block), hidden mode, private profiles
-- [ ] Push notifications: service worker plus Web Push, per-device subscriptions saved, fired on new message, partner request, team invite, and assigned work, honoring each member's toggle. iPhone push works once the app is installed to the home screen
-- [ ] Profile photos upload to Storage, the Help section ships as written, mute persists
+- [x] Planner core: Today, Plan, Timeline, the Organize button, repeats with pinned days, calendar weeks Monday through Sunday
+- [x] Brain dump and the voice command bar call a server route that holds your Anthropic key, with a per-member daily cap of about 30 calls so costs stay at pennies
+- [x] Celebrations, the ta-da voice, streaks with the Saturday and Sunday rules, badges, Mountain Levels, and ceremonies port as they are
+- [x] Partners: seeking, requests, accepts, and direct messages running on Supabase Realtime so chat is live with no refresh button
+- [x] Teams and Boss: rosters, invitations sent BY EMAIL with a magic link, assignments with deadlines, the holding tank, member removal with confirmation, and the seat counter
+- [x] Community: three rooms, Active and New and Top sorting, collapsed reply counts, @tags, reactions, milestone auto-posts, and a nightly digest job that rolls the day's milestones into one post once volume grows
+- [x] Blocking, reporting (add a report button beside block), hidden mode, private profiles
+- [x] Push notifications: service worker plus Web Push, per-device subscriptions saved, fired on new message, partner request, team invite, and assigned work, honoring each member's toggle. iPhone push works once the app is installed to the home screen
+- [x] Profile photos upload to Storage, the Help section ships as written, mute persists
 
 ## Phase 4: Stripe paywall
 

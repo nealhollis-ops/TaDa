@@ -56,6 +56,18 @@ npm run test:rls
   Rows with `source = 'comp'` or `'admin'` are never touched by billing; Stripe may only call `apply_stripe_entitlement()`.
 - Admins are `profiles.role = 'admin'`. Members cannot change their own role (database trigger).
 
+## The planner (Phase 3)
+
+- One client-side app shell (`src/components/planner/`) mirrors the prototype: the store owns all state,
+  the tab routes under `src/app/(app)/` render the screens, and `src/lib/planner/` holds the pure rules
+  (calendar weeks, repeats, Organize, streaks with the Saturday/Sunday rules, calendar-bar ops, month rollover).
+- The brain dump and the calendar bar call `POST /api/ai` (Anthropic key stays on the server; 30 calls per member per day).
+- Live updates come from Supabase Realtime; push notifications go through `/api/notify` and the service worker.
+  Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` in Vercel or pushes are silently skipped.
+- Team invitations go out by email from `/api/invites/send`; the link lands on `/invite/<token>`.
+- `/api/cron/digest` (nightly, Vercel cron) rolls a busy day's milestone posts into one digest. Needs `CRON_SECRET`.
+- `NEXT_PUBLIC_TADA_URL` (Deb's recorded ta-da) and `NEXT_PUBLIC_TOUR_URL` (tour video embed) are filled in Phase 6.
+
 ## Project layout
 
 ```

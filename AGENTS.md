@@ -21,3 +21,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Database schema lives in `supabase/migrations/` (idempotent SQL). Apply new migrations in the Supabase SQL Editor; keep the files in git as the source of truth.
 - Auth: server actions in `src/app/login/actions.ts`; email links land on `/auth/callback` or `/auth/confirm` (both use `src/lib/supabase/verify.ts`). Signed-in screens go under `src/app/(app)/` and use `getMe()`.
 - Members must never be able to change `profiles.role`; a trigger enforces it. Run `npm run test:rls` after touching policies.
+- Planner state lives in `src/components/planner/store.tsx` (PlannerProvider); screens under `screens/` only render and call actions. Pure rules go in `src/lib/planner/`, Supabase access in `src/lib/data/`.
+- The Browser pane cannot open websockets, so Realtime never fires there; verify live updates in real Chrome against production.
+- RLS reminders: SELECT policies need a direct ownership column (INSERT...RETURNING), client upserts need an INSERT policy, timestamps go in bigint columns.
