@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/*
+ * TaDa brand tokens (from well-done.jsx):
+ * steel blue anchor, seafoam growth, coral CTA, amber tags, ice white canvas.
+ * Use as Tailwind utilities: bg-navy, text-coral, border-line, bg-gold-soft, etc.
+ */
+@theme {
+  --color-navy: #2c6c8f;
+  --color-navy-2: #245b76;
+  --color-gold: #c98f26;
+  --color-gold-deep: #a9781f;
+  --color-gold-soft: #f4e6c6;
+  --color-cream: #ebf5f3;
+  --color-coral: #ff6b53;
+  --color-coral-soft: #ffe2db;
+  --color-teal: #53b29d;
+  --color-ink: #243742;
+  --color-fade: #7e9099;
+  --color-line: #d8e5e3;
+  --color-mist: #edf3f2;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  /* Keeps the installed app feeling native: no rubber-band overscroll, no tap highlight. */
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Respect the iPhone notch and home bar when installed to the home screen. */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
