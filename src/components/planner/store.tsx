@@ -17,6 +17,7 @@ import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
 import { enablePush, disablePush } from "@/lib/data/push";
 import type { Burst } from "./celebrate";
+import type { Billing } from "@/lib/auth";
 
 export type Ceremony = { id: number; badge: Badge; line1: string; line2: string };
 export type ConfirmRemove = { teamId: string; userId: string; name: string; teamName: string };
@@ -28,6 +29,7 @@ export type PlannerState = {
   sb: SupabaseClient;
   me: MyProfile;
   plan: Plan;
+  billing: Billing | null;
   month: MonthInfo;
   today: string;
   currentWeek: number;
@@ -129,6 +131,8 @@ export type PlannerActions = {
   refreshShared: () => Promise<void>;
   loadCardsFor: (ids: string[]) => Promise<void>;
   showToast: (text: string) => void;
+  startCheckout: (plan: Plan, interval: "monthly" | "yearly") => Promise<void>;
+  openPortal: () => Promise<void>;
 };
 
 const Ctx = createContext<(PlannerState & PlannerActions) | null>(null);
@@ -139,7 +143,8 @@ export function usePlanner() {
   return v;
 }
 
-export function PlannerProvider({ initialMe, initialPlan, children }: { initialMe: MyProfile; initialPlan: Plan | null; children: React.ReactNode }) {
+export function PlannerProvider({ initialMe, initialPlan, initialBilling = null, children }: { initialMe: MyProfile; initialPlan: Plan | null; initialBilling?: Billing | null; children: React.ReactNode }) {
+  const billing = initialBilling;
   const sb = useMemo(() => createClient(), []);
   const month = useMemo(() => currentMonth(), []);
   const today = todayStr();
@@ -854,6 +859,42 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
     [sb, me.id, partnerships, fail],
   );
 
+  // ------------------------------------------------------------- billing --
+  const syncSeats = useCallback((teamId: string) => {
+    fetch("/api/stripe/seats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ teamId }) }).catch(() => {});
+  }, []);
+
+  const startCheckout = useCallback(
+    async (plan: Plan, interval: "monthly" | "yearly") => {
+      try {
+        const res = await fetch("/api/stripe/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan, interval }) });
+        const data = await res.json();
+        if (!res.ok || !data.url) {
+          showToast(data.error || "Checkout did not open. Try again in a moment.");
+          return;
+        }
+        window.location.assign(data.url);
+      } catch {
+        showToast("Checkout did not open. Try again in a moment.");
+      }
+    },
+    [showToast],
+  );
+
+  const openPortal = useCallback(async () => {
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        showToast(data.error || "Billing did not open. Try again in a moment.");
+        return;
+      }
+      window.location.assign(data.url);
+    } catch {
+      showToast("Billing did not open. Try again in a moment.");
+    }
+  }, [showToast]);
+
   // --------------------------------------------------------------- teams --
   const createTeamAction = useCallback(
     async (name: string) => {
@@ -891,8 +932,10 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
   const answerInvite = useCallback(
     async (inv: TeamInvite, join: boolean) => {
       try {
-        if (join) await S.acceptInvite(sb, inv.token);
-        else await S.declineInvite(sb, inv.id);
+        if (join) {
+          await S.acceptInvite(sb, inv.token);
+          if (inv.teamKind === "boss") syncSeats(inv.teamId);
+        } else await S.declineInvite(sb, inv.id);
         const [tms, invs] = await Promise.all([S.loadTeams(sb), S.loadMyInvites(sb)]);
         setTeams(tms);
         setMyInvites(invs);
@@ -903,7 +946,7 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
         fail(e);
       }
     },
-    [sb, ensureMembers, loadCardsFor, fail],
+    [sb, ensureMembers, loadCardsFor, fail, syncSeats],
   );
 
   const cancelInviteAction = useCallback(
@@ -921,13 +964,14 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
       try {
         if (t.ownerId === me.id) await S.deleteTeam(sb, teamId);
         else await S.leaveTeam(sb, me.id, teamId);
+        if (t.kind === "boss") syncSeats(t.id);
         setTeams((list) => (t.ownerId === me.id ? list.filter((x) => x.id !== teamId) : list.map((x) => (x.id === teamId ? { ...x, members: x.members.filter((m) => m !== me.id) } : x))));
         if (openTeam === teamId) setOpenTeam(null);
       } catch (e) {
         fail(e);
       }
     },
-    [sb, me.id, teams, openTeam, fail],
+    [sb, me.id, teams, openTeam, fail, syncSeats],
   );
 
   const removeMemberAction = useCallback(
@@ -936,11 +980,12 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
         await S.removeMember(sb, teamId, userId);
         setTeams((list) => list.map((t) => (t.id === teamId ? { ...t, members: t.members.filter((m) => m !== userId) } : t)));
         setAssignments(await S.loadAssignments(sb));
+        syncSeats(teamId);
       } catch (e) {
         fail(e);
       }
     },
-    [sb, fail],
+    [sb, fail, syncSeats],
   );
 
   const reassignTask = useCallback(
@@ -1110,7 +1155,7 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
   }, [me.onboarding, saveProfile]);
 
   const value: PlannerState & PlannerActions = {
-    sb, me, plan, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, posts, blocked, seekers,
+    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, posts, blocked, seekers,
     burst, bigMsg, ceremony, editing, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
@@ -1118,7 +1163,7 @@ export function PlannerProvider({ initialMe, initialPlan, children }: { initialM
     sendMsg, addPost, addReply, toggleReact,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned,
-    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast,
+    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, startCheckout, openPortal,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

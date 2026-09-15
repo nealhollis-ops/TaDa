@@ -8,6 +8,8 @@ import { BADGE_CATALOG, HELP, levelColor, levelIcon, levelOf, nextLevelAt } from
 import { loadSeatRoster } from "@/lib/data/social";
 import type { SeatRow } from "@/lib/planner/types";
 
+const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "soon");
+
 const PLAN_COPY = {
   standard: "The full planner: voice control, celebrations, community, and one accountability partner. $17 a month, or $170 a year with two months free.",
   teams: "Everything in Standard plus unlimited partners and named team groups with their own discussion and progress view. $27 a month, or $270 a year with two months free.",
@@ -175,9 +177,31 @@ export function AccountScreen() {
         <p className="text-xs" style={{ color: C.goldSoft }}>
           {PLAN_COPY[p.plan]}
         </p>
-        <p className="mt-2 text-xs" style={{ color: C.goldSoft }}>
-          Every new member starts with 14 days free, then rolls into Standard unless they choose a higher plan. Upgrades prorate automatically. Billing and plan changes open at launch.
-        </p>
+        {p.billing?.source === "stripe" ? (
+          <>
+            <p className="mt-2 text-xs" style={{ color: C.goldSoft }}>
+              {p.billing.status === "trialing"
+                ? `Free trial. Your first payment is on ${fmtDate(p.billing.expiresAt)}.`
+                : p.billing.status === "past_due"
+                  ? "Your last payment didn't go through. Update your card to keep your access."
+                  : p.billing.status === "canceled"
+                    ? `Canceled. Access ends ${fmtDate(p.billing.expiresAt)}.`
+                    : `Active. Renews ${fmtDate(p.billing.expiresAt)}.`}
+              {p.plan === "boss" && ` ${p.billing.seatsIncluded} boss seats on your plan.`}
+            </p>
+            <button onClick={() => void p.openPortal()} className="mt-3 rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.gold, color: C.navy }}>
+              Manage billing: change plan, card, or cancel
+            </button>
+          </>
+        ) : (
+          <p className="mt-2 text-xs" style={{ color: C.goldSoft }}>
+            {p.billing?.source === "comp"
+              ? `Complimentary access${p.billing.expiresAt ? ` through ${fmtDate(p.billing.expiresAt)}` : ""}. Nothing to pay.`
+              : p.billing?.source === "admin"
+                ? "Founder access. Nothing to pay, ever."
+                : "Every new member starts with 14 days free, then rolls into the plan they chose. Upgrades prorate automatically."}
+          </p>
+        )}
         {p.me.role === "admin" && (
           <Link href="/admin" className="mt-3 inline-block rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.gold, color: C.navy }}>
             Open the admin panel
