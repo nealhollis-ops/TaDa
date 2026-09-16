@@ -32,7 +32,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen items-center justify-center" style={{ background: C.cream }}>
         <div className="text-center">
           <div style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 34, color: C.navy }}>
-            TaDa<span style={{ color: C.gold }}>!</span>
+            TaDa<span style={{ color: C.coral }}>!</span>
           </div>
           <div className="mt-2 text-sm" style={{ color: C.fade }}>
             Setting up your month...
@@ -46,14 +46,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen" style={{ background: C.cream }}>
       <div className="sticky top-0 z-40 flex items-center justify-between px-5 py-4 shadow" style={{ background: C.navy }}>
         <Link href="/today" style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 24, color: C.cream }}>
-          TaDa<span style={{ color: C.gold }}>!</span>
+          TaDa<span style={{ color: C.coral }}>!</span>
         </Link>
         <div className="flex items-center gap-3">
           <div className="text-sm" style={{ color: C.goldSoft }}>
             {p.month.name} {p.month.year}
           </div>
           <button onClick={p.toggleMute} aria-label="Sound">
-            {p.me.muted ? <VolumeX size={20} style={{ color: C.fade }} /> : <Volume2 size={20} style={{ color: C.cream }} />}
+            {p.me.muted ? <VolumeX size={20} style={{ color: C.goldSoft, opacity: 0.6 }} /> : <Volume2 size={20} style={{ color: C.cream }} />}
           </button>
           <Link href="/account" aria-label="Account">
             <UserCircle size={24} style={{ color: view === "account" ? C.gold : C.cream }} />
@@ -66,11 +66,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {children}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 flex justify-around border-t py-2" style={{ background: C.navy, borderColor: C.navy2, zIndex: 50, paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}>
+      <div className="fixed bottom-0 left-0 right-0 flex justify-around border-t py-2" style={{ background: "#fff", borderColor: C.line, zIndex: 50, paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}>
         {NAV.map(({ id, label, Icon }) => (
           <Link key={id} href={`/${id}`} className="flex flex-col items-center gap-0.5 px-2 py-1">
-            <Icon size={20} style={{ color: view === id ? C.gold : C.fade }} />
-            <span className="font-medium" style={{ fontSize: 10, color: view === id ? C.gold : C.fade }}>
+            <span className="flex items-center justify-center rounded-full" style={{ width: 44, height: 26, background: view === id ? C.gold : "transparent", color: view === id ? "#fff" : C.navy }}>
+              <Icon size={20} />
+            </span>
+            <span style={{ fontSize: 11, color: C.navy, fontWeight: view === id ? 700 : 500 }}>
               {label}
             </span>
           </Link>
@@ -139,7 +141,7 @@ function CommandBar() {
           }}
         />
         <button onClick={() => void p.runCommand()} disabled={p.cmdBusy} className="rounded-xl px-4" style={{ background: C.gold, opacity: p.cmdBusy ? 0.7 : 1 }} aria-label="Send">
-          {p.cmdBusy ? <RefreshCw size={18} className="animate-spin" style={{ color: C.navy }} /> : <Send size={18} style={{ color: C.navy }} />}
+          {p.cmdBusy ? <RefreshCw size={18} className="animate-spin" style={{ color: "#fff" }} /> : <Send size={18} style={{ color: "#fff" }} />}
         </button>
       </div>
       {p.cmdSay && (
@@ -192,7 +194,7 @@ function OnboardingWidget() {
           </div>
         </div>
       ) : (
-        <button onClick={() => p.set("onbOpen", true)} className="rounded-full px-4 py-2.5 text-xs font-bold shadow-xl" style={{ background: C.gold, color: C.navy }}>
+        <button onClick={() => p.set("onbOpen", true)} className="rounded-full px-4 py-2.5 text-xs font-bold shadow-xl" style={{ background: C.gold, color: "#fff" }}>
           Getting started · {p.onbDoneCount} of {p.onbItems.length}
         </button>
       )}
@@ -277,7 +279,7 @@ function ProfileModal({ id }: { id: string }) {
             This profile is private.
           </p>
           {!isMe && !blocked && (
-            <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#F3DBD3", color: C.coral }}>
+            <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#FFE4E9", color: C.coral }}>
               Block this member
             </button>
           )}
@@ -300,9 +302,9 @@ function ProfileModal({ id }: { id: string }) {
           </div>
           {card.stats ? (
             <div className="mb-3 flex flex-wrap gap-2">
-              <Chip color="#9B2915" bg="#F3DBD3">🔥 {card.stats.streak} day streak</Chip>
-              <Chip color={C.navy2} bg="#F1EAD5">Best {card.stats.bestStreak}</Chip>
-              <Chip color={levelColor(level)} bg="#DCEDEE">
+              <Chip color="#F43F5E" bg="#FFE4E9">🔥 {card.stats.streak} day streak</Chip>
+              <Chip color={C.navy2} bg="#E0F2FE">Best {card.stats.bestStreak}</Chip>
+              <Chip color={levelColor(level)} bg="#E0F2FE">
                 {levelIcon(level)} Level {level}
               </Chip>
             </div>
@@ -360,15 +362,15 @@ function ProfileModal({ id }: { id: string }) {
           {!isMe && (
             <div className="mt-2 flex gap-2">
               {blocked ? (
-                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F1EAD5", color: C.ink }}>
+                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#E0F2FE", color: C.ink }}>
                   Unblock {card.name}
                 </button>
               ) : (
-                <button onClick={() => void p.blockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F3DBD3", color: C.coral }}>
+                <button onClick={() => void p.blockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#FFE4E9", color: C.coral }}>
                   Block this member
                 </button>
               )}
-              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#F1EAD5", color: C.ink }}>
+              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#E0F2FE", color: C.ink }}>
                 Report
               </button>
             </div>
@@ -415,7 +417,7 @@ function ConfirmRemoveModal() {
             : `This frees one of your 7 included seats. You'll be using ${Math.max(0, p.seatCount - 1)} of 7.`}
       </p>
       <div className="flex gap-2">
-        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#F1EAD5", color: C.ink }}>
+        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#E0F2FE", color: C.ink }}>
           Keep them
         </button>
         <button
@@ -508,7 +510,7 @@ function EditSheet() {
         Big win
       </label>
       <div className="flex gap-2">
-        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: "#F3DBD3" }} aria-label="Delete task">
+        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: "#FFE4E9" }} aria-label="Delete task">
           <Trash2 size={16} style={{ color: C.coral }} />
         </button>
         <button onClick={() => p.saveEdit(e)} className="flex-1 rounded-xl py-2.5 font-semibold" style={{ background: C.navy, color: C.cream }}>

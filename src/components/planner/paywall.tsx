@@ -36,7 +36,7 @@ export function Paywall({ name, billing }: { name: string; billing: Billing | nu
     <div className="min-h-screen px-5 py-8" style={{ background: C.cream }}>
       <div className="mx-auto max-w-md">
         <div className="text-center" style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 36, color: C.navy }}>
-          TaDa<span style={{ color: C.gold }}>!</span>
+          TaDa<span style={{ color: C.coral }}>!</span>
         </div>
         <h1 className="mt-3 text-center text-xl font-bold" style={{ color: C.navy }}>
           {ended ? `Welcome back, ${name}.` : `Hi ${name}. Pick your plan.`}
@@ -56,7 +56,7 @@ export function Paywall({ name, billing }: { name: string; billing: Billing | nu
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl px-3 py-2 text-center text-sm font-medium" style={{ background: "#F3DBD3", color: C.coral }}>
+          <p className="mt-4 rounded-xl px-3 py-2 text-center text-sm font-medium" style={{ background: "#FFE4E9", color: C.coral }}>
             {error}
           </p>
         )}

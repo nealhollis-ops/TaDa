@@ -41,7 +41,7 @@ export function PlanScreen() {
         <button onClick={() => p.set("showAdd", !p.showAdd)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff" }}>
           <Plus size={18} /> Add task
         </button>
-        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.gold, color: C.navy }}>
+        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.gold, color: "#fff" }}>
           <Sparkles size={18} /> Organize
         </button>
       </div>
@@ -67,7 +67,7 @@ export function PlanScreen() {
           value={dumpText}
           onChange={(e) => setDumpText(e.target.value)}
         />
-        <button onClick={() => void parse()} disabled={dumpBusy} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-semibold" style={{ background: C.gold, color: C.navy, opacity: dumpBusy ? 0.7 : 1 }}>
+        <button onClick={() => void parse()} disabled={dumpBusy} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-semibold" style={{ background: C.gold, color: "#fff", opacity: dumpBusy ? 0.7 : 1 }}>
           <Wand2 size={16} /> {dumpBusy ? "Sorting it out..." : "Make it into tasks"}
         </button>
         {dumpPreview.length > 0 && (
@@ -78,7 +78,7 @@ export function PlanScreen() {
             {dumpPreview.map((x, i) => (
               <div key={i} className="flex items-center gap-2 py-1.5" style={{ borderBottom: `1px solid ${C.line}` }}>
                 <button onClick={() => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, big: !y.big } : y)))} aria-label="Big win">
-                  <Star size={15} style={{ color: C.gold, fill: x.big ? C.gold : "none" }} />
+                  <Star size={15} style={{ color: C.coral, fill: x.big ? C.coral : "none" }} />
                 </button>
                 <span className="flex-1 truncate text-sm" style={{ color: C.ink }}>
                   {x.title}
