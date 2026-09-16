@@ -149,7 +149,7 @@ export function AccountScreen() {
             const cur = b.val(p.stats, hasPartner);
             const earned = cur >= b.target;
             return (
-              <div key={b.id} className="rounded-xl p-2 text-center" style={{ background: earned ? C.goldSoft : "#E0F2FE", opacity: earned ? 1 : 0.45 }}>
+              <div key={b.id} className="rounded-xl p-2 text-center" style={{ background: earned ? C.goldSoft : "#F1E7D0", opacity: earned ? 1 : 0.45 }}>
                 <div style={{ fontSize: 20 }}>{b.e}</div>
                 <div className="font-semibold" style={{ fontSize: 9, color: C.navy }}>
                   {b.name}
@@ -189,7 +189,7 @@ export function AccountScreen() {
                     : `Active. Renews ${fmtDate(p.billing.expiresAt)}.`}
               {p.plan === "boss" && ` ${p.billing.seatsIncluded} boss seats on your plan.`}
             </p>
-            <button onClick={() => void p.openPortal()} className="mt-3 rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.gold, color: "#fff" }}>
+            <button onClick={() => void p.openPortal()} className="mt-3 rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.goldSoft, color: C.goldDeep }}>
               Manage billing: change plan, card, or cancel
             </button>
           </>
@@ -203,7 +203,7 @@ export function AccountScreen() {
           </p>
         )}
         {p.me.role === "admin" && (
-          <Link href="/admin" className="mt-3 inline-block rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.gold, color: "#fff" }}>
+          <Link href="/admin" className="mt-3 inline-block rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.goldSoft, color: C.goldDeep }}>
             Open the admin panel
           </Link>
         )}

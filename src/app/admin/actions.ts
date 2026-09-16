@@ -188,16 +188,16 @@ export async function setPinned(_prev: AdminResult, formData: FormData): Promise
 
 function inviteHtml(from: string, plan: Plan, link: string) {
   const planName = plan === "boss" ? "Boss" : plan === "teams" ? "Teams" : "Standard";
-  return `<!doctype html><html><body style="margin:0;padding:0;background:#F0F9FF;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#163B52;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F0F9FF;padding:32px 16px;"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;border:1px solid #BFE3F7;">
-<tr><td style="padding:32px 32px 8px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#0C4A6E;">TaDa</div>
-<div style="font-size:13px;color:#4B6B82;margin-top:4px;">Plan your day, check it off, and hear the ta-da.</div></td></tr>
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#F2F3F5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#2A3240;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2F3F5;padding:32px 16px;"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;border:1px solid #D3D8DE;">
+<tr><td style="padding:32px 32px 8px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#334E68;">TaDa</div>
+<div style="font-size:13px;color:#6B7480;margin-top:4px;">Plan your day, check it off, and hear the ta-da.</div></td></tr>
 <tr><td style="padding:16px 32px 0;"><h1 style="margin:0 0 8px;font-size:22px;">Your TaDa ${planName} access is ready</h1>
 <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">${escapeHtml(from)} set you up with TaDa ${planName} at no charge. Create your account with this email address and you land straight in your planner. No checkout, no card.</p>
-<p style="margin:0 0 24px;text-align:center;"><a href="${link}" style="display:inline-block;background:#F43F5E;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 28px;border-radius:999px;">Create my account</a></p>
-<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#4B6B82;">Or copy this link: <span style="word-break:break-all;color:#0C4A6E;">${link}</span></p></td></tr>
-<tr><td style="padding:16px 32px 28px;font-size:12px;line-height:1.5;color:#4B6B82;border-top:1px solid #BFE3F7;">Questions? Write to clientcare@gettada.me.</td></tr>
+<p style="margin:0 0 24px;text-align:center;"><a href="${link}" style="display:inline-block;background:#A4483D;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 28px;border-radius:999px;">Create my account</a></p>
+<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#6B7480;">Or copy this link: <span style="word-break:break-all;color:#334E68;">${link}</span></p></td></tr>
+<tr><td style="padding:16px 32px 28px;font-size:12px;line-height:1.5;color:#6B7480;border-top:1px solid #D3D8DE;">Questions? Write to clientcare@gettada.me.</td></tr>
 </table></td></tr></table></body></html>`;
 }
 

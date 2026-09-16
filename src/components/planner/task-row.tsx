@@ -16,31 +16,31 @@ export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
       </button>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium" style={{ color: C.ink, textDecoration: t.done ? "line-through" : "none" }}>
-          {t.big && <Star size={13} className="mr-1 inline" style={{ color: C.coral, fill: C.coral }} />}
+          {t.big && <Star size={13} className="mr-1 inline" style={{ color: C.gold, fill: C.gold }} />}
           {t.title}
         </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {showDay && <Chip>{t.date ? dayLabel(p.month, t.date) : "Day TBD"}</Chip>}
-          <Chip color={C.navy2} bg={C.goldSoft}>
+          <Chip color={C.goldDeep} bg={C.goldSoft}>
             {t.block === "auto" ? "Time TBD" : blockLabel(t.block)}
           </Chip>
           {t.repeat === "daily" && (
-            <Chip color={C.teal} bg="#E0F2FE">
+            <Chip color={C.goldDeep} bg={C.goldSoft}>
               Daily
             </Chip>
           )}
           {t.repeat === "weekdays" && (
-            <Chip color={C.teal} bg="#E0F2FE">
+            <Chip color={C.goldDeep} bg={C.goldSoft}>
               Mon - Fri
             </Chip>
           )}
           {t.repeat === "weekly" && (
-            <Chip color={C.teal} bg="#E0F2FE">
+            <Chip color={C.goldDeep} bg={C.goldSoft}>
               {t.anchor === null || t.anchor === undefined ? "Weekly" : `Every ${WD[t.anchor]}`}
             </Chip>
           )}
           {t.repeat === "monthly" && (
-            <Chip color={C.coral} bg="#FFE4E9">
+            <Chip color={C.coral} bg="#F3E1DD">
               {t.anchor ? `Monthly, the ${ord(t.anchor)}` : "Monthly"}
             </Chip>
           )}

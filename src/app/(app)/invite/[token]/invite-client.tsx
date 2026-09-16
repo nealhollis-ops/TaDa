@@ -69,7 +69,7 @@ export function InviteClient({ token }: { token: string }) {
               </p>
             )}
             <div className="flex gap-2">
-              <button onClick={() => router.replace("/partners")} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#E0F2FE", color: C.ink }}>
+              <button onClick={() => router.replace("/partners")} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#F1E7D0", color: C.ink }}>
                 Not now
               </button>
               <button onClick={() => void join()} disabled={busy} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.teal, color: "#fff", opacity: busy ? 0.7 : 1 }}>
