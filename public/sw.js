@@ -3,7 +3,7 @@
  * - Handles Web Push messages (wired up in Phase 3).
  * Bump CACHE_VERSION whenever you change this file so old caches are dropped.
  */
-const CACHE_VERSION = "tada-v2";
+const CACHE_VERSION = "tada-v3";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/audio/tada.mp3"];
 
