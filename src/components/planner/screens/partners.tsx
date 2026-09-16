@@ -64,7 +64,7 @@ export function PartnersScreen() {
                 <span className="font-bold">{p.nameOf(r.fromUser)}</span> wants to be your accountability partner.
               </span>
               {!canAddPartner ? (
-                <Link href="/account" className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: "#F1E7D0", color: C.fade }}>
+                <Link href="/account" className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.fade }}>
                   Upgrade to add
                 </Link>
               ) : (
@@ -72,7 +72,7 @@ export function PartnersScreen() {
                   Accept
                 </button>
               )}
-              <button onClick={() => void p.declineRequest(r)} className="rounded-xl px-2 py-1.5" style={{ background: "#F1E7D0" }} aria-label="Decline">
+              <button onClick={() => void p.declineRequest(r)} className="rounded-xl px-2 py-1.5" style={{ background: "#F3E1DD" }} aria-label="Decline">
                 <X size={14} style={{ color: C.fade }} />
               </button>
             </div>
@@ -166,7 +166,7 @@ export function PartnersScreen() {
                   </div>
                 </div>
               </button>
-              <button onClick={() => void p.sendRequest(s.id)} disabled={disabled} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: disabled ? "#F1E7D0" : C.navy, color: disabled ? C.fade : C.cream }}>
+              <button onClick={() => void p.sendRequest(s.id)} disabled={disabled} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: disabled ? "#F3E1DD" : C.navy, color: disabled ? C.fade : C.cream }}>
                 {asked ? "Asked" : !canAddPartner ? "Upgrade to add" : "Ask to partner"}
               </button>
             </div>
@@ -204,7 +204,7 @@ export function PartnersScreen() {
               <button onClick={() => void p.answerInvite(inv, true)} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.teal, color: "#fff" }}>
                 Join
               </button>
-              <button onClick={() => void p.answerInvite(inv, false)} className="rounded-xl px-2 py-1.5" style={{ background: "#F1E7D0" }} aria-label="Decline">
+              <button onClick={() => void p.answerInvite(inv, false)} className="rounded-xl px-2 py-1.5" style={{ background: "#F3E1DD" }} aria-label="Decline">
                 <X size={14} style={{ color: C.fade }} />
               </button>
             </div>

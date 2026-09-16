@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 type Search = Promise<{ q?: string; plan?: string; status?: string }>;
 
 const badge = (text: string, tone: "navy" | "gold" | "coral" | "teal" | "fade") => {
-  const map = { navy: "bg-mist text-navy-2", gold: "bg-gold-soft text-gold-deep", coral: "bg-coral-soft text-coral", teal: "bg-[#F1E7D0] text-teal", fade: "bg-mist text-fade" };
+  const map = { navy: "bg-mist text-navy-2", gold: "bg-gold-soft text-gold-deep", coral: "bg-coral-soft text-coral", teal: "bg-[#F3E1DD] text-teal", fade: "bg-mist text-fade" };
   return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${map[tone]}`}>{text}</span>;
 };
 

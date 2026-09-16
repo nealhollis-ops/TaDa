@@ -8,9 +8,9 @@ import type { Badge } from "@/lib/planner/types";
 export const C = {
   navy: "#334E68",
   navy2: "#4A6FA5",
-  gold: "#C99A3B",
-  goldDeep: "#7A5A1E",
-  goldSoft: "#F1E7D0",
+  gold: "#A4483D",
+  goldDeep: "#8A3D33",
+  goldSoft: "#F3E1DD",
   mist: "#E1E7EE",
   cream: "#F2F3F5",
   coral: "#A4483D",
@@ -53,7 +53,7 @@ export const renderRich = (text: string) =>
     .split(/(@[\w'-]+)/g)
     .map((part, i) =>
       part.startsWith("@") ? (
-        <span key={i} style={{ color: "#7A5A1E", fontWeight: 700 }}>
+        <span key={i} style={{ color: "#8A3D33", fontWeight: 700 }}>
           {part}
         </span>
       ) : (

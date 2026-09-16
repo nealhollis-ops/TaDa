@@ -34,7 +34,7 @@ export const blockLabel = (b: string) => BLOCK_META.find((x) => x.id === b)?.lab
 
 export const PTYPE_META = {
   question: { label: "Question", color: "#3F7D5C" },
-  win: { label: "Win", color: "#7A5A1E" },
+  win: { label: "Win", color: "#8A3D33" },
   boost: { label: "Boost", color: "#A4483D" },
 } as const;
 
@@ -102,7 +102,7 @@ export const nextLevelAt = (total: number) => {
   const over = total - 1000;
   return 1000 + (Math.floor(over / 300) + 1) * 300;
 };
-export const levelColor = (lv: number) => (lv >= 10 ? "#A4483D" : lv >= 7 ? "#7A5A1E" : lv >= 4 ? "#4A6FA5" : "#3F7D5C");
+export const levelColor = (lv: number) => (lv >= 10 ? "#A4483D" : lv >= 7 ? "#8A3D33" : lv >= 4 ? "#4A6FA5" : "#3F7D5C");
 export const levelIcon = (lv: number) => (lv >= 10 ? "🌋" : lv >= 7 ? "🏔️" : "⛰️");
 
 // ---------- help content ----------

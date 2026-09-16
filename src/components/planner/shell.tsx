@@ -303,8 +303,8 @@ function ProfileModal({ id }: { id: string }) {
           {card.stats ? (
             <div className="mb-3 flex flex-wrap gap-2">
               <Chip color="#A4483D" bg="#F3E1DD">🔥 {card.stats.streak} day streak</Chip>
-              <Chip color={C.navy2} bg="#F1E7D0">Best {card.stats.bestStreak}</Chip>
-              <Chip color={levelColor(level)} bg="#F1E7D0">
+              <Chip color={C.navy2} bg="#F3E1DD">Best {card.stats.bestStreak}</Chip>
+              <Chip color={levelColor(level)} bg="#F3E1DD">
                 {levelIcon(level)} Level {level}
               </Chip>
             </div>
@@ -362,7 +362,7 @@ function ProfileModal({ id }: { id: string }) {
           {!isMe && (
             <div className="mt-2 flex gap-2">
               {blocked ? (
-                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F1E7D0", color: C.ink }}>
+                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.ink }}>
                   Unblock {card.name}
                 </button>
               ) : (
@@ -370,7 +370,7 @@ function ProfileModal({ id }: { id: string }) {
                   Block this member
                 </button>
               )}
-              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#F1E7D0", color: C.ink }}>
+              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.ink }}>
                 Report
               </button>
             </div>
@@ -417,7 +417,7 @@ function ConfirmRemoveModal() {
             : `This frees one of your 7 included seats. You'll be using ${Math.max(0, p.seatCount - 1)} of 7.`}
       </p>
       <div className="flex gap-2">
-        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#F1E7D0", color: C.ink }}>
+        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#F3E1DD", color: C.ink }}>
           Keep them
         </button>
         <button
