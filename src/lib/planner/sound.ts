@@ -1,18 +1,45 @@
 /**
- * Check-off sound and buzz: a real "ta-da!".
- * Order of preference: Deb's recorded clip (NEXT_PUBLIC_TADA_URL), then the
- * device voice, then a soft synthesized chord. Sound is a bonus, never a blocker.
+ * Check-off sound and buzz: Deb's real "Ta-Da!".
+ * The recording ships with the app at /audio/tada.mp3 (NEXT_PUBLIC_TADA_URL can
+ * point somewhere else). If the clip cannot play (it has not loaded yet, or the
+ * browser blocks audio before the first tap), the app stays quiet or plays the
+ * soft chime. There is no synthesized voice anywhere.
  */
-const TADA_URL = process.env.NEXT_PUBLIC_TADA_URL ?? "";
+const TADA_URL = process.env.NEXT_PUBLIC_TADA_URL || "/audio/tada.mp3";
 
 let audioCtx: AudioContext | null = null;
 let soundOn = true;
 let tadaEl: HTMLAudioElement | null = null;
+let unlocked = false;
 
 export const setSoundOn = (on: boolean) => {
   soundOn = on;
 };
 export const isSoundOn = () => soundOn;
+
+const clip = () => {
+  if (typeof window === "undefined") return null;
+  if (!tadaEl) {
+    tadaEl = new Audio(TADA_URL);
+    tadaEl.preload = "auto";
+  }
+  return tadaEl;
+};
+
+/**
+ * Browsers only allow sound after a user gesture. Call this from the first
+ * tap so the clip is decoded and ready before the first check-off.
+ */
+export const primeSound = () => {
+  const el = clip();
+  if (!el || unlocked) return;
+  unlocked = true;
+  try {
+    el.load();
+  } catch {
+    /* fine */
+  }
+};
 
 type WebkitWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
@@ -26,35 +53,23 @@ const ctx = () => {
   return audioCtx;
 };
 
-export const sayTada = (big: boolean): boolean => {
+/** Play Deb's clip. Resolves true when playback started. */
+export const sayTada = (): boolean => {
   if (!soundOn) return false;
-  if (TADA_URL) {
-    try {
-      tadaEl = tadaEl || new Audio(TADA_URL);
-      tadaEl.currentTime = 0;
-      void tadaEl.play();
-      return true;
-    } catch {
-      /* fall through to the device voice */
-    }
-  }
+  const el = clip();
+  if (!el) return false;
   try {
-    if (!window.speechSynthesis) return false;
-    const u = new SpeechSynthesisUtterance(big ? "ta-daaaa!" : "ta-daa!");
-    u.rate = big ? 0.8 : 0.95;
-    u.pitch = 1.5;
-    u.volume = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+    el.currentTime = 0;
+    const p = el.play();
+    if (p && typeof p.catch === "function") p.catch(() => {});
     return true;
   } catch {
     return false;
   }
 };
 
-export const playChime = (big: boolean) => {
-  if (!soundOn) return;
-  if (sayTada(big)) return;
+/** Soft chime used only when the clip itself cannot play. */
+const chime = (big: boolean) => {
   try {
     const ac = ctx();
     if (!ac) return;
@@ -74,17 +89,18 @@ export const playChime = (big: boolean) => {
       o.stop(start + len + 0.05);
     };
     soft(392.0, t, 0.22, 0.12);
-    soft(392.0, t, 0.22, 0.05, "triangle");
     const daAt = t + 0.2;
     const daLen = big ? 1.9 : 1.4;
-    [261.63, 523.25, 659.25, 783.99].forEach((fr, i) => {
-      soft(fr, daAt, daLen, i === 0 ? 0.08 : 0.11);
-      soft(fr * 1.003, daAt, daLen, 0.04, "triangle");
-    });
-    if (big) soft(1046.5, daAt + 0.15, daLen, 0.06);
+    [261.63, 523.25, 659.25, 783.99].forEach((fr, i) => soft(fr, daAt, daLen, i === 0 ? 0.08 : 0.11));
   } catch {
     /* sound is a bonus, never a blocker */
   }
+};
+
+export const playChime = (big: boolean) => {
+  if (!soundOn) return;
+  if (sayTada()) return;
+  chime(big);
 };
 
 export const buzz = (big: boolean) => {
@@ -103,13 +119,14 @@ export const buzzGrand = () => {
   }
 };
 
-// Full fanfare for badge milestones
+// Full fanfare for badge milestones: Deb's ta-da, then the brass.
 export const playGrand = () => {
   if (!soundOn) return;
+  sayTada();
   try {
     const ac = ctx();
     if (!ac) return;
-    const t = ac.currentTime;
+    const t = ac.currentTime + 0.9;
     const note = (freq: number, start: number, len: number, vol: number, type: OscillatorType = "sawtooth") => {
       const o = ac.createOscillator();
       const f = ac.createBiquadFilter();
@@ -141,26 +158,8 @@ export const playGrand = () => {
   }
 };
 
-/** Opening greeting: the recorded clip if we have it, else the device voice. */
+/** Opening greeting: Deb's clip, nothing else. */
 export const greet = () => {
   if (!soundOn) return;
-  if (TADA_URL) {
-    try {
-      tadaEl = tadaEl || new Audio(TADA_URL);
-      tadaEl.currentTime = 0;
-      void tadaEl.play().catch(() => {});
-      return;
-    } catch {
-      /* fall through */
-    }
-  }
-  try {
-    if (!window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance("ta-daa!");
-    u.rate = 0.95;
-    u.pitch = 1.5;
-    window.speechSynthesis.speak(u);
-  } catch {
-    /* greeting is a bonus */
-  }
+  sayTada();
 };

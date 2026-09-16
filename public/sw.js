@@ -3,9 +3,9 @@
  * - Handles Web Push messages (wired up in Phase 3).
  * Bump CACHE_VERSION whenever you change this file so old caches are dropped.
  */
-const CACHE_VERSION = "tada-v1";
+const CACHE_VERSION = "tada-v2";
 const OFFLINE_URL = "/offline";
-const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"];
+const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/audio/tada.mp3"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

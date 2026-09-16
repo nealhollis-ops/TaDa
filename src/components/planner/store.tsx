@@ -10,7 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { dayOfYear, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
-import { buzz, buzzGrand, greet, playChime, playGrand, setSoundOn } from "@/lib/planner/sound";
+import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import { DEF_STATS, type Assignment, type Badge, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
@@ -414,6 +414,8 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     greetRef.current = true;
     greet();
     const onFirstTap = () => {
+      // Browsers unlock audio on the first tap: decode the clip now so the first check-off plays instantly.
+      primeSound();
       greet();
       window.removeEventListener("pointerdown", onFirstTap);
     };
