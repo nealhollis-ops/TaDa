@@ -63,15 +63,15 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 5: Admin panel at /admin, role gated
 
-- [ ] Member search by name, email, plan, and status
-- [ ] Comp grants: set any member to any level free with source comp and an optional expiry date. This is the Faith Hub Unleashed flow
-- [ ] Bulk comp: paste a list of emails, pick a level, grant them all at once for package members
-- [ ] Invite with a plan attached: send a signup link that lands the person already at their comped level so they never see a checkout page
-- [ ] Moderation: delete any post or reply, ban an account, and a reports queue fed by the report button
-- [ ] Refund button that deep-links to the member's Stripe record
-- [ ] Announcements: write and pin a post to the top of the community
-- [ ] Simple numbers: signups, trials running, conversions, cancels, daily actives
-- [ ] Verify Deb and Neal can log in, reach /admin, and hold Boss-level access everywhere in the app
+- [x] Member search by name, email, plan, and status
+- [x] Comp grants: set any member to any level free with source comp and an optional expiry date. This is the Faith Hub Unleashed flow
+- [x] Bulk comp: paste a list of emails, pick a level, grant them all at once for package members
+- [x] Invite with a plan attached: send a signup link that lands the person already at their comped level so they never see a checkout page
+- [x] Moderation: delete any post or reply, ban an account, and a reports queue fed by the report button
+- [x] Refund button that deep-links to the member's Stripe record
+- [x] Announcements: write and pin a post to the top of the community
+- [x] Simple numbers: signups, trials running, conversions, cancels, daily actives
+- [x] Verify Deb and Neal can log in, reach /admin, and hold Boss-level access everywhere in the app
 
 ## Phase 6: Content, legal, and email
 

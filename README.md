@@ -80,6 +80,15 @@ npm run test:rls
 - `npm run test:stripe` (dev server running, test keys) replays real Stripe events into the local webhook
   and checks trial start, seat sync, plan change, cancel, and that comp rows are untouched.
 
+## Admin panel (Phase 5)
+
+- `/admin` is gated by `requireAdmin()` (profiles.role = admin) and reads through the service-role client.
+- Numbers, member search (name/email/plan/status), member page with comp grant, ban, and a Stripe deep link
+  for refunds; bulk comp by pasted emails (existing members granted at once, unknown emails become comp
+  invites that the signup trigger redeems automatically, optionally emailed a signup link); moderation with
+  the reports queue and recent posts; pinned announcements.
+- Every admin action is written to `admin_log`. Banned members see a closed-account screen on sign-in.
+
 ## Project layout
 
 ```

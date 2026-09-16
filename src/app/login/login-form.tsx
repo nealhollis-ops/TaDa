@@ -15,10 +15,12 @@ export function LoginForm({
   next,
   initialError,
   initialMode,
+  initialEmail,
 }: {
   next?: string;
   initialError?: string;
   initialMode?: string;
+  initialEmail?: string;
 }) {
   const [mode, setMode] = useState<AuthMode>(
     initialMode === "signup" || initialMode === "magic" || initialMode === "forgot" ? initialMode : "signin",
@@ -64,6 +66,7 @@ export function LoginForm({
           autoComplete="email"
           required
           inputMode="email"
+          defaultValue={initialEmail ?? ""}
           className={input}
         />
 
