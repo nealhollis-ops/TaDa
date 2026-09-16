@@ -25,22 +25,22 @@ export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
             {t.block === "auto" ? "Time TBD" : blockLabel(t.block)}
           </Chip>
           {t.repeat === "daily" && (
-            <Chip color={C.teal} bg="#DDF0EA">
+            <Chip color={C.teal} bg="#DCEDEE">
               Daily
             </Chip>
           )}
           {t.repeat === "weekdays" && (
-            <Chip color={C.teal} bg="#DDF0EA">
+            <Chip color={C.teal} bg="#DCEDEE">
               Mon - Fri
             </Chip>
           )}
           {t.repeat === "weekly" && (
-            <Chip color={C.teal} bg="#DDF0EA">
+            <Chip color={C.teal} bg="#DCEDEE">
               {t.anchor === null || t.anchor === undefined ? "Weekly" : `Every ${WD[t.anchor]}`}
             </Chip>
           )}
           {t.repeat === "monthly" && (
-            <Chip color={C.coral} bg="#FFE2DB">
+            <Chip color={C.coral} bg="#F3DBD3">
               {t.anchor ? `Monthly, the ${ord(t.anchor)}` : "Monthly"}
             </Chip>
           )}

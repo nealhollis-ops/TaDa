@@ -56,7 +56,7 @@ export function Paywall({ name, billing }: { name: string; billing: Billing | nu
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl px-3 py-2 text-center text-sm font-medium" style={{ background: "#FFE2DB", color: C.coral }}>
+          <p className="mt-4 rounded-xl px-3 py-2 text-center text-sm font-medium" style={{ background: "#F3DBD3", color: C.coral }}>
             {error}
           </p>
         )}

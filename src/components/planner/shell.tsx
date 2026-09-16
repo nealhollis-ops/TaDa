@@ -277,7 +277,7 @@ function ProfileModal({ id }: { id: string }) {
             This profile is private.
           </p>
           {!isMe && !blocked && (
-            <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#FFE2DB", color: C.coral }}>
+            <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#F3DBD3", color: C.coral }}>
               Block this member
             </button>
           )}
@@ -300,9 +300,9 @@ function ProfileModal({ id }: { id: string }) {
           </div>
           {card.stats ? (
             <div className="mb-3 flex flex-wrap gap-2">
-              <Chip color="#FF6B53" bg="#FFE2DB">🔥 {card.stats.streak} day streak</Chip>
-              <Chip color={C.navy2} bg="#EDF3F2">Best {card.stats.bestStreak}</Chip>
-              <Chip color={levelColor(level)} bg="#E2F1EC">
+              <Chip color="#9B2915" bg="#F3DBD3">🔥 {card.stats.streak} day streak</Chip>
+              <Chip color={C.navy2} bg="#F1EAD5">Best {card.stats.bestStreak}</Chip>
+              <Chip color={levelColor(level)} bg="#DCEDEE">
                 {levelIcon(level)} Level {level}
               </Chip>
             </div>
@@ -360,15 +360,15 @@ function ProfileModal({ id }: { id: string }) {
           {!isMe && (
             <div className="mt-2 flex gap-2">
               {blocked ? (
-                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#EDF3F2", color: C.ink }}>
+                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F1EAD5", color: C.ink }}>
                   Unblock {card.name}
                 </button>
               ) : (
-                <button onClick={() => void p.blockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#FFE2DB", color: C.coral }}>
+                <button onClick={() => void p.blockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F3DBD3", color: C.coral }}>
                   Block this member
                 </button>
               )}
-              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#EDF3F2", color: C.ink }}>
+              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#F1EAD5", color: C.ink }}>
                 Report
               </button>
             </div>
@@ -415,7 +415,7 @@ function ConfirmRemoveModal() {
             : `This frees one of your 7 included seats. You'll be using ${Math.max(0, p.seatCount - 1)} of 7.`}
       </p>
       <div className="flex gap-2">
-        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#EDF3F2", color: C.ink }}>
+        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#F1EAD5", color: C.ink }}>
           Keep them
         </button>
         <button
@@ -508,7 +508,7 @@ function EditSheet() {
         Big win
       </label>
       <div className="flex gap-2">
-        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: "#FFE2DB" }} aria-label="Delete task">
+        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: "#F3DBD3" }} aria-label="Delete task">
           <Trash2 size={16} style={{ color: C.coral }} />
         </button>
         <button onClick={() => p.saveEdit(e)} className="flex-1 rounded-xl py-2.5 font-semibold" style={{ background: C.navy, color: C.cream }}>

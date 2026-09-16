@@ -135,7 +135,7 @@ export function CommunityScreen() {
                 const arr = post.reactions[r.id] || [];
                 const mine = arr.includes(p.me.id);
                 return (
-                  <button key={r.id} onClick={() => void p.toggleReact(post.id, r.id as ReactKind)} className="flex items-center gap-1 rounded-full px-2 py-1 text-xs" style={{ background: mine ? C.goldSoft : "#EDF3F2", border: mine ? `1px solid ${C.gold}` : "1px solid transparent", color: C.ink }}>
+                  <button key={r.id} onClick={() => void p.toggleReact(post.id, r.id as ReactKind)} className="flex items-center gap-1 rounded-full px-2 py-1 text-xs" style={{ background: mine ? C.goldSoft : "#F1EAD5", border: mine ? `1px solid ${C.gold}` : "1px solid transparent", color: C.ink }}>
                     <span>{r.e}</span>
                     <span className="font-semibold">{arr.length}</span>
                   </button>

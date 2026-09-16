@@ -64,7 +64,7 @@ export function PartnersScreen() {
                 <span className="font-bold">{p.nameOf(r.fromUser)}</span> wants to be your accountability partner.
               </span>
               {!canAddPartner ? (
-                <Link href="/account" className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: "#EDF3F2", color: C.fade }}>
+                <Link href="/account" className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: "#F1EAD5", color: C.fade }}>
                   Upgrade to add
                 </Link>
               ) : (
@@ -72,7 +72,7 @@ export function PartnersScreen() {
                   Accept
                 </button>
               )}
-              <button onClick={() => void p.declineRequest(r)} className="rounded-xl px-2 py-1.5" style={{ background: "#EDF3F2" }} aria-label="Decline">
+              <button onClick={() => void p.declineRequest(r)} className="rounded-xl px-2 py-1.5" style={{ background: "#F1EAD5" }} aria-label="Decline">
                 <X size={14} style={{ color: C.fade }} />
               </button>
             </div>
@@ -166,7 +166,7 @@ export function PartnersScreen() {
                   </div>
                 </div>
               </button>
-              <button onClick={() => void p.sendRequest(s.id)} disabled={disabled} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: disabled ? "#EDF3F2" : C.navy, color: disabled ? C.fade : C.cream }}>
+              <button onClick={() => void p.sendRequest(s.id)} disabled={disabled} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: disabled ? "#F1EAD5" : C.navy, color: disabled ? C.fade : C.cream }}>
                 {asked ? "Asked" : !canAddPartner ? "Upgrade to add" : "Ask to partner"}
               </button>
             </div>
@@ -204,7 +204,7 @@ export function PartnersScreen() {
               <button onClick={() => void p.answerInvite(inv, true)} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.teal, color: "#fff" }}>
                 Join
               </button>
-              <button onClick={() => void p.answerInvite(inv, false)} className="rounded-xl px-2 py-1.5" style={{ background: "#EDF3F2" }} aria-label="Decline">
+              <button onClick={() => void p.answerInvite(inv, false)} className="rounded-xl px-2 py-1.5" style={{ background: "#F1EAD5" }} aria-label="Decline">
                 <X size={14} style={{ color: C.fade }} />
               </button>
             </div>
@@ -472,7 +472,7 @@ function TeamCard({ t }: { t: Team }) {
                 </div>
               )}
               {owner && tank.length > 0 && (
-                <div className="mb-2 rounded-xl p-3" style={{ background: "#FFE2DB", border: `1px solid ${C.coral}` }}>
+                <div className="mb-2 rounded-xl p-3" style={{ background: "#F3DBD3", border: `1px solid ${C.coral}` }}>
                   <div className="mb-2 text-xs font-bold" style={{ color: C.coral }}>
                     Holding tank: {tank.length} unassigned {tank.length === 1 ? "task" : "tasks"}
                   </div>

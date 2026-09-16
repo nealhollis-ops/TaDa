@@ -41,17 +41,17 @@ export async function POST(request: Request) {
     from: env.emailFrom,
     to: inv.email,
     subject: `${inviter?.name ?? "A TaDa member"} invited you to ${team?.name ?? "a team"} on TaDa`,
-    html: `<!doctype html><html><body style="margin:0;padding:0;background:#EBF5F3;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#243742;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EBF5F3;padding:32px 16px;"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;border:1px solid #D8E5E3;">
-<tr><td style="padding:32px 32px 8px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#2C6C8F;">TaDa</div>
-<div style="font-size:13px;color:#7E9099;margin-top:4px;">Plan your day, check it off, and hear the ta-da.</div></td></tr>
+    html: `<!doctype html><html><body style="margin:0;padding:0;background:#F6F0DC;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#2B2622;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F0DC;padding:32px 16px;"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;border:1px solid #E3D9BE;">
+<tr><td style="padding:32px 32px 8px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#189AB4;">TaDa</div>
+<div style="font-size:13px;color:#7C7468;margin-top:4px;">Plan your day, check it off, and hear the ta-da.</div></td></tr>
 <tr><td style="padding:16px 32px 0;"><h1 style="margin:0 0 8px;font-size:22px;">You're invited to ${escapeHtml(team?.name ?? "a team")}</h1>
 <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">${escapeHtml(inviter?.name ?? "A TaDa member")} added you to their team. Tap below to join. If you don't have a TaDa account yet, you'll create one on the way in.</p>
-<p style="margin:0 0 20px;font-size:14px;line-height:1.5;color:#7E9099;">${kindLine}</p>
-<p style="margin:0 0 24px;text-align:center;"><a href="${link}" style="display:inline-block;background:#FF6B53;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 28px;border-radius:999px;">Join the team</a></p>
-<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#7E9099;">Or copy this link: <span style="word-break:break-all;color:#2C6C8F;">${link}</span><br>This invitation expires in 14 days.</p></td></tr>
-<tr><td style="padding:16px 32px 28px;font-size:12px;line-height:1.5;color:#7E9099;border-top:1px solid #D8E5E3;">Not expecting this? You can ignore it. Questions? Write to clientcare@gettada.me.</td></tr>
+<p style="margin:0 0 20px;font-size:14px;line-height:1.5;color:#7C7468;">${kindLine}</p>
+<p style="margin:0 0 24px;text-align:center;"><a href="${link}" style="display:inline-block;background:#9B2915;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 28px;border-radius:999px;">Join the team</a></p>
+<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#7C7468;">Or copy this link: <span style="word-break:break-all;color:#189AB4;">${link}</span><br>This invitation expires in 14 days.</p></td></tr>
+<tr><td style="padding:16px 32px 28px;font-size:12px;line-height:1.5;color:#7C7468;border-top:1px solid #E3D9BE;">Not expecting this? You can ignore it. Questions? Write to clientcare@gettada.me.</td></tr>
 </table></td></tr></table></body></html>`,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 502 });
