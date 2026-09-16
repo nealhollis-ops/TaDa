@@ -11,6 +11,19 @@ const isBlock = (b: unknown): b is Block => typeof b === "string" && BLOCKS.incl
 
 export const taskWeek = (m: MonthInfo, t: Pick<Task, "date" | "week">) => (t.date ? weekOf(m, t.date) : t.week);
 
+/** Calendar days for a daily repeat from `fromDay` to month end (weekdays only when asked). */
+export const dailyDays = (m: MonthInfo, fromDay: number, weekdaysOnly: boolean) => {
+  const out: number[] = [];
+  for (let d = Math.max(1, fromDay); d <= m.days; d++) {
+    const dow = weekdayOf(m, d);
+    if (weekdaysOnly && (dow === 0 || dow === 6)) continue;
+    out.push(d);
+  }
+  return out;
+};
+
+export const isDaily = (r: Repeat) => r === "daily" || r === "weekdays";
+
 const clampWeek = (m: MonthInfo, w: unknown, fallback: number) => Math.min(m.weekCount, Math.max(1, parseInt(String(w), 10) || fallback));
 
 export type NewTaskForm = {
@@ -54,7 +67,14 @@ export function buildNewTasks(m: MonthInfo, form: NewTaskForm, currentWeek: numb
   const rootId = uid();
   const batch: Task[] = [];
 
-  if (form.repeat === "weekly" && anchor !== null) {
+  if (isDaily(form.repeat)) {
+    // One copy per remaining day (weekdays only for Mon - Fri), starting today or on the chosen day.
+    const start = specific ? parseInt(form.day, 10) : tToday;
+    dailyDays(m, start, form.repeat === "weekdays").forEach((d) => {
+      batch.push(base(m, { id: batch.length ? uid() : rootId, rootId, title, big: form.big, date: dstr(m, d), block: solidBlock, week: weekOf(m, dstr(m, d)), repeat: form.repeat, anchor: null }));
+    });
+    if (!batch.length) batch.push(base(m, { id: rootId, rootId, title, big: form.big, date: null, block: "auto", week: currentWeek, repeat: form.repeat, anchor: null }));
+  } else if (form.repeat === "weekly" && anchor !== null) {
     for (let w = currentWeek; w <= m.weekCount; w++) {
       const d = anchorDayInWeek(m, w, anchor);
       if (!d || (w === currentWeek && d < tToday)) continue;
@@ -180,7 +200,15 @@ export function applyEdit(m: MonthInfo, tasks: Task[], e: Task, currentWeek: num
   const solidBlock: Block = e.block && e.block !== "auto" ? e.block : e.big ? "morning" : "afternoon";
   let next = tasks.map((t) => (t.id === e.id ? { ...e, rootId, anchor, title, week: e.date ? weekOf(m, e.date) : e.week } : t));
 
-  if (e.repeat === "weekly" && anchor !== null) {
+  if (isDaily(e.repeat)) {
+    // Edits ripple to every unfinished copy; missing days from today onward are filled in.
+    next = next.map((t) => ((t.rootId || t.id) === rootId && !t.done ? { ...t, title, big: !!e.big, repeat: e.repeat, anchor: null, block: t.id === e.id ? e.block : t.block } : t));
+    const have = new Set(next.filter((t) => (t.rootId || t.id) === rootId).map((t) => t.date));
+    dailyDays(m, tToday, e.repeat === "weekdays").forEach((d) => {
+      const ds = dstr(m, d);
+      if (!have.has(ds)) next = [...next, base(m, { rootId, title, big: !!e.big, date: ds, block: solidBlock, week: weekOf(m, ds), repeat: e.repeat, anchor: null })];
+    });
+  } else if (e.repeat === "weekly" && anchor !== null) {
     next = next.map((t) => {
       if ((t.rootId || t.id) !== rootId || t.done) return t;
       const w = taskWeek(m, t);
@@ -231,7 +259,7 @@ export function applyOps(m: MonthInfo, tasks: Task[], ops: unknown[], currentWee
           date: d,
           block: isBlock(o.block) ? o.block : "auto",
           week: d ? weekOf(m, d) : clampWeek(m, o.week, currentWeek),
-          repeat: o.repeat === "weekly" || o.repeat === "monthly" ? o.repeat : "none",
+          repeat: o.repeat === "weekly" || o.repeat === "monthly" || o.repeat === "daily" || o.repeat === "weekdays" ? o.repeat : "none",
         }),
       );
       return;
@@ -254,7 +282,7 @@ export function applyOps(m: MonthInfo, tasks: Task[], ops: unknown[], currentWee
           title: typeof o.title === "string" && o.title.trim() ? o.title.slice(0, 120) : t.title,
           big: o.big === undefined ? t.big : !!o.big,
           block: isBlock(o.block) ? o.block : t.block,
-          repeat: o.repeat === "weekly" || o.repeat === "monthly" || o.repeat === "none" ? o.repeat : t.repeat,
+          repeat: o.repeat === "weekly" || o.repeat === "monthly" || o.repeat === "none" || o.repeat === "daily" || o.repeat === "weekdays" ? o.repeat : t.repeat,
         };
       }
       if (o.op === "complete") return { ...t, done: true, doneAt: new Date().toISOString() };
@@ -273,7 +301,7 @@ export function spawnRepeaters(m: MonthInfo, previous: Task[], current: Task[]):
   const curW = weekOf(m, todayStr());
   const roots: Record<string, Task> = {};
   previous.forEach((t) => {
-    if (t.repeat === "weekly" || t.repeat === "monthly") {
+    if (t.repeat === "weekly" || t.repeat === "monthly" || isDaily(t.repeat)) {
       const key = t.rootId || t.id;
       if (!roots[key]) roots[key] = t;
     }
@@ -284,7 +312,12 @@ export function spawnRepeaters(m: MonthInfo, previous: Task[], current: Task[]):
     if (current.some((c) => (c.rootId || c.id) === rootId)) return; // already carried over
     const anchor = t.anchor ?? null;
     const block: Block = t.block && t.block !== "auto" ? t.block : "auto";
-    if (t.repeat === "monthly") {
+    if (isDaily(t.repeat)) {
+      dailyDays(m, 1, t.repeat === "weekdays").forEach((d) => {
+        const ds = dstr(m, d);
+        spawned.push(base(m, { title: t.title, big: !!t.big, date: ds, block: block === "auto" ? (t.big ? "morning" : "afternoon") : block, week: weekOf(m, ds), repeat: t.repeat, rootId, anchor: null }));
+      });
+    } else if (t.repeat === "monthly") {
       const date = anchor ? dstr(m, Math.min(anchor, m.days)) : null;
       spawned.push(base(m, { title: t.title, big: !!t.big, date, block, week: date ? weekOf(m, date) : curW, repeat: "monthly", rootId, anchor }));
     } else {

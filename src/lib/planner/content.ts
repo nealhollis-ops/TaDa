@@ -130,7 +130,8 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "When it isn't sure what you meant, it asks a question in the gold note instead of guessing, and nothing moves until it understands you.",
   ]},
   { id: "repeat", t: "Repeating tasks", b: [
-    "When adding or editing a task, choose Every week or Every month. Every week drops a copy into each remaining week of the month. Every month brings the task back when the calendar flips, without you doing anything.",
+    "When adding or editing a task, choose Daily, Daily (Mon - Fri), Every week, or Every month. Daily puts a copy on every remaining day of the month, Mon - Fri skips the weekend, and Every week drops a copy into each remaining week. Every month brings the task back when the calendar flips, without you doing anything.",
+    "Editing one copy of a daily task updates every unfinished copy. Switch it back to One time and remove any leftovers you don't want.",
     "Pin a repeat to a day, like Every Monday or the 1st of every month, and the copies land on that exact day, with the pattern shown on a small badge on the task.",
   ]},
   { id: "checkoff", t: "Checking things off", b: [

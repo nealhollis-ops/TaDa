@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       `Weeks run Monday through Sunday: ${weekList}. They said: "${text}". Their tasks: ${JSON.stringify(tasks)}. ` +
       `Turn their request into operations. Respond ONLY with JSON, no code fences: {"ops":[...],"say":"one short friendly sentence about what you did"}. ` +
       `Allowed ops: {"op":"move","id":"...","date":"YYYY-MM-DD"} puts a task on a day (or use "date":null with "week":N to leave it unscheduled in that week), optional "block":"morning"|"afternoon"|"evening". ` +
-      `{"op":"remove","id":"..."}. {"op":"add","title":"...","date":"YYYY-MM-DD" or "week":N,"block":...,"big":true,"repeat":"none"|"weekly"|"monthly"}. ` +
+      `{"op":"remove","id":"..."}. {"op":"add","title":"...","date":"YYYY-MM-DD" or "week":N,"block":...,"big":true,"repeat":"none"|"daily"|"weekdays"|"weekly"|"monthly"} (daily = every day, weekdays = Mon-Fri). ` +
       `{"op":"edit","id":"...","title","big","block","repeat"}. {"op":"complete","id":"..."} and {"op":"uncomplete","id":"..."}. ` +
       `Match tasks loosely by meaning. All dates must fall inside this month. If nothing matches or the request is unclear, use "ops":[] and put a short question in "say".`;
   }

@@ -478,6 +478,8 @@ function EditSheet() {
       )}
       <select className={`${sel} mb-3`} style={inputStyle} value={e.repeat || "none"} onChange={(ev) => upd({ repeat: ev.target.value as Repeat, anchor: null })}>
         <option value="none">One time</option>
+        <option value="daily">Daily</option>
+        <option value="weekdays">Daily (Mon - Fri)</option>
         <option value="weekly">Every week</option>
         <option value="monthly">Every month</option>
       </select>

@@ -146,6 +146,8 @@ export function PlanScreen() {
           )}
           <select className={`${sel} mb-2 w-full`} style={inputStyle} value={form.repeat} onChange={(e) => setForm({ ...form, repeat: e.target.value as Repeat, anchor: "" })}>
             <option value="none">One time</option>
+            <option value="daily">Daily</option>
+            <option value="weekdays">Daily (Mon - Fri)</option>
             <option value="weekly">Every week</option>
             <option value="monthly">Every month</option>
           </select>
