@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, CheckCircle2, Circle, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
-import { dayLabel, dstr, ord, WDFULL } from "@/lib/planner/calendar";
+import { ago, dayLabel, dstr, ord, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, computeBadges, levelColor, levelIcon, levelOf } from "@/lib/planner/content";
 import { loadProfileCard } from "@/lib/data/social";
 import type { Block, MemberCard, Repeat } from "@/lib/planner/types";
@@ -51,6 +51,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="text-sm" style={{ color: C.goldSoft }}>
             {p.month.name} {p.month.year}
           </div>
+          <button onClick={() => p.set("inboxOpen", true)} aria-label={p.unreadCount ? `${p.unreadCount} unread notifications` : "Notifications"} className="relative">
+            <Bell size={20} style={{ color: C.cream }} />
+            {p.unreadCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold" style={{ background: C.coral, color: "#fff", lineHeight: 1 }}>
+                {p.unreadCount > 9 ? "9+" : p.unreadCount}
+              </span>
+            )}
+          </button>
           <button onClick={p.toggleMute} aria-label="Sound">
             {p.me.muted ? <VolumeX size={20} style={{ color: C.goldSoft, opacity: 0.6 }} /> : <Volume2 size={20} style={{ color: C.cream }} />}
           </button>
@@ -84,6 +92,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <OnboardingWidget />
+      {p.inboxOpen && <InboxPanel />}
       {p.showTour && <TourModal />}
       {p.viewProfile && <ProfileModal id={p.viewProfile} />}
       {p.confirmRemove && <ConfirmRemoveModal />}
@@ -521,6 +530,62 @@ function EditSheet() {
           Save
         </button>
       </div>
+    </Overlay>
+  );
+}
+
+function InboxPanel() {
+  const p = usePlanner();
+  const router = useRouter();
+  const close = () => p.set("inboxOpen", false);
+  const open = (id: string, url: string) => {
+    void p.markRead(id);
+    close();
+    router.push(url);
+  };
+  return (
+    <Overlay onClose={close} align="end">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-base font-bold" style={{ color: C.navy }}>
+          Notifications
+        </div>
+        <div className="flex items-center gap-3">
+          {p.unreadCount > 0 && (
+            <button onClick={() => void p.markAllRead()} className="text-xs font-semibold underline" style={{ color: C.fade }}>
+              Mark all read
+            </button>
+          )}
+          <button onClick={close} aria-label="Close">
+            <X size={18} style={{ color: C.fade }} />
+          </button>
+        </div>
+      </div>
+      {p.inbox.length === 0 ? (
+        <div className="rounded-xl p-5 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
+          Nothing yet. Messages, partner requests, badges and announcements land here.
+        </div>
+      ) : (
+        <div className="max-h-[60vh] space-y-2 overflow-y-auto">
+          {p.inbox.map((n) => (
+            <button key={n.id} onClick={() => open(n.id, n.url)} className="flex w-full items-start gap-3 rounded-xl p-3 text-left" style={{ background: "#fff", opacity: n.readAt ? 0.7 : 1 }}>
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: n.readAt ? "transparent" : C.coral }} />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm" style={{ color: C.ink, fontWeight: n.readAt ? 500 : 700 }}>
+                  {n.title}
+                </span>
+                {n.body && (
+                  <span className="mt-0.5 block text-xs" style={{ color: C.fade }}>
+                    {n.body}
+                  </span>
+                )}
+                <span className="mt-1 block text-[10px]" style={{ color: C.fade }}>
+                  {ago(n.createdAt)}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </Overlay>
   );
 }

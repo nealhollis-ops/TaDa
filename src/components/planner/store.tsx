@@ -17,6 +17,7 @@ import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
 import { enablePush, disablePush } from "@/lib/data/push";
 import type { Burst } from "./celebrate";
+import { loadInbox, markAllNoticesRead, markNoticeRead, toNotice, type Notice } from "@/lib/data/inbox";
 import type { Billing } from "@/lib/auth";
 
 export type Ceremony = { id: number; badge: Badge; line1: string; line2: string };
@@ -68,6 +69,9 @@ export type PlannerState = {
   cmdSay: string;
   listening: boolean;
   toast: Toast | null;
+  inbox: Notice[];
+  inboxOpen: boolean;
+  unreadCount: number;
   // derived
   myPartnerIds: string[];
   incoming: PartnerRequest[];
@@ -131,6 +135,8 @@ export type PlannerActions = {
   refreshShared: () => Promise<void>;
   loadCardsFor: (ids: string[]) => Promise<void>;
   showToast: (text: string) => void;
+  markRead: (id: string) => Promise<void>;
+  markAllRead: () => Promise<void>;
   startCheckout: (plan: Plan, interval: "monthly" | "yearly") => Promise<void>;
   openPortal: () => Promise<void>;
 };
@@ -171,6 +177,8 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
 
   const [burst, setBurst] = useState<Burst | null>(null);
   const [bigMsg, setBigMsg] = useState(false);
+  const [inbox, setInbox] = useState<Notice[]>([]);
+  const [inboxOpen, setInboxOpen] = useState(false);
   const [ceremony, setCeremony] = useState<Ceremony | null>(null);
   const [editing, setEditing] = useState<Task | null>(null);
   const [viewProfile, setViewProfile] = useState<string | null>(null);
@@ -229,6 +237,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       cmdText: setCmdText as (v: unknown) => void,
       cmdSay: setCmdSay as (v: unknown) => void,
       toast: setToast as (v: unknown) => void,
+      inboxOpen: setInboxOpen as (v: unknown) => void,
     }),
     [],
   );
@@ -478,6 +487,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       if (data.session?.access_token) sb.realtime.setAuth(data.session.access_token);
       ch = sb
       .channel(`live-${me.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${me.id}` }, (payload) => {
+        const n = toNotice(payload.new as Parameters<typeof toNotice>[0]);
+        setInbox((list) => (list.some((x) => x.id === n.id) ? list : [n, ...list].slice(0, 60)));
+      })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `to_user=eq.${me.id}` }, (payload) => {
         const r = payload.new as Record<string, string>;
         const msg: Message = { id: r.id, fromUser: r.from_user, toUser: r.to_user, text: r.text, createdAt: r.created_at, readAt: null };
@@ -592,9 +605,12 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       playGrand();
       buzzGrand();
       setTimeout(() => setCeremony(null), 4200);
-      if (opts.announce !== false) void announceMilestone(b);
+      if (opts.announce !== false) {
+        void announceMilestone(b);
+        S.notify(b.id.startsWith("lvl") ? "level" : "badge", me.id, { name: b.name, e: b.e });
+      }
     },
-    [announceMilestone],
+    [announceMilestone, me.id],
   );
 
   const celebrate = useCallback(
@@ -1193,16 +1209,35 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     setShowTour(false);
   }, [me.onboarding, saveProfile]);
 
+  // ------------------------------------------------------------- inbox --
+  const unreadCount = useMemo(() => inbox.filter((n) => !n.readAt).length, [inbox]);
+  useEffect(() => {
+    if (loading) return;
+    void loadInbox(sb, me.id).then(setInbox).catch(() => {});
+  }, [loading, sb, me.id]);
+  const markRead = useCallback(
+    async (id: string) => {
+      setInbox((list) => list.map((n) => (n.id === id && !n.readAt ? { ...n, readAt: new Date().toISOString() } : n)));
+      await markNoticeRead(sb, id).catch(() => {});
+    },
+    [sb],
+  );
+  const markAllRead = useCallback(async () => {
+    const now = new Date().toISOString();
+    setInbox((list) => list.map((n) => (n.readAt ? n : { ...n, readAt: now })));
+    await markAllNoticesRead(sb, me.id).catch(() => {});
+  }, [sb, me.id]);
+
   const value: PlannerState & PlannerActions = {
     sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, posts, blocked, seekers,
-    burst, bigMsg, ceremony, editing, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast,
+    burst, bigMsg, ceremony, editing, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
     sendMsg, addPost, addReply, toggleReact,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned,
-    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, startCheckout, openPortal,
+    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

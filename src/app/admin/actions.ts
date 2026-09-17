@@ -188,13 +188,16 @@ export async function pushAnnouncement(_prev: AdminResult, formData: FormData): 
   if (!env.vapidPrivateKey || !publicEnv.vapidPublicKey) return { ok: false, message: "Push keys are not configured on the server." };
 
   const admin = createAdminClient();
-  const { data: people, error: pErr } = await admin.from("profiles").select("id").eq("notif_on", true).is("banned_at", null);
-  if (pErr) return { ok: false, message: pErr.message };
-  const ids = (people ?? []).map((p) => p.id);
-  if (!ids.length) return { ok: false, message: "Nobody has notifications on yet." };
+  const { data: everyone, error: eErr } = await admin.from("profiles").select("id,notif_on").is("banned_at", null);
+  if (eErr) return { ok: false, message: eErr.message };
+  // The bell shows the announcement to every active member; devices are only pinged for those with notifications on.
+  const rows = (everyone ?? []).map((p) => ({ user_id: p.id, kind: "announcement", title, body, url }));
+  for (let i = 0; i < rows.length; i += 500) await admin.from("notifications").insert(rows.slice(i, i + 500));
+  const ids = (everyone ?? []).filter((p) => p.notif_on !== false).map((p) => p.id);
+  if (!ids.length) return { ok: true, message: `Posted to ${rows.length} inbox${rows.length === 1 ? "" : "es"}. Nobody has notifications on yet, so no device was pinged.` };
   const { data: subs, error: sErr } = await admin.from("push_subscriptions").select("id,user_id,endpoint,keys").in("user_id", ids);
   if (sErr) return { ok: false, message: sErr.message };
-  if (!subs?.length) return { ok: false, message: "Notifications are on for some members, but no device has registered yet." };
+  if (!subs?.length) return { ok: true, message: `Posted to ${rows.length} inbox${rows.length === 1 ? "" : "es"}. No device has registered for push yet.` };
 
   webpush.setVapidDetails(env.vapidSubject, publicEnv.vapidPublicKey, env.vapidPrivateKey);
   const payload = JSON.stringify({ title, body, url });
@@ -222,7 +225,7 @@ export async function pushAnnouncement(_prev: AdminResult, formData: FormData): 
   await logAdmin(user.id, "announcement.push", null, { title, body, url, sent, members: reached.size, dropped });
   revalidatePath("/admin/announcements");
   const m = reached.size;
-  return { ok: true, message: `Sent to ${m} member${m === 1 ? "" : "s"} on ${sent} device${sent === 1 ? "" : "s"}.${dropped ? ` Removed ${dropped} dead device${dropped === 1 ? "" : "s"}.` : ""}` };
+  return { ok: true, message: `Posted to ${rows.length} inbox${rows.length === 1 ? "" : "es"} and pushed to ${m} member${m === 1 ? "" : "s"} on ${sent} device${sent === 1 ? "" : "s"}.${dropped ? ` Removed ${dropped} dead device${dropped === 1 ? "" : "s"}.` : ""}` };
 }
 
 export async function setPinned(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
