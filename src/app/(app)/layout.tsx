@@ -2,6 +2,7 @@ import { getMe } from "@/lib/auth";
 import { PlannerProvider } from "@/components/planner/store";
 import { Shell } from "@/components/planner/shell";
 import { Paywall } from "@/components/planner/paywall";
+import { InstallCapture } from "@/components/pwa/install-card";
 
 function BannedScreen() {
   return (
@@ -26,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!plan && profile.role !== "admin") return <Paywall name={profile.name} billing={billing} />;
   return (
     <PlannerProvider initialMe={profile} initialPlan={plan} initialBilling={billing}>
+      <InstallCapture />
       <Shell>{children}</Shell>
     </PlannerProvider>
   );

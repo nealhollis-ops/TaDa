@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
+import { InstallCard } from "@/components/pwa/install-card";
 import { usePlanner } from "../store";
 import { Avatar, C, Chip, inputCls, inputStyle } from "../ui";
 import { BADGE_CATALOG, HELP, levelColor, levelIcon, levelOf, nextLevelAt } from "@/lib/planner/content";
@@ -230,6 +231,8 @@ export function AccountScreen() {
           ))}
         </div>
       )}
+
+      <InstallCard />
 
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>
         <div className="mb-1 text-xs font-semibold" style={{ color: C.navy2 }}>
