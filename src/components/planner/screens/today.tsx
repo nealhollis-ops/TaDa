@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { CheckCircle2, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
 import { Bar, C, Chip, QuoteCard } from "../ui";
@@ -21,8 +22,22 @@ export function TodayScreen() {
   const thisWeek = { total: wt.length, done: wt.filter((t) => t.done).length };
   const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today);
 
+  const firstName = (p.me.name || "").trim().split(/\s+/)[0] || "";
+
   return (
     <div className="px-5 py-5">
+      <div className="mb-4 flex items-center gap-2">
+        <Image src="/brand/burst.png" alt="" width={60} height={60} priority style={{ margin: "-8px 0 -8px -4px", flex: "none" }} />
+        <div>
+          <div style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 22, lineHeight: 1.15, color: C.ink }}>
+            Welcome back{firstName ? ", " : ""}
+            {firstName && <b style={{ color: C.coral }}>{firstName}</b>}!
+          </div>
+          <div className="mt-0.5 text-sm" style={{ color: C.fade }}>
+            Let&rsquo;s get to work&hellip;
+          </div>
+        </div>
+      </div>
       <QuoteCard q={p.quote} />
       <div className="mb-1 flex items-end justify-between">
         <h2 className="text-lg font-bold" style={{ color: C.navy }}>
