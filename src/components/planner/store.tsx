@@ -10,7 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { dayOfYear, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
-import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn } from "@/lib/planner/sound";
+import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import { DEF_STATS, type Assignment, type Badge, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
@@ -407,16 +407,53 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Greeting once loaded (needs a user gesture on most browsers; we try, then retry on first tap)
+  // Greeting: one Ta-Da when the member first arrives, and never again this session.
+  // Browsers often block audio before the first tap, so we try right away and only fall back
+  // to the first tap if that attempt was refused. Reloads and tab changes do not replay it.
   const greetRef = useRef(false);
   useEffect(() => {
     if (loading || greetRef.current) return;
     greetRef.current = true;
-    greet();
+    const KEY = "tada-greeted";
+    let already = false;
+    try {
+      already = sessionStorage.getItem(KEY) === "1";
+    } catch {
+      /* private mode: just greet once per mount */
+    }
+    const mark = () => {
+      try {
+        sessionStorage.setItem(KEY, "1");
+      } catch {
+        /* ignore */
+      }
+    };
+    let state: "pending" | "played" | "refused" = already ? "played" : "pending";
+    let tapped = false;
+    if (!already) {
+      void tryGreet().then((ok) => {
+        if (ok) {
+          state = "played";
+          mark();
+        } else {
+          state = "refused";
+          if (tapped) {
+            state = "played";
+            mark();
+            greet();
+          }
+        }
+      });
+    }
     const onFirstTap = () => {
+      tapped = true;
       // Browsers unlock audio on the first tap: decode the clip now so the first check-off plays instantly.
       primeSound();
-      greet();
+      if (state === "refused") {
+        state = "played";
+        mark();
+        greet();
+      }
       window.removeEventListener("pointerdown", onFirstTap);
     };
     window.addEventListener("pointerdown", onFirstTap, { once: true });

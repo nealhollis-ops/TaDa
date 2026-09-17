@@ -163,3 +163,17 @@ export const greet = () => {
   if (!soundOn) return;
   sayTada();
 };
+
+/** Like greet, but reports whether the clip actually started (browsers block audio before the first tap). */
+export const tryGreet = async (): Promise<boolean> => {
+  if (!soundOn) return false;
+  const el = clip();
+  if (!el) return false;
+  try {
+    el.currentTime = 0;
+    await el.play();
+    return true;
+  } catch {
+    return false;
+  }
+};
