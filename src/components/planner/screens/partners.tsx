@@ -59,20 +59,20 @@ export function PartnersScreen() {
             Requests for you
           </h3>
           {p.incoming.map((r) => (
-            <div key={r.id} className="mb-2 flex items-center gap-2 rounded-2xl p-3" style={{ background: "#fff", border: `1px solid ${C.gold}` }}>
+            <div key={r.id} className="mb-2 flex items-center gap-2 rounded-2xl p-3" style={{ background: "#fff", border: `1px solid ${C.coral}` }}>
               <span className="flex-1 text-sm" style={{ color: C.ink }}>
                 <span className="font-bold">{p.nameOf(r.fromUser)}</span> wants to be your accountability partner.
               </span>
               {!canAddPartner ? (
-                <Link href="/account" className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.fade }}>
+                <Link href="/account" className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.mist, color: C.fade }}>
                   Upgrade to add
                 </Link>
               ) : (
-                <button onClick={() => void p.acceptRequest(r)} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.teal, color: "#fff" }}>
+                <button onClick={() => void p.acceptRequest(r)} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.teal, color: C.ink }}>
                   Accept
                 </button>
               )}
-              <button onClick={() => void p.declineRequest(r)} className="rounded-xl px-2 py-1.5" style={{ background: "#F3E1DD" }} aria-label="Decline">
+              <button onClick={() => void p.declineRequest(r)} className="rounded-xl px-2 py-1.5" style={{ background: C.mist }} aria-label="Decline">
                 <X size={14} style={{ color: C.fade }} />
               </button>
             </div>
@@ -94,7 +94,7 @@ export function PartnersScreen() {
         const ppct = pr && pr.total ? Math.round((pr.done / pr.total) * 100) : 0;
         const strip = p.stripFor(id);
         return (
-          <div key={id} className="mb-3 rounded-2xl p-4" style={{ background: "#fff", border: `2px solid ${C.gold}` }}>
+          <div key={id} className="mb-3 rounded-2xl p-4" style={{ background: "#fff", border: `2px solid ${C.teal}` }}>
             <div className="mb-2 flex items-center gap-2">
               <button onClick={() => p.set("viewProfile", id)} className="flex items-center gap-2">
                 <Avatar src={p.avatarOf(id)} name={p.nameOf(id)} size={28} />
@@ -166,7 +166,7 @@ export function PartnersScreen() {
                   </div>
                 </div>
               </button>
-              <button onClick={() => void p.sendRequest(s.id)} disabled={disabled} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: disabled ? "#F3E1DD" : C.navy, color: disabled ? C.fade : C.cream }}>
+              <button onClick={() => void p.sendRequest(s.id)} disabled={disabled} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: disabled ? "#FDE2E2" : C.navy, color: disabled ? C.fade : C.cream }}>
                 {asked ? "Asked" : !canAddPartner ? "Upgrade to add" : "Ask to partner"}
               </button>
             </div>
@@ -192,7 +192,7 @@ export function PartnersScreen() {
       ) : (
         <div>
           {p.myInvites.map((inv) => (
-            <div key={inv.id} className="mb-2 flex items-center gap-2 rounded-2xl p-3" style={{ background: "#fff", border: `1px solid ${C.gold}` }}>
+            <div key={inv.id} className="mb-2 flex items-center gap-2 rounded-2xl p-3" style={{ background: "#fff", border: `1px solid ${C.coral}` }}>
               <span className="flex-1 text-sm" style={{ color: C.ink }}>
                 You&rsquo;re invited to <span className="font-bold">{inv.teamName}</span>.
                 {inv.teamKind === "boss" && (
@@ -201,10 +201,10 @@ export function PartnersScreen() {
                   </span>
                 )}
               </span>
-              <button onClick={() => void p.answerInvite(inv, true)} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.teal, color: "#fff" }}>
+              <button onClick={() => void p.answerInvite(inv, true)} className="rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.teal, color: C.ink }}>
                 Join
               </button>
-              <button onClick={() => void p.answerInvite(inv, false)} className="rounded-xl px-2 py-1.5" style={{ background: "#F3E1DD" }} aria-label="Decline">
+              <button onClick={() => void p.answerInvite(inv, false)} className="rounded-xl px-2 py-1.5" style={{ background: C.mist }} aria-label="Decline">
                 <X size={14} style={{ color: C.fade }} />
               </button>
             </div>
@@ -404,7 +404,7 @@ function TeamCard({ t }: { t: Team }) {
                     if (e.key === "Enter") void invite();
                   }}
                 />
-                <button onClick={() => void invite()} className="rounded-xl px-3 text-xs font-semibold" style={{ background: C.teal, color: "#fff" }}>
+                <button onClick={() => void invite()} className="rounded-xl px-3 text-xs font-semibold" style={{ background: C.teal, color: C.ink }}>
                   Invite
                 </button>
               </div>
@@ -472,7 +472,7 @@ function TeamCard({ t }: { t: Team }) {
                 </div>
               )}
               {owner && tank.length > 0 && (
-                <div className="mb-2 rounded-xl p-3" style={{ background: "#F3E1DD", border: `1px solid ${C.coral}` }}>
+                <div className="mb-2 rounded-xl p-3" style={{ background: "#FDE2E2", border: `1px solid ${C.coral}` }}>
                   <div className="mb-2 text-xs font-bold" style={{ color: C.coral }}>
                     Holding tank: {tank.length} unassigned {tank.length === 1 ? "task" : "tasks"}
                   </div>

@@ -26,7 +26,7 @@ export function TimelineScreen() {
         const done = wt.filter((t) => t.done).length;
         const pct = total ? Math.round((done / total) * 100) : 0;
         return (
-          <div key={wk.w} className="mb-3 rounded-2xl p-4" style={{ background: "#fff", border: wk.w === p.currentWeek ? `2px solid ${C.gold}` : "2px solid transparent" }}>
+          <div key={wk.w} className="mb-3 rounded-2xl p-4" style={{ background: "#fff", border: wk.w === p.currentWeek ? `2px solid ${C.coral}` : "2px solid transparent" }}>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-bold" style={{ color: C.navy }}>
                 {wk.label}

@@ -6,21 +6,21 @@ import type { Badge } from "@/lib/planner/types";
 
 // brand: steel blue anchor, seafoam growth, coral CTA, amber tags, ice white canvas
 export const C = {
-  navy: "#334E68",
-  navy2: "#4A6FA5",
-  gold: "#A4483D",
-  goldDeep: "#8A3D33",
-  goldSoft: "#F3E1DD",
-  mist: "#E1E7EE",
-  cream: "#F2F3F5",
-  coral: "#A4483D",
-  teal: "#3F7D5C",
-  ink: "#2A3240",
-  fade: "#6B7480",
-  line: "#D3D8DE",
+  navy: "#111111",
+  navy2: "#333333",
+  gold: "#F8B018",
+  goldDeep: "#7A5200",
+  goldSoft: "#FEF0C7",
+  mist: "#EAEAEA",
+  cream: "#F5F5F5",
+  coral: "#E30022",
+  teal: "#12B76A",
+  ink: "#111111",
+  fade: "#666666",
+  line: "#DDDDDD",
 };
 
-export function Bar({ pct, color = C.gold, h = 10, bg = "#E1E7EE" }: { pct: number; color?: string; h?: number; bg?: string }) {
+export function Bar({ pct, color = C.gold, h = 10, bg = "#EAEAEA" }: { pct: number; color?: string; h?: number; bg?: string }) {
   return (
     <div className="w-full overflow-hidden rounded-full" style={{ background: bg, height: h }}>
       <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.max(0, pct))}%`, background: color }} />
@@ -28,7 +28,7 @@ export function Bar({ pct, color = C.gold, h = 10, bg = "#E1E7EE" }: { pct: numb
   );
 }
 
-export function Chip({ children, color = C.navy, bg = "#E1E7EE" }: { children: React.ReactNode; color?: string; bg?: string }) {
+export function Chip({ children, color = C.navy, bg = "#EAEAEA" }: { children: React.ReactNode; color?: string; bg?: string }) {
   return (
     <span className="rounded-full px-2 py-0.5 text-xs font-medium" style={{ color, background: bg }}>
       {children}
@@ -53,7 +53,7 @@ export const renderRich = (text: string) =>
     .split(/(@[\w'-]+)/g)
     .map((part, i) =>
       part.startsWith("@") ? (
-        <span key={i} style={{ color: "#8A3D33", fontWeight: 700 }}>
+        <span key={i} style={{ color: C.coral, fontWeight: 700 }}>
           {part}
         </span>
       ) : (
@@ -75,7 +75,7 @@ export function BadgeStrip({ streak, badges, level, size = 11 }: { streak?: numb
   return (
     <span className="flex shrink-0 items-center gap-1">
       {(streak ?? 0) >= 2 && (
-        <span className="font-bold" style={{ fontSize: size, color: "#A4483D" }}>
+        <span className="font-bold" style={{ fontSize: size, color: C.coral }}>
           🔥{streak}
         </span>
       )}

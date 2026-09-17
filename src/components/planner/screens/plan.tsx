@@ -41,7 +41,7 @@ export function PlanScreen() {
         <button onClick={() => p.set("showAdd", !p.showAdd)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff" }}>
           <Plus size={18} /> Add task
         </button>
-        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.goldSoft, color: C.goldDeep }}>
+        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.gold, color: C.ink }}>
           <Sparkles size={18} /> Organize
         </button>
       </div>
@@ -67,7 +67,7 @@ export function PlanScreen() {
           value={dumpText}
           onChange={(e) => setDumpText(e.target.value)}
         />
-        <button onClick={() => void parse()} disabled={dumpBusy} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-semibold" style={{ background: C.mist, color: C.navy, opacity: dumpBusy ? 0.7 : 1 }}>
+        <button onClick={() => void parse()} disabled={dumpBusy} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-semibold" style={{ background: C.gold, color: C.ink, opacity: dumpBusy ? 0.7 : 1 }}>
           <Wand2 size={16} /> {dumpBusy ? "Sorting it out..." : "Make it into tasks"}
         </button>
         {dumpPreview.length > 0 && (
@@ -96,7 +96,7 @@ export function PlanScreen() {
                 setDumpText("");
               }}
               className="mt-2 w-full rounded-xl py-2.5 text-sm font-semibold"
-              style={{ background: C.teal, color: "#fff" }}
+              style={{ background: C.teal, color: C.ink }}
             >
               Add them to my month
             </button>
@@ -175,7 +175,7 @@ export function PlanScreen() {
             <input type="checkbox" checked={form.big} onChange={(e) => setForm({ ...form, big: e.target.checked })} />
             Big win (extra fireworks)
           </label>
-          <button onClick={add} className="w-full rounded-xl py-2.5 font-semibold" style={{ background: C.teal, color: "#fff" }}>
+          <button onClick={add} className="w-full rounded-xl py-2.5 font-semibold" style={{ background: C.teal, color: C.ink }}>
             Add to my month
           </button>
         </div>
@@ -186,7 +186,7 @@ export function PlanScreen() {
         return (
           <div key={wk.w} className="mb-5">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-bold" style={{ color: wk.w === p.currentWeek ? C.gold : C.navy }}>
+              <span className="text-sm font-bold" style={{ color: wk.w === p.currentWeek ? C.coral : C.navy }}>
                 {wk.label}
                 {wk.w === p.currentWeek ? " (this week)" : ""}
               </span>

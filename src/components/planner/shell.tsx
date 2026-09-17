@@ -68,7 +68,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="fixed bottom-0 left-0 right-0 flex justify-around border-t py-2" style={{ background: "#fff", borderColor: C.line, zIndex: 50, paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}>
         {NAV.map(({ id, label, Icon }) => (
           <Link key={id} href={`/${id}`} className="flex flex-col items-center gap-0.5 px-2 py-1">
-            <span className="flex items-center justify-center rounded-full" style={{ width: 44, height: 26, background: view === id ? C.navy2 : "transparent", color: view === id ? "#fff" : C.navy }}>
+            <span className="flex items-center justify-center rounded-full" style={{ width: 44, height: 26, background: view === id ? C.coral : "transparent", color: view === id ? "#fff" : C.navy }}>
               <Icon size={20} />
             </span>
             <span style={{ fontSize: 11, color: C.navy, fontWeight: view === id ? 700 : 500 }}>
@@ -93,7 +93,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       )}
       {p.ceremony && (
         <div className="pointer-events-none fixed inset-0 flex items-center justify-center" style={{ zIndex: 75, background: "rgba(20,42,56,0.35)" }}>
-          <div className="mx-6 rounded-3xl px-8 py-8 text-center" style={{ background: "rgba(20,42,56,0.96)", border: `3px solid ${C.gold}` }}>
+          <div className="mx-6 rounded-3xl px-8 py-8 text-center" style={{ background: "rgba(17,17,17,0.96)", border: `3px solid ${C.gold}` }}>
             <div className="animate-bounce" style={{ fontSize: 72, lineHeight: 1 }}>
               {p.ceremony.badge.e}
             </div>
@@ -220,7 +220,7 @@ function TourModal() {
           The tour video is on its way. Poke around in the meantime: Plan is where your month lives, Today is where you win it.
         </div>
       )}
-      <button onClick={p.markTour} className="mt-3 w-full rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.teal, color: "#fff" }}>
+      <button onClick={p.markTour} className="mt-3 w-full rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.teal, color: C.ink }}>
         Mark the tour watched
       </button>
     </Overlay>
@@ -278,7 +278,7 @@ function ProfileModal({ id }: { id: string }) {
             This profile is private.
           </p>
           {!isMe && !blocked && (
-            <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.coral }}>
+            <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#FDE2E2", color: C.coral }}>
               Block this member
             </button>
           )}
@@ -301,9 +301,9 @@ function ProfileModal({ id }: { id: string }) {
           </div>
           {card.stats ? (
             <div className="mb-3 flex flex-wrap gap-2">
-              <Chip color="#A4483D" bg="#F3E1DD">🔥 {card.stats.streak} day streak</Chip>
-              <Chip color={C.navy2} bg="#F3E1DD">Best {card.stats.bestStreak}</Chip>
-              <Chip color={levelColor(level)} bg="#F3E1DD">
+              <Chip color="#E30022" bg="#FDE2E2">🔥 {card.stats.streak} day streak</Chip>
+              <Chip color={C.navy2} bg="#FDE2E2">Best {card.stats.bestStreak}</Chip>
+              <Chip color={levelColor(level)} bg="#FDE2E2">
                 {levelIcon(level)} Level {level}
               </Chip>
             </div>
@@ -361,15 +361,15 @@ function ProfileModal({ id }: { id: string }) {
           {!isMe && (
             <div className="mt-2 flex gap-2">
               {blocked ? (
-                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.ink }}>
+                <button onClick={() => void p.unblockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#FDE2E2", color: C.ink }}>
                   Unblock {card.name}
                 </button>
               ) : (
-                <button onClick={() => void p.blockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.coral }}>
+                <button onClick={() => void p.blockUser(id)} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: "#FDE2E2", color: C.coral }}>
                   Block this member
                 </button>
               )}
-              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#F3E1DD", color: C.ink }}>
+              <button onClick={() => setReporting((r) => !r)} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: "#FDE2E2", color: C.ink }}>
                 Report
               </button>
             </div>
@@ -416,7 +416,7 @@ function ConfirmRemoveModal() {
             : `This frees one of your 7 included seats. You'll be using ${Math.max(0, p.seatCount - 1)} of 7.`}
       </p>
       <div className="flex gap-2">
-        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#F3E1DD", color: C.ink }}>
+        <button onClick={() => p.set("confirmRemove", null)} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#FDE2E2", color: C.ink }}>
           Keep them
         </button>
         <button
@@ -509,7 +509,7 @@ function EditSheet() {
         Big win
       </label>
       <div className="flex gap-2">
-        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: "#F3E1DD" }} aria-label="Delete task">
+        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: C.mist }} aria-label="Delete task">
           <Trash2 size={16} style={{ color: C.coral }} />
         </button>
         <button onClick={() => p.saveEdit(e)} className="flex-1 rounded-xl py-2.5 font-semibold" style={{ background: C.navy, color: C.cream }}>

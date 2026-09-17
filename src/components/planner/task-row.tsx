@@ -40,7 +40,7 @@ export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
             </Chip>
           )}
           {t.repeat === "monthly" && (
-            <Chip color={C.coral} bg="#F3E1DD">
+            <Chip color={C.coral} bg="#FDE2E2">
               {t.anchor ? `Monthly, the ${ord(t.anchor)}` : "Monthly"}
             </Chip>
           )}

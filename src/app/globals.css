@@ -6,19 +6,19 @@
  * Use as Tailwind utilities: bg-navy, text-coral, border-line, bg-gold-soft, etc.
  */
 @theme {
-  --color-navy: #334E68;
-  --color-navy-2: #4A6FA5;
-  --color-gold: #A4483D;
-  --color-gold-deep: #8A3D33;
-  --color-gold-soft: #F3E1DD;
-  --color-cream: #F2F3F5;
-  --color-coral: #A4483D;
-  --color-coral-soft: #F3E1DD;
-  --color-teal: #3F7D5C;
-  --color-ink: #2A3240;
-  --color-fade: #6B7480;
-  --color-line: #D3D8DE;
-  --color-mist: #E1E7EE;
+  --color-navy: #111111;
+  --color-navy-2: #333333;
+  --color-gold: #F8B018;
+  --color-gold-deep: #7A5200;
+  --color-gold-soft: #FEF0C7;
+  --color-cream: #F5F5F5;
+  --color-coral: #E30022;
+  --color-coral-soft: #FDE2E2;
+  --color-teal: #12B76A;
+  --color-ink: #111111;
+  --color-fade: #666666;
+  --color-line: #DDDDDD;
+  --color-mist: #EAEAEA;
 
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

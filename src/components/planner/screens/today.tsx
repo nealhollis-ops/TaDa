@@ -85,7 +85,7 @@ export function TodayScreen() {
                     {a.title}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1.5">
-                    <Chip color={C.coral} bg="#F3E1DD">
+                    <Chip color={C.coral} bg="#FDE2E2">
                       {team ? team.name : "Team"}
                     </Chip>
                     <Chip>{late ? "Overdue" : "Due today"}</Chip>

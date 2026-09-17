@@ -53,7 +53,7 @@ export function CommunityScreen() {
           const v = PTYPE_META[k];
           const Icon = ICONS[k];
           return (
-            <button key={k} onClick={() => setPostType(k)} className="flex flex-1 items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-semibold" style={{ background: postType === k ? v.color : "#fff", color: postType === k ? "#fff" : C.ink }}>
+            <button key={k} onClick={() => setPostType(k)} className="flex flex-1 items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-semibold" style={{ background: postType === k ? v.color : "#fff", color: postType === k ? v.fg : C.ink }}>
               <Icon size={14} /> {v.label}s
             </button>
           );
@@ -98,7 +98,7 @@ export function CommunityScreen() {
             setPostText("");
           }}
           className="mt-2 w-full rounded-xl py-2.5 text-sm font-semibold"
-          style={{ background: PTYPE_META[postType].color, color: "#fff" }}
+          style={{ background: PTYPE_META[postType].color, color: PTYPE_META[postType].fg }}
         >
           Post a {PTYPE_META[postType].label.toLowerCase()}
         </button>
@@ -135,7 +135,7 @@ export function CommunityScreen() {
                 const arr = post.reactions[r.id] || [];
                 const mine = arr.includes(p.me.id);
                 return (
-                  <button key={r.id} onClick={() => void p.toggleReact(post.id, r.id as ReactKind)} className="flex items-center gap-1 rounded-full px-2 py-1 text-xs" style={{ background: mine ? C.goldSoft : "#F3E1DD", border: mine ? `1px solid ${C.gold}` : "1px solid transparent", color: C.ink }}>
+                  <button key={r.id} onClick={() => void p.toggleReact(post.id, r.id as ReactKind)} className="flex items-center gap-1 rounded-full px-2 py-1 text-xs" style={{ background: mine ? C.goldSoft : C.mist, border: mine ? `1px solid ${C.gold}` : "1px solid transparent", color: C.ink }}>
                     <span>{r.e}</span>
                     <span className="font-semibold">{arr.length}</span>
                   </button>

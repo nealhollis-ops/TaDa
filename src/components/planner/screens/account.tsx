@@ -149,7 +149,7 @@ export function AccountScreen() {
             const cur = b.val(p.stats, hasPartner);
             const earned = cur >= b.target;
             return (
-              <div key={b.id} className="rounded-xl p-2 text-center" style={{ background: earned ? C.goldSoft : "#F3E1DD", opacity: earned ? 1 : 0.45 }}>
+              <div key={b.id} className="rounded-xl p-2 text-center" style={{ background: earned ? C.goldSoft : C.mist, opacity: earned ? 1 : 0.45 }}>
                 <div style={{ fontSize: 20 }}>{b.e}</div>
                 <div className="font-semibold" style={{ fontSize: 9, color: C.navy }}>
                   {b.name}
@@ -256,7 +256,7 @@ export function AccountScreen() {
             )}
           </div>
         ))}
-        <a href="mailto:clientcare@gettada.me" className="mt-3 block w-full rounded-xl py-2.5 text-center text-sm font-semibold" style={{ background: C.teal, color: "#fff", textDecoration: "none" }}>
+        <a href="mailto:clientcare@gettada.me" className="mt-3 block w-full rounded-xl py-2.5 text-center text-sm font-semibold" style={{ background: C.teal, color: C.ink, textDecoration: "none" }}>
           Email us: clientcare@gettada.me
         </a>
         <p className="mt-2 text-center text-xs" style={{ color: C.fade }}>
