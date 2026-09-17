@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { BarChart3, CalendarDays, CheckCircle2, Circle, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
@@ -31,9 +32,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: C.cream }}>
         <div className="text-center">
-          <div style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 34, color: C.navy }}>
-            TaDa<span style={{ color: C.gold }}>!</span>
-          </div>
+          <Image src="/brand/wordmark.png" alt="Tada!" width={143} height={90} priority className="mx-auto" />
           <div className="mt-2 text-sm" style={{ color: C.fade }}>
             Setting up your month...
           </div>
@@ -45,8 +44,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen" style={{ background: C.cream }}>
       <div className="sticky top-0 z-40 flex items-center justify-between px-5 py-4 shadow" style={{ background: C.navy }}>
-        <Link href="/today" style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 24, color: C.cream }}>
-          TaDa<span style={{ color: C.gold }}>!</span>
+        <Link href="/today" aria-label="Tada! home" className="flex items-center">
+          <Image src="/brand/wordmark-light.png" alt="Tada!" width={51} height={32} priority />
         </Link>
         <div className="flex items-center gap-3">
           <div className="text-sm" style={{ color: C.goldSoft }}>

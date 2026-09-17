@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { Billing } from "@/lib/auth";
 import type { Plan } from "@/lib/planner/types";
 import { C } from "./ui";
@@ -35,9 +36,7 @@ export function Paywall({ name, billing }: { name: string; billing: Billing | nu
   return (
     <div className="min-h-screen px-5 py-8" style={{ background: C.cream }}>
       <div className="mx-auto max-w-md">
-        <div className="text-center" style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 36, color: C.navy }}>
-          TaDa<span style={{ color: C.gold }}>!</span>
-        </div>
+        <Image src="/brand/wordmark.png" alt="Tada!" width={159} height={100} priority className="mx-auto" />
         <h1 className="mt-3 text-center text-xl font-bold" style={{ color: C.navy }}>
           {ended ? `Welcome back, ${name}.` : `Hi ${name}. Pick your plan.`}
         </h1>

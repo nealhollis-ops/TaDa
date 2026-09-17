@@ -21,8 +21,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-10">
       <div className="flex flex-col items-center gap-3 text-center">
-        <Image src="/icons/icon-192.png" alt="TaDa" width={72} height={72} priority className="rounded-[22%] shadow-md" />
-        <h1 className="text-3xl font-extrabold tracking-tight text-navy">TaDa</h1>
+        <h1 className="sr-only">Tada!</h1>
+        <Image src="/brand/wordmark.png" alt="Tada!" width={190} height={120} priority />
         <p className="max-w-xs text-fade">Plan your day, check it off, and hear the ta-da.</p>
       </div>
 
