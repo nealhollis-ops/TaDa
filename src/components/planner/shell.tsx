@@ -86,8 +86,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {p.bigMsg && (
         <div className="pointer-events-none fixed inset-0 flex items-center justify-center" style={{ zIndex: 70 }}>
           <div className="rounded-2xl px-8 py-4 text-center" style={{ background: "rgba(20,42,56,0.92)" }}>
-            <div style={{ color: C.gold, fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 40 }}>Ta-Da!</div>
-            <div style={{ color: C.cream, fontSize: 14 }}>Well done. That was a big one.</div>
+            <div style={{ color: "#fff", fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 64, lineHeight: 1.1 }}>Ta-Da!</div>
+            <div style={{ color: C.cream, fontSize: 16 }}>Well done. That was a big one.</div>
           </div>
         </div>
       )}

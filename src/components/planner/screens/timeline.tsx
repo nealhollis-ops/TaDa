@@ -14,7 +14,7 @@ export function TimelineScreen() {
         <div className="mb-1 text-xs" style={{ color: C.goldSoft }}>
           {p.month.name} so far
         </div>
-        <div style={{ color: C.gold, fontSize: 44, fontFamily: "Georgia, serif" }}>{monthTotal ? Math.round((monthDone / monthTotal) * 100) : 0}%</div>
+        <div style={{ color: "#fff", fontSize: 44, fontFamily: "Georgia, serif" }}>{monthTotal ? Math.round((monthDone / monthTotal) * 100) : 0}%</div>
         <div className="mb-3 text-xs" style={{ color: C.cream }}>
           {monthDone} of {monthTotal} tasks complete
         </div>

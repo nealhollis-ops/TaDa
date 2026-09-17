@@ -23,7 +23,10 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
     const ctx = c.getContext("2d");
     if (!ctx) return;
     const colors = ["#FF2D78", "#FF8A00", "#FFD500", "#2EE86B", "#00CFFF", "#2E7CFF", "#A855F7", "#FF4438", "#FF6B53", "#ffffff"];
-    const mult = burst.big ? 1.9 : 1;
+    // A big win is twice the show: twice the particles, bigger and faster, and the sequence runs twice as long.
+    const mult = burst.big ? 2 : 1;
+    const size = burst.big ? 1.6 : 1;
+    const speed = burst.big ? 1.3 : 1;
     const rand = (a: number, b: number) => a + Math.random() * (b - a);
     const col = () => colors[Math.floor(Math.random() * colors.length)];
     let parts: Part[] = [];
@@ -34,13 +37,13 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
       const shade = col();
       for (let i = 0; i < 80 * mult; i++) {
         const a = Math.random() * Math.PI * 2;
-        const s = rand(3, 10.5);
-        parts.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 0.045, life: 1, decay: rand(0.006, 0.01), r: rand(3, 6), col: i % 4 ? shade : col(), draw: "dot" });
+        const s = rand(3, 10.5) * speed;
+        parts.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 0.045, life: 1, decay: rand(0.006, 0.01), r: rand(3, 6) * size, col: i % 4 ? shade : col(), draw: "dot" });
       }
     };
     const confettiDrop = () => {
       for (let i = 0; i < 170 * mult; i++) {
-        parts.push({ x: rand(0, W), y: rand(-H * 0.7, -10), vx: rand(-0.7, 0.7), vy: rand(2, 4.2), g: 0.015, life: 1, decay: 0.004, w: rand(8, 15), h: rand(5, 9), rot: rand(0, Math.PI * 2), vr: rand(-0.22, 0.22), sway: rand(0, Math.PI * 2), col: col(), draw: "rect" });
+        parts.push({ x: rand(0, W), y: rand(-H * 0.7, -10), vx: rand(-0.7, 0.7), vy: rand(2, 4.2), g: 0.015, life: 1, decay: 0.004, w: rand(8, 15) * size, h: rand(5, 9) * size, rot: rand(0, Math.PI * 2), vr: rand(-0.22, 0.22), sway: rand(0, Math.PI * 2), col: col(), draw: "rect" });
       }
     };
     const starPop = () => {
@@ -48,13 +51,13 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
       const cy = H * rand(0.25, 0.45);
       for (let i = 0; i < 44 * mult; i++) {
         const a = Math.random() * Math.PI * 2;
-        const s = rand(1.5, 7);
-        parts.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1.2, g: 0.025, life: 1, decay: rand(0.005, 0.009), r: rand(7, 17), rot: rand(0, Math.PI * 2), vr: rand(-0.15, 0.15), col: col(), draw: "star" });
+        const s = rand(1.5, 7) * speed;
+        parts.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1.2, g: 0.025, life: 1, decay: rand(0.005, 0.009), r: rand(7, 17) * size, rot: rand(0, Math.PI * 2), vr: rand(-0.15, 0.15), col: col(), draw: "star" });
       }
     };
     const balloonLift = () => {
       for (let i = 0; i < 26 * mult; i++) {
-        parts.push({ x: rand(0.05, 0.95) * W, y: H + rand(10, 240), vx: rand(-0.3, 0.3), vy: rand(-2.4, -1.2), g: 0, life: 1, decay: 0.005, r: rand(15, 28), sway: rand(0, Math.PI * 2), col: col(), draw: "balloon" });
+        parts.push({ x: rand(0.05, 0.95) * W, y: H + rand(10, 240), vx: rand(-0.3, 0.3), vy: rand(-2.4, -1.2) * speed, g: 0, life: 1, decay: 0.005, r: rand(15, 28) * size, sway: rand(0, Math.PI * 2), col: col(), draw: "balloon" });
       }
     };
     const streamerVolley = () => {
@@ -66,8 +69,8 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
       ).forEach(([side, sx]) => {
         for (let i = 0; i < 38 * mult; i++) {
           const a = side === 0 ? rand(-Math.PI * 0.48, -Math.PI * 0.18) : rand(-Math.PI * 0.82, -Math.PI * 0.52);
-          const s = rand(8, 15);
-          parts.push({ x: sx, y: H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 0.09, life: 1, decay: 0.007, len: rand(12, 24), col: col(), draw: "streak" });
+          const s = rand(8, 15) * speed;
+          parts.push({ x: sx, y: H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 0.09, life: 1, decay: 0.007, len: rand(12, 24) * size, col: col(), draw: "streak" });
         }
       });
     };
@@ -80,7 +83,9 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
       streamers: [[0, streamerVolley], [35, streamerVolley], [70, streamerVolley], [105, streamerVolley]],
       grand: [[0, fireworkBurst], [12, confettiDrop], [22, fireworkBurst], [35, streamerVolley], [48, fireworkBurst], [60, confettiDrop], [75, fireworkBurst], [90, streamerVolley], [105, fireworkBurst]],
     };
-    const schedule = schedules[burst.kind] || [[0, fireworkBurst]];
+    const base = schedules[burst.kind] || [[0, fireworkBurst]];
+    const schedule: [number, () => void][] = burst.big ? [...base, ...base.map(([at, fn]): [number, () => void] => [at + 110, fn])] : base;
+    const runFor = burst.big ? 220 : 110;
 
     const drawStar = (p: Part) => {
       ctx.save();
@@ -141,7 +146,7 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
         } else if (p.draw === "streak") {
           const m = Math.hypot(p.vx, p.vy) || 1;
           ctx.strokeStyle = p.col;
-          ctx.lineWidth = 4;
+          ctx.lineWidth = 4 * size;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(p.x - (p.vx / m) * (p.len ?? 16), p.y - (p.vy / m) * (p.len ?? 16));
@@ -152,7 +157,7 @@ export function Celebrate({ burst }: { burst: Burst | null }) {
           ctx.fill();
         }
       });
-      if ((parts.length || tick <= 110) && tick < 260) raf = requestAnimationFrame(step);
+      if ((parts.length || tick <= runFor) && tick < runFor + 150) raf = requestAnimationFrame(step);
       else ctx.clearRect(0, 0, W, H);
     };
     step();

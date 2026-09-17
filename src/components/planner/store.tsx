@@ -574,7 +574,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         celebRef.current += 1;
         if (big) {
           setBigMsg(true);
-          setTimeout(() => setBigMsg(false), 2200);
+          setTimeout(() => setBigMsg(false), 3600);
         }
       }
     },
