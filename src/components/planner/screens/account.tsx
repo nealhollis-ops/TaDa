@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, C, Chip, inputCls, inputStyle } from "../ui";
 import { BADGE_CATALOG, HELP, levelColor, levelIcon, levelOf, nextLevelAt } from "@/lib/planner/content";
@@ -267,15 +268,15 @@ export function AccountScreen() {
       <button onClick={() => void save()} disabled={saving} className="w-full rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff", opacity: saving ? 0.7 : 1 }}>
         {saving ? "Saving..." : "Save my account"}
       </button>
-      <div className="mt-4 flex items-center justify-between text-xs" style={{ color: C.fade }}>
+      <form action="/auth/signout" method="post" className="mt-3">
+        <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold" style={{ background: "#fff", color: C.coral, border: `1px solid ${C.coral}` }}>
+          <LogOut size={16} /> Log out
+        </button>
+      </form>
+      <div className="mt-3 text-center text-xs" style={{ color: C.fade }}>
         <Link href="/account/password" className="underline">
           Set or change password
         </Link>
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="underline">
-            Sign out
-          </button>
-        </form>
       </div>
       <p className="mt-3 text-center text-xs" style={{ color: C.fade }}>
         <Link href="/legal/terms" className="underline">Terms</Link> · <Link href="/legal/privacy" className="underline">Privacy</Link> · <Link href="/legal/refunds" className="underline">Refunds</Link>

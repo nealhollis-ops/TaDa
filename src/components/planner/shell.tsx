@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, CheckCircle2, Circle, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
+import { BarChart3, CalendarDays, CheckCircle2, Circle, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
@@ -57,6 +57,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Link href="/account" aria-label="Account">
             <UserCircle size={24} style={{ color: view === "account" ? C.gold : C.cream }} />
           </Link>
+          <form action="/auth/signout" method="post" className="flex">
+            <button type="submit" aria-label="Log out" title="Log out">
+              <LogOut size={20} style={{ color: C.cream }} />
+            </button>
+          </form>
         </div>
       </div>
 
