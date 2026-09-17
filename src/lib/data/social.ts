@@ -325,6 +325,6 @@ export async function reportMember(sb: SB, me: string, target: { userId?: string
 
 // ---------------------------------------------------------------- push --
 /** Fire-and-forget: ask the server to push a notification to another member. */
-export function notify(kind: "message" | "partner_request" | "team_invite" | "assignment" | "badge" | "level", toUser: string, extra: Record<string, string> = {}) {
+export function notify(kind: "message" | "partner_request" | "team_invite" | "assignment" | "badge" | "level" | "reply" | "mention", toUser: string, extra: Record<string, string> = {}) {
   fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, toUser, ...extra }) }).catch(() => {});
 }

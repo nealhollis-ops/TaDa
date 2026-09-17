@@ -29,7 +29,7 @@ export async function requireUser(nextPath?: string) {
 export async function getMe() {
   const { supabase, user } = await requireUser();
   const [{ data: p }, { data: card }, { data: plan }, { data: ents }] = await Promise.all([
-    supabase.from("profiles").select("id,name,slug,avatar_url,role,hidden,private,seeking,muted,notif_on,onboarding,banned_at").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("id,name,slug,avatar_url,role,hidden,private,seeking,muted,notif_on,notif_community,onboarding,banned_at").eq("id", user.id).maybeSingle(),
     supabase.rpc("profile_card", { target: user.id }),
     supabase.rpc("effective_plan", { uid: user.id }),
     supabase.from("entitlements").select("plan,source,status,expires_at,seats_included,stripe_sub_id").eq("user_id", user.id),
@@ -56,6 +56,7 @@ export async function getMe() {
     seeking: !!p?.seeking,
     muted: !!p?.muted,
     notifOn: p?.notif_on !== false,
+    notifCommunity: p?.notif_community !== false,
     onboarding: { tour: false, posted: false, done: false, ...(p?.onboarding ?? {}) },
   };
   return { supabase, user, profile, plan: (plan as Plan | null) ?? null, billing, banned: !!p?.banned_at };

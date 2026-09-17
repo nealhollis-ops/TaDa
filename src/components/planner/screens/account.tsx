@@ -95,7 +95,7 @@ export function AccountScreen() {
         </label>
       </div>
 
-      <NotificationsCard on={p.me.notifOn} onToggle={() => void p.toggleNotif()} />
+      <NotificationsCard on={p.me.notifOn} onToggle={() => void p.toggleNotif()} communityOn={p.me.notifCommunity} onToggleCommunity={() => void p.toggleCommunityNotif()} />
 
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>
         <div className="mb-2 text-xs font-semibold" style={{ color: C.navy2 }}>

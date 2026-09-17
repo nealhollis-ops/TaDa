@@ -88,6 +88,7 @@ export type MyProfile = {
   seeking: boolean;
   muted: boolean;
   notifOn: boolean;
+  notifCommunity: boolean;
   onboarding: { tour: boolean; posted: boolean; done: boolean };
 };
 

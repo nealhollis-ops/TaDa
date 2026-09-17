@@ -128,6 +128,7 @@ export type PlannerActions = {
   reportUser: (id: string, reason: string) => Promise<void>;
   toggleMute: () => void;
   toggleNotif: () => Promise<void>;
+  toggleCommunityNotif: () => Promise<void>;
   saveAccount: (patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking">>) => Promise<void>;
   pickAvatar: (file: File) => Promise<void>;
   removeAvatar: () => Promise<void>;
@@ -806,6 +807,27 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   );
 
   // ----------------------------------------------------------- community --
+  /**
+   * Who an @mention points at. Mentions render as a single word, so we match the first
+   * word of members' names, preferring people already in the thread, and never the author.
+   */
+  const mentionTargets = useCallback(
+    (text: string, thread: string[]): string[] => {
+      const tokens = Array.from(new Set((text.match(/@([\w'-]+)/g) ?? []).map((m) => m.slice(1).toLowerCase())));
+      if (!tokens.length) return [];
+      const first = (name: string) => (name || "").trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+      const out = new Set<string>();
+      tokens.forEach((tok) => {
+        const inThread = thread.find((id) => id !== me.id && first(members[id]?.name ?? "") === tok);
+        if (inThread) return void out.add(inThread);
+        const anyone = Object.values(members).find((m) => m.id !== me.id && first(m.name) === tok);
+        if (anyone) out.add(anyone.id);
+      });
+      return Array.from(out);
+    },
+    [members, me.id],
+  );
+
   const addPost = useCallback(
     async (type: PostType, text: string) => {
       const t = text.trim();
@@ -813,13 +835,14 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       try {
         const post = await S.addPost(sb, me.id, type, t);
         setPosts((p) => [post, ...p]);
+        mentionTargets(t, []).forEach((id) => S.notify("mention", id, { name: me.name, snippet: t }));
         if (!me.onboarding.posted) void saveProfile({ onboarding: { ...me.onboarding, posted: true } });
         if (type === "boost") bumpEncourage();
       } catch (e) {
         fail(e);
       }
     },
-    [sb, me.id, me.onboarding, saveProfile, bumpEncourage, fail],
+    [sb, me.id, me.name, me.onboarding, saveProfile, bumpEncourage, fail, mentionTargets],
   );
 
   const addReply = useCallback(
@@ -830,11 +853,23 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         const r = await S.addReply(sb, me.id, postId, t);
         setPosts((list) => list.map((p) => (p.id === postId ? { ...p, replies: [...p.replies, r] } : p)));
         bumpEncourage();
+        const post = posts.find((p) => p.id === postId);
+        if (post) {
+          const told = new Set<string>();
+          if (post.userId !== me.id) {
+            told.add(post.userId);
+            S.notify("reply", post.userId, { name: me.name, snippet: t });
+          }
+          const thread = [post.userId, ...post.replies.map((x) => x.userId)];
+          mentionTargets(t, thread).forEach((id) => {
+            if (!told.has(id)) S.notify("mention", id, { name: me.name, snippet: t });
+          });
+        }
       } catch (e) {
         fail(e);
       }
     },
-    [sb, me.id, bumpEncourage, fail],
+    [sb, me.id, me.name, posts, bumpEncourage, fail, mentionTargets],
   );
 
   const toggleReact = useCallback(
@@ -1176,6 +1211,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     }
   }, [me.notifOn, saveProfile, showToast]);
 
+  const toggleCommunityNotif = useCallback(async () => {
+    await saveProfile({ notifCommunity: !me.notifCommunity });
+  }, [me.notifCommunity, saveProfile]);
+
   const saveAccount = useCallback(
     async (patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking">>) => {
       await saveProfile(patch);
@@ -1237,7 +1276,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     sendMsg, addPost, addReply, toggleReact,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned,
-    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
+    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

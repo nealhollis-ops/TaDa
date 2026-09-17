@@ -13,11 +13,21 @@ const clean = (s: string | undefined, max: number) => (s ?? "").replace(/\s+/g, 
  * What each kind says. Social kinds go to another member; `badge` and `level`
  * are the member's own milestones and may only be sent to themselves.
  */
-const COPY: Record<string, { self: boolean; make: (x: Extra) => Copy }> = {
+const COPY: Record<string, { self: boolean; community?: boolean; make: (x: Extra) => Copy }> = {
   message: { self: false, make: () => ({ title: "TaDa", body: "You have a new message.", url: "/partners" }) },
   partner_request: { self: false, make: () => ({ title: "TaDa", body: "Someone asked to be your accountability partner.", url: "/partners" }) },
   team_invite: { self: false, make: () => ({ title: "TaDa", body: "You've been invited to a team.", url: "/partners" }) },
   assignment: { self: false, make: () => ({ title: "TaDa", body: "New work was assigned to you.", url: "/today" }) },
+  reply: {
+    self: false,
+    community: true,
+    make: (x) => ({ title: `${clean(x.name, 40) || "Someone"} replied to your post`, body: clean(x.snippet, 120), url: "/community" }),
+  },
+  mention: {
+    self: false,
+    community: true,
+    make: (x) => ({ title: `${clean(x.name, 40) || "Someone"} mentioned you`, body: clean(x.snippet, 120), url: "/community" }),
+  },
   badge: {
     self: true,
     make: (x) => {
@@ -57,10 +67,12 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const [{ data: profile }, { data: blocked }] = await Promise.all([
-    admin.from("profiles").select("notif_on,banned_at").eq("id", toUser).maybeSingle(),
+    admin.from("profiles").select("notif_on,notif_community,banned_at").eq("id", toUser).maybeSingle(),
     def.self ? Promise.resolve({ data: null }) : admin.from("blocks").select("blocker_id").eq("blocker_id", toUser).eq("blocked_id", user.id).maybeSingle(),
   ]);
   if (!profile || profile.banned_at || blocked) return NextResponse.json({ ok: false });
+  // A member who switched off community notifications gets neither the bell entry nor the push for replies and mentions.
+  if (def.community && profile.notif_community === false) return NextResponse.json({ ok: false, reason: "community off" });
 
   const copy = def.make(body ?? {});
   await admin.from("notifications").insert({ user_id: toUser, kind: body!.kind, title: copy.title, body: copy.body, url: copy.url });

@@ -13,7 +13,7 @@ type SB = SupabaseClient;
 
 export async function loadMe(sb: SB, userId: string, email: string): Promise<MyProfile> {
   const [{ data: p, error }, { data: card }] = await Promise.all([
-    sb.from("profiles").select("id,name,slug,avatar_url,role,hidden,private,seeking,muted,notif_on,onboarding").eq("id", userId).single(),
+    sb.from("profiles").select("id,name,slug,avatar_url,role,hidden,private,seeking,muted,notif_on,notif_community,onboarding").eq("id", userId).single(),
     sb.rpc("profile_card", { target: userId }),
   ]);
   if (error || !p) throw error ?? new Error("profile missing");
@@ -30,11 +30,12 @@ export async function loadMe(sb: SB, userId: string, email: string): Promise<MyP
     seeking: !!p.seeking,
     muted: !!p.muted,
     notifOn: p.notif_on !== false,
+    notifCommunity: p.notif_community !== false,
     onboarding: { tour: false, posted: false, done: false, ...(p.onboarding ?? {}) },
   };
 }
 
-export async function saveMe(sb: SB, userId: string, patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking" | "muted" | "notifOn" | "onboarding" | "avatarUrl">>) {
+export async function saveMe(sb: SB, userId: string, patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking" | "muted" | "notifOn" | "notifCommunity" | "onboarding" | "avatarUrl">>) {
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name.trim().slice(0, 40) || "friend";
   if (patch.bio !== undefined) row.bio = patch.bio.slice(0, 150);
@@ -43,6 +44,7 @@ export async function saveMe(sb: SB, userId: string, patch: Partial<Pick<MyProfi
   if (patch.seeking !== undefined) row.seeking = patch.seeking;
   if (patch.muted !== undefined) row.muted = patch.muted;
   if (patch.notifOn !== undefined) row.notif_on = patch.notifOn;
+  if (patch.notifCommunity !== undefined) row.notif_community = patch.notifCommunity;
   if (patch.onboarding !== undefined) row.onboarding = patch.onboarding;
   if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl;
   const { error } = await sb.from("profiles").update(row).eq("id", userId);

@@ -20,7 +20,7 @@ function deviceState(): DeviceState {
 }
 
 /** The Notifications switch on Account, with a plain list of what it sends and where this device stands. */
-export function NotificationsCard({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+export function NotificationsCard({ on, onToggle, communityOn, onToggleCommunity }: { on: boolean; onToggle: () => void; communityOn: boolean; onToggleCommunity: () => void }) {
   const state = useSyncExternalStore(noop, deviceState, () => "ask" as DeviceState);
   const status = !on
     ? { text: "Off. Nothing is sent to any of your devices.", color: C.fade }
@@ -60,11 +60,34 @@ export function NotificationsCard({ on, onToggle }: { on: boolean; onToggle: () 
         <li>someone asks to be your accountability partner</li>
         <li>an invitation to a team</li>
         <li>work assigned to you by a boss</li>
+        <li>a badge or level you earned</li>
         <li>the occasional announcement from the TaDa team</li>
+        <li>replies to your community posts, and @mentions (see below)</li>
       </ul>
       <p className="mt-2 text-xs font-medium" style={{ color: status.color }}>
         {status.text}
       </p>
+      <div className="mt-3 flex items-center justify-between border-t pt-3" style={{ borderColor: C.line }}>
+        <div className="pr-3">
+          <div className="text-xs font-semibold" style={{ color: C.ink }}>
+            From the community
+          </div>
+          <div className="text-xs" style={{ color: C.fade }}>
+            Replies to your posts and @mentions. Turn this off to keep community chatter out of your alerts and your bell; everything else above still comes through.
+          </div>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={communityOn}
+          onClick={onToggleCommunity}
+          className="relative h-6 w-11 shrink-0 rounded-full transition"
+          style={{ background: communityOn ? C.teal : C.line }}
+          aria-label="Community notifications"
+        >
+          <span className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all" style={{ left: communityOn ? 22 : 2 }} />
+        </button>
+      </div>
     </div>
   );
 }
