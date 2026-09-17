@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { Billing } from "@/lib/auth";
 import type { Plan } from "@/lib/planner/types";
 import { C } from "./ui";
@@ -90,6 +91,20 @@ export function Paywall({ name, billing }: { name: string; billing: Billing | nu
           Upgrades prorate automatically. Manage or cancel any time from Account.
           <br />
           Part of Faith Hub Unleashed? Your access is complimentary; write to clientcare@gettada.me if you see this screen.
+          <br />
+          By subscribing you agree to the{" "}
+          <Link href="/legal/terms" className="underline">
+            Terms
+          </Link>
+          ,{" "}
+          <Link href="/legal/privacy" className="underline">
+            Privacy Policy
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/refunds" className="underline">
+            Refund Policy
+          </Link>
+          .
         </p>
         <form action="/auth/signout" method="post" className="mt-4 text-center">
           <button type="submit" className="text-xs underline" style={{ color: C.fade }}>

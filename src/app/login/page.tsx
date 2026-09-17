@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -29,6 +30,18 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
       <LoginForm next={next} initialError={linkError} initialMode={mode} initialEmail={email} />
 
       <InstallPrompt />
+
+      <p className="max-w-xs text-center text-xs text-fade">
+        By continuing you agree to the{" "}
+        <Link href="/legal/terms" className="underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/legal/privacy" className="underline">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </main>
   );
 }
