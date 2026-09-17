@@ -46,7 +46,9 @@ export function PlanScreen() {
         </button>
       </div>
       <p className="mb-4 text-xs" style={{ color: C.fade }}>
-        Organize places every unscheduled task on your lightest open day. Sundays are left open on purpose.
+        <b style={{ color: C.ink }}>Add task</b> opens a short form: what needs doing, which day and time of day, and whether it repeats. Pick a day yourself or leave it to TaDa.
+        <br />
+        <b style={{ color: C.ink }}>Organize</b> places every unscheduled task on your lightest open day. Sundays are left open on purpose.
       </p>
 
       <div className="mb-5 rounded-2xl p-4" style={{ background: C.navy }}>
