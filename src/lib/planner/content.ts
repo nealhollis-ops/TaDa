@@ -24,13 +24,16 @@ export const QUOTES: { text: string; by: string | null }[] = [
   { text: "Two get more done than one. Say today's target out loud to your partner. A goal with a witness is twice as hard to drop.", by: null },
 ];
 
+// Each time of day has its own color: morning is yellow, afternoon green, evening cadmium red.
+// `color` is the icon and solid uses, `text` is dark enough for small type, `tint` sits behind chips.
 export const BLOCK_META = [
-  { id: "morning", label: "Morning" },
-  { id: "afternoon", label: "Afternoon" },
-  { id: "evening", label: "Evening" },
+  { id: "morning", label: "Morning", color: "#F8B018", text: "#7A5200", tint: "#FEF0C7" },
+  { id: "afternoon", label: "Afternoon", color: "#12B76A", text: "#0B6B3A", tint: "#D5F5E3" },
+  { id: "evening", label: "Evening", color: "#E30022", text: "#B00018", tint: "#FDE2E2" },
 ] as const;
 
 export const blockLabel = (b: string) => BLOCK_META.find((x) => x.id === b)?.label ?? "Time TBD";
+export const blockMeta = (b: string) => BLOCK_META.find((x) => x.id === b) ?? null;
 
 export const PTYPE_META = {
   question: { label: "Question", color: "#12B76A", fg: "#111111" },

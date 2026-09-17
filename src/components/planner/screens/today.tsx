@@ -9,9 +9,9 @@ import { dayLabel } from "@/lib/planner/calendar";
 import { taskWeek } from "@/lib/planner/tasks";
 
 const BLOCKS = [
-  { id: "morning", label: "Morning", Icon: Sun },
-  { id: "afternoon", label: "Afternoon", Icon: CloudSun },
-  { id: "evening", label: "Evening", Icon: Moon },
+  { id: "morning", label: "Morning", Icon: Sun, color: "#F8B018", text: "#7A5200" },
+  { id: "afternoon", label: "Afternoon", Icon: CloudSun, color: "#12B76A", text: "#0B6B3A" },
+  { id: "evening", label: "Evening", Icon: Moon, color: "#E30022", text: "#B00018" },
 ];
 
 export function TodayScreen() {
@@ -61,14 +61,14 @@ export function TodayScreen() {
             Nothing scheduled today. Enjoy the margin, or head to Plan and add something.
           </div>
         )}
-        {BLOCKS.map(({ id, label, Icon }) => {
+        {BLOCKS.map(({ id, label, Icon, color, text }) => {
           const bt = todays.filter((t) => (t.block === "auto" ? "afternoon" : t.block) === id);
           if (!bt.length) return null;
           return (
             <div key={id} className="mb-4">
               <div className="mb-2 flex items-center gap-2">
-                <Icon size={16} style={{ color: C.gold }} />
-                <span className="text-xs font-semibold" style={{ color: C.navy2 }}>
+                <Icon size={16} style={{ color }} />
+                <span className="text-xs font-semibold" style={{ color: text }}>
                   {label}
                 </span>
               </div>
