@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import webpush from "web-push";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdmin } from "@/lib/admin";
-import { serverEnv } from "@/lib/env";
+import { publicEnv, serverEnv } from "@/lib/env";
 import { requestOrigin } from "@/lib/request-origin";
 import type { Plan } from "@/lib/planner/types";
 
@@ -172,6 +173,56 @@ export async function postAnnouncement(_prev: AdminResult, formData: FormData): 
   await logAdmin(user.id, "announcement.post", null, { type });
   revalidatePath("/admin/announcements");
   return { ok: true, message: "Pinned to the top of the community." };
+}
+
+const PUSH_LINKS: Record<string, string> = { today: "/today", plan: "/plan", community: "/community", partners: "/partners", account: "/account" };
+
+/** Push a short announcement to every member who has notifications on. Honors bans and cleans dead devices. */
+export async function pushAnnouncement(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
+  const { user } = await requireAdmin();
+  const title = str(formData.get("title")).slice(0, 60) || "TaDa";
+  const body = str(formData.get("body")).slice(0, 160);
+  const url = PUSH_LINKS[str(formData.get("link"))] ?? "/today";
+  if (!body) return { ok: false, message: "Write the message first." };
+  const env = serverEnv();
+  if (!env.vapidPrivateKey || !publicEnv.vapidPublicKey) return { ok: false, message: "Push keys are not configured on the server." };
+
+  const admin = createAdminClient();
+  const { data: people, error: pErr } = await admin.from("profiles").select("id").eq("notif_on", true).is("banned_at", null);
+  if (pErr) return { ok: false, message: pErr.message };
+  const ids = (people ?? []).map((p) => p.id);
+  if (!ids.length) return { ok: false, message: "Nobody has notifications on yet." };
+  const { data: subs, error: sErr } = await admin.from("push_subscriptions").select("id,user_id,endpoint,keys").in("user_id", ids);
+  if (sErr) return { ok: false, message: sErr.message };
+  if (!subs?.length) return { ok: false, message: "Notifications are on for some members, but no device has registered yet." };
+
+  webpush.setVapidDetails(env.vapidSubject, publicEnv.vapidPublicKey, env.vapidPrivateKey);
+  const payload = JSON.stringify({ title, body, url });
+  let sent = 0;
+  let dropped = 0;
+  const reached = new Set<string>();
+  // Small batches so a long list does not open hundreds of connections at once.
+  for (let i = 0; i < subs.length; i += 50) {
+    await Promise.all(
+      subs.slice(i, i + 50).map(async (s) => {
+        try {
+          await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys as { p256dh: string; auth: string } }, payload, { TTL: 60 * 60 * 24 });
+          sent += 1;
+          reached.add(s.user_id);
+        } catch (err) {
+          const status = (err as { statusCode?: number }).statusCode;
+          if (status === 404 || status === 410) {
+            dropped += 1;
+            await admin.from("push_subscriptions").delete().eq("id", s.id);
+          }
+        }
+      }),
+    );
+  }
+  await logAdmin(user.id, "announcement.push", null, { title, body, url, sent, members: reached.size, dropped });
+  revalidatePath("/admin/announcements");
+  const m = reached.size;
+  return { ok: true, message: `Sent to ${m} member${m === 1 ? "" : "s"} on ${sent} device${sent === 1 ? "" : "s"}.${dropped ? ` Removed ${dropped} dead device${dropped === 1 ? "" : "s"}.` : ""}` };
 }
 
 export async function setPinned(_prev: AdminResult, formData: FormData): Promise<AdminResult> {

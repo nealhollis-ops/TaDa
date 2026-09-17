@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { deleteContent, postAnnouncement, setPinned, type AdminResult } from "../actions";
+import { deleteContent, postAnnouncement, pushAnnouncement, setPinned, type AdminResult } from "../actions";
 import { Notice } from "../notice";
 
 type Pinned = { id: string; type: string; text: string; createdAt: string; by: string };
@@ -10,6 +10,7 @@ export function AnnouncementForms({ pinned }: { pinned: Pinned[] }) {
   const [postState, postAction, posting] = useActionState<AdminResult, FormData>(postAnnouncement, null);
   const [pinState, pinAction, pinning] = useActionState<AdminResult, FormData>(setPinned, null);
   const [delState, delAction, deleting] = useActionState<AdminResult, FormData>(deleteContent, null);
+  const [pushState, pushAction, pushing] = useActionState<AdminResult, FormData>(pushAnnouncement, null);
   const input = "rounded-xl border border-line bg-white px-3 py-2 text-sm";
   return (
     <div>
@@ -32,6 +33,37 @@ export function AnnouncementForms({ pinned }: { pinned: Pinned[] }) {
           </button>
         </div>
         <Notice state={postState} />
+      </form>
+
+      <form action={pushAction} className="mt-6 rounded-2xl border border-line bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-fade">Push to everyone</h2>
+        <p className="mt-1 text-xs text-fade">A phone or desktop notification to every member who has notifications on. Keep it short: phones show about two lines. Tapping it opens the screen you pick.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_2fr]">
+          <label className="text-xs text-fade">
+            Title
+            <input name="title" maxLength={60} defaultValue="TaDa" className={`${input} mt-1 block w-full`} />
+          </label>
+          <label className="text-xs text-fade">
+            Message
+            <input name="body" required maxLength={160} className={`${input} mt-1 block w-full`} placeholder="New this week: color-coded mornings, afternoons and evenings." />
+          </label>
+        </div>
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="text-xs text-fade">
+            Opens
+            <select name="link" defaultValue="today" className={`${input} block`}>
+              <option value="today">Today</option>
+              <option value="plan">Plan</option>
+              <option value="community">Community</option>
+              <option value="partners">Partners</option>
+              <option value="account">Account</option>
+            </select>
+          </label>
+          <button type="submit" disabled={pushing} className="rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+            {pushing ? "Sending..." : "Send push to everyone"}
+          </button>
+        </div>
+        <Notice state={pushState} />
       </form>
 
       <section className="mt-6">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { InstallCard } from "@/components/pwa/install-card";
+import { NotificationsCard } from "@/components/pwa/notifications-card";
 import { usePlanner } from "../store";
 import { Avatar, C, Chip, inputCls, inputStyle } from "../ui";
 import { BADGE_CATALOG, HELP, levelColor, levelIcon, levelOf, nextLevelAt } from "@/lib/planner/content";
@@ -92,11 +93,9 @@ export function AccountScreen() {
           <input type="checkbox" className="mt-0.5" checked={priv} onChange={(e) => setPriv(e.target.checked)} />
           <span>Private profile. Nobody can open your profile card, so your badges, streaks, and bio stay yours alone. Your name and posts still show.</span>
         </label>
-        <label className="mt-3 flex items-start gap-2 text-sm" style={{ color: C.ink }}>
-          <input type="checkbox" className="mt-0.5" checked={p.me.notifOn} onChange={() => void p.toggleNotif()} />
-          <span>Notifications. Your device alerts you about new messages, partner requests, team invites, and assigned work. On for everyone from day one, off with this one tap, no save needed.</span>
-        </label>
       </div>
+
+      <NotificationsCard on={p.me.notifOn} onToggle={() => void p.toggleNotif()} />
 
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>
         <div className="mb-2 text-xs font-semibold" style={{ color: C.navy2 }}>
