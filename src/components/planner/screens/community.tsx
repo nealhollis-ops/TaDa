@@ -48,6 +48,9 @@ export function CommunityScreen() {
           <RefreshCw size={16} style={{ color: C.navy2 }} className={p.refreshing ? "animate-spin" : ""} />
         </button>
       </div>
+      <p className="mb-3 text-xs" style={{ color: C.fade }}>
+        Every TaDa member shares this space. Be the kind of voice you&rsquo;d want to hear.
+      </p>
       <div className="mb-3 flex gap-2">
         {(Object.keys(PTYPE_META) as PostType[]).map((k) => {
           const v = PTYPE_META[k];
@@ -236,9 +239,6 @@ export function CommunityScreen() {
           {postType === "question" ? "No questions yet. Ask the first one." : postType === "win" ? "No wins posted yet. Go earn one, then come brag a little." : "No boosts yet. Drop a word that lifts somebody."}
         </div>
       )}
-      <p className="mt-3 text-xs" style={{ color: C.fade }}>
-        Every TaDa member shares this space. Be the kind of voice you&rsquo;d want to hear.
-      </p>
     </div>
   );
 }
