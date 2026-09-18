@@ -91,6 +91,13 @@ export async function loadTasks(sb: SB, userId: string, month: string): Promise<
   return (data ?? []).map(toTask);
 }
 
+/** Last month's unfinished one-time tasks, the ones that carry into the new month. */
+export async function loadUnfinishedFrom(sb: SB, userId: string, month: string): Promise<Task[]> {
+  const { data, error } = await sb.from("tasks").select("*").eq("user_id", userId).eq("month", month).eq("repeat", "none").eq("done", false);
+  if (error) throw error;
+  return (data ?? []).map(toTask);
+}
+
 export async function loadRepeatersFrom(sb: SB, userId: string, month: string): Promise<Task[]> {
   const { data, error } = await sb.from("tasks").select("*").eq("user_id", userId).eq("month", month).neq("repeat", "none");
   if (error) throw error;

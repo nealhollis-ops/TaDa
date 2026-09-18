@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { dayOfYear, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
-import { applyEdit, applyOps, buildNewTasks, bumpStats, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
+import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import { DEF_STATS, type Assignment, type Badge, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
@@ -389,14 +389,16 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     let cancelled = false;
     (async () => {
       try {
-        const [cur, st, prevRep] = await Promise.all([P.loadTasks(sb, me.id, month.prefix), P.loadStats(sb, me.id), P.loadRepeatersFrom(sb, me.id, previousMonthPrefix(month))]);
+        const prev = previousMonthPrefix(month);
+        const [cur, st, prevRep, prevOpen] = await Promise.all([P.loadTasks(sb, me.id, month.prefix), P.loadStats(sb, me.id), P.loadRepeatersFrom(sb, me.id, prev), P.loadUnfinishedFrom(sb, me.id, prev)]);
         if (cancelled) return;
         let list = cur;
         const spawned = spawnRepeaters(month, prevRep, cur);
-        if (spawned.length) {
-          list = organizeList(month, [...cur, ...spawned]);
-          await P.syncTasks(sb, me.id, cur, list);
-        }
+        if (spawned.length) list = organizeList(month, [...cur, ...spawned]);
+        // Carried tasks stay undated on purpose: the member decides when, or taps Organize.
+        const carried = carryUnfinished(month, prevOpen, list);
+        if (carried.length) list = [...list, ...carried];
+        if (spawned.length || carried.length) await P.syncTasks(sb, me.id, cur, list);
         tasksRef.current = list;
         setTasks(list);
         const s = { ...DEF_STATS, ...(st ?? {}) };
@@ -701,7 +703,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const addDumped = useCallback(
     (items: { title: string; week: number; big: boolean }[]) => {
       if (!items.length) return;
-      const fresh: Task[] = items.map((x) => ({ id: uid(), rootId: null, title: x.title, big: x.big, month: month.prefix, week: x.week, date: null, block: "auto", repeat: "none", anchor: null, done: false, doneAt: null, sort: Date.now() }));
+      const fresh: Task[] = items.map((x) => ({ id: uid(), rootId: null, title: x.title, big: x.big, month: month.prefix, week: x.week, date: null, block: "auto", repeat: "none", anchor: null, done: false, doneAt: null, sort: Date.now(), carriedFrom: null }));
       void persistTasks(organizeList(month, [...tasksRef.current, ...fresh]));
     },
     [month, persistTasks],

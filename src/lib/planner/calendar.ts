@@ -123,3 +123,10 @@ export const dayOfYear = (ds: string) => {
   const d = parseInt(ds.slice(8, 10), 10);
   return Math.floor((Date.UTC(y, mo, d) - Date.UTC(y, 0, 0)) / 86400000);
 };
+
+/** "2026-09" -> "September" */
+export const monthLabel = (prefix: string) => {
+  const [y, m] = prefix.split("-").map((n) => parseInt(n, 10));
+  if (!y || !m) return prefix;
+  return new Date(y, m - 1, 1).toLocaleString("en-US", { month: "long" });
+};

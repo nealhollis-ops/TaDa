@@ -18,6 +18,7 @@ export type Task = {
   done: boolean;
   doneAt: string | null;
   sort: number;
+  carriedFrom: string | null;
 };
 
 export type Stats = {

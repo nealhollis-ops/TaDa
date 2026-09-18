@@ -3,7 +3,7 @@
 import { CheckCircle2, Circle, Pencil, Star } from "lucide-react";
 import { usePlanner } from "./store";
 import { C, Chip } from "./ui";
-import { dayLabel, ord, WD } from "@/lib/planner/calendar";
+import { dayLabel, monthLabel, ord, WD } from "@/lib/planner/calendar";
 import { blockLabel, blockMeta } from "@/lib/planner/content";
 import type { Task } from "@/lib/planner/types";
 
@@ -24,6 +24,11 @@ export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
           <Chip color={blockMeta(t.block)?.text ?? C.fade} bg={blockMeta(t.block)?.tint ?? C.mist}>
             {t.block === "auto" ? "Time TBD" : blockLabel(t.block)}
           </Chip>
+          {t.carriedFrom && (
+            <Chip color={C.fade} bg={C.mist}>
+              From {monthLabel(t.carriedFrom)}
+            </Chip>
+          )}
           {t.repeat === "daily" && (
             <Chip color={C.goldDeep} bg={C.goldSoft}>
               Daily

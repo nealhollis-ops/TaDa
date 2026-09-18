@@ -52,6 +52,7 @@ const base = (m: MonthInfo, partial: Partial<Task> & { title: string }): Task =>
   done: false,
   doneAt: null,
   sort: partial.sort ?? Date.now(),
+  carriedFrom: partial.carriedFrom ?? null,
 });
 
 /** Turn the Add task form into the rows to insert (repeats fan out into copies). */
@@ -329,6 +330,21 @@ export function spawnRepeaters(m: MonthInfo, previous: Task[], current: Task[]):
     }
   });
   return spawned;
+}
+
+/**
+ * Month flip, part two: unfinished one-time tasks from last month come along as
+ * undated tasks in the current week, marked with the month they came from, so
+ * Organize can place them. The original stays in last month's history. A task
+ * already carried (its id shows as a rootId here) is never carried twice.
+ */
+export function carryUnfinished(m: MonthInfo, previous: Task[], current: Task[]): Task[] {
+  const curW = weekOf(m, todayStr());
+  const already = new Set(current.map((c) => c.rootId).filter(Boolean));
+  return previous
+    .filter((t) => !t.done && t.repeat === "none" && !already.has(t.id))
+    .sort((a, b) => (a.date || "9").localeCompare(b.date || "9") || a.sort - b.sort)
+    .map((t, i) => base(m, { title: t.title, big: !!t.big, date: null, block: t.block && t.block !== "auto" ? t.block : "auto", week: curW, repeat: "none", rootId: t.id, anchor: null, carriedFrom: t.month, sort: Date.now() + i }));
 }
 
 export const currentMonth = () => monthInfo(new Date());

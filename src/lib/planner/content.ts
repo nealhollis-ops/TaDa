@@ -148,6 +148,12 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Editing one copy of a daily task updates every unfinished copy. Switch it back to One time and remove any leftovers you don't want.",
     "Pin a repeat to a day, like Every Monday or the 1st of every month, and the copies land on that exact day, with the pattern shown on a small badge on the task.",
   ]},
+  { id: "monthflip", t: "When the month turns", b: [
+    "On the first of the month the calendar flips to a fresh month. Two things come with you.",
+    "Repeating tasks are rebuilt for the new month automatically: daily and Mon - Fri copies on every day, weekly copies in every week, monthly ones on their day. You never re-enter them.",
+    "Unfinished one-time tasks carry over too. Anything you didn't check off last month appears in the new month with no day set, in the current week, wearing a small chip that says which month it came from. Tap Organize to place them all on your lightest days, tap the pencil to pick a day yourself, or remove any that no longer matter.",
+    "Last month stays exactly as it was, finished and unfinished, so your streak history and badge progress are untouched. A task only carries once; if you leave it undone again, it carries again the following month.",
+  ]},
   { id: "checkoff", t: "Checking things off", b: [
     "Tap the circle next to any task. You'll get a celebration on screen, Deb's ta-da, and a buzz on phones that support it. Five celebration styles take turns. Big wins get twice the show: twice the fireworks, bigger and faster, for twice as long.",
     "Tapped by accident? Tap it again and everything adjusts.",
@@ -227,6 +233,8 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "A: Tap the refresh arrow on the Partners tab or open the app again, and it'll be there.",
     "Q: How do I move a task to a different day?",
     "A: Tap the pencil on the task, or just tell the calendar bar something like move it to Thursday.",
+    "Q: What happens to tasks I didn't finish last month?",
+    "A: They come with you into the new month with no day set, marked with the month they came from. Organize places them, or pick a day yourself.",
     "Q: How do I stop a repeating task?",
     "A: Tap its pencil, switch it to One time, and remove any leftover copies you don't want.",
     "Q: How do I turn the sound off?",
