@@ -14,7 +14,7 @@ export function CommunityScreen() {
   const p = usePlanner();
   const [postType, setPostType] = useState<PostType>("win");
   const [postText, setPostText] = useState("");
-  const [feedSort, setFeedSort] = useState<"active" | "new" | "top">("active");
+  const [feedSort, setFeedSort] = useState<"active" | "new" | "top">("new");
   const [showMile, setShowMile] = useState(true);
   const [feedCount, setFeedCount] = useState(20);
   const [reactFor, setReactFor] = useState<string | null>(null);
@@ -65,8 +65,8 @@ export function CommunityScreen() {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         {(
           [
-            ["active", "Active"],
             ["new", "New"],
+            ["active", "Active"],
             ["top", "Top"],
           ] as const
         ).map(([k, l]) => (
