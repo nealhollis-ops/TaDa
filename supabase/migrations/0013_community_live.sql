@@ -38,3 +38,10 @@ exception when duplicate_object then null; end $$;
 -- Members can edit their own posts and replies; edited_at marks them as changed.
 alter table public.posts add column if not exists edited_at timestamptz;
 alter table public.replies add column if not exists edited_at timestamptz;
+
+-- team_members was listened to but never published. One unpublished table on a
+-- channel silently drops every event on that channel, which is why nothing in
+-- the app updated live. Publish it so the channel works end to end.
+do $$ begin
+  alter publication supabase_realtime add table public.team_members;
+exception when duplicate_object then null; end $$;
