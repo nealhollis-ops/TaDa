@@ -10,7 +10,7 @@ export type LegalDoc = {
   sections: { h: string; body: string[] }[];
 };
 
-export const LEGAL_UPDATED = "September 17, 2026";
+export const LEGAL_UPDATED = "September 18, 2026";
 
 export const DOCS: Record<string, LegalDoc> = {
   terms: {
@@ -41,7 +41,7 @@ export const DOCS: Record<string, LegalDoc> = {
       {
         h: "3. Free trial",
         body: [
-          "Every new account gets a 14-day free trial of the plan you choose. You can start the trial without entering a card. If you have not added a payment method by the end of the trial, your subscription simply ends and nothing is charged. If you have added one, your first payment is taken when the trial ends.",
+          "Every new account gets a 14-day free trial of the plan you choose. A card is required to start the trial, but nothing is charged during it. When the trial ends, your first payment is taken automatically for the plan you chose and your subscription begins. Cancel from the Manage billing button in Account at any point before the trial ends and you will not be charged.",
           "The trial is offered once per person. Creating extra accounts to get additional trials is not allowed and we may close those accounts.",
         ],
       },
@@ -286,7 +286,7 @@ export const DOCS: Record<string, LegalDoc> = {
       {
         h: "Free trial",
         body: [
-          "Every new account starts with 14 days free on the plan you pick. You do not need a card to start. If you add one, your first payment is taken when the trial ends. If you do not, the trial simply expires and nothing is charged.",
+          "Every new account starts with 14 days free on the plan you pick. You add a card to start, and nothing is charged until the trial ends. On day 15 your first payment is taken for that plan. Cancel from the Manage billing button in Account before then and you pay nothing.",
         ],
       },
       {
