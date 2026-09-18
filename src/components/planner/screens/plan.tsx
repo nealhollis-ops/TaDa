@@ -19,6 +19,9 @@ export function PlanScreen() {
   const [dumpText, setDumpText] = useState("");
   const [dumpBusy, setDumpBusy] = useState(false);
   const [dumpPreview, setDumpPreview] = useState<DumpItem[]>([]);
+  const [tab, setTab] = useState<"active" | "completed">("active");
+  const activeCount = p.tasks.filter((t) => !t.done).length;
+  const completedCount = p.tasks.length - activeCount;
   const sel = "rounded-xl border px-2 py-2.5 text-sm";
 
   const add = () => {
@@ -183,8 +186,32 @@ export function PlanScreen() {
         </div>
       )}
 
+      <div className="mb-4 flex rounded-xl p-1" style={{ background: C.mist }}>
+        {(
+          [
+            ["active", "Active", activeCount],
+            ["completed", "Completed", completedCount],
+          ] as const
+        ).map(([id, label, n]) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold"
+            style={{ background: tab === id ? "#fff" : "transparent", color: tab === id ? C.ink : C.fade, boxShadow: tab === id ? "0 1px 2px rgba(17,17,17,0.12)" : "none" }}
+          >
+            {label}
+            <span className="rounded-full px-1.5 text-[11px]" style={{ background: tab === id ? C.mist : "transparent", color: C.fade }}>
+              {n}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {m.weeks.map((wk) => {
-        const wt = p.tasks.filter((t) => taskWeek(m, t) === wk.w).sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
+        const all = p.tasks.filter((t) => taskWeek(m, t) === wk.w);
+        const wt = all.filter((t) => (tab === "active" ? !t.done : t.done)).sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
+        // On the Completed tab, weeks with nothing finished stay out of the way.
+        if (tab === "completed" && wt.length === 0) return null;
         return (
           <div key={wk.w} className="mb-5">
             <div className="mb-2 flex items-center justify-between">
@@ -193,12 +220,12 @@ export function PlanScreen() {
                 {wk.w === p.currentWeek ? " (this week)" : ""}
               </span>
               <span className="text-xs" style={{ color: C.fade }}>
-                {wt.filter((t) => t.done).length} of {wt.length} done
+                {tab === "active" ? `${wt.length} to do, ${all.length - wt.length} done` : `${wt.length} done`}
               </span>
             </div>
             {wt.length === 0 ? (
               <div className="rounded-xl p-3 text-xs" style={{ background: "#fff", color: C.fade }}>
-                Nothing here yet.
+                {all.length === 0 ? "Nothing here yet." : "All done for this week. Take a bow."}
               </div>
             ) : (
               wt.map((t) => <TaskRow key={t.id} t={t} showDay={true} />)
@@ -206,6 +233,11 @@ export function PlanScreen() {
           </div>
         );
       })}
+      {tab === "completed" && completedCount === 0 && (
+        <div className="rounded-2xl p-6 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
+          Nothing completed yet this month. Check something off on Today and it lands here.
+        </div>
+      )}
     </div>
   );
 }

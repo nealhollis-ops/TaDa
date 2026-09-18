@@ -126,6 +126,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   ]},
   { id: "addtasks", t: "Adding tasks", b: [
     "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or let the app choose one for you inside the week you select.",
+    "The month below the buttons has two tabs. Active shows what is still to do, week by week. Completed shows what you have already checked off, so finished work moves out of the way but is never lost. The counts on the tabs are for the whole month.",
     "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip.",
     "Check Big win for your major tasks. Big wins get a celebration twice the size, and the app schedules them in mornings when it does the placing.",
   ]},
