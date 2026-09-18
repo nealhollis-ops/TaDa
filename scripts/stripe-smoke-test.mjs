@@ -94,6 +94,30 @@ await replay("customer.subscription.updated", sub);
 ent = await entitlement(userId);
 log("after plan change:", ent?.plan, ent?.status, "| effective:", await effectivePlan(userId), "(expect standard)");
 
+// ---- 4b. the in-app Upgrade button: portal deep link to a confirmed price change --
+// Sign in as the member and call the portal route the way the Account screen does.
+// The server client reads the session from the @supabase/ssr cookie, so build that cookie here.
+{
+  const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: signIn, error: sErr } = await anon.auth.signInWithPassword({ email, password: "TestPass!2026" });
+  if (sErr) throw sErr;
+  const ref = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
+  const raw = "base64-" + Buffer.from(JSON.stringify(signIn.session)).toString("base64url");
+  const chunks = raw.match(/.{1,3000}/g);
+  const cookie = chunks.length === 1 ? `sb-${ref}-auth-token=${raw}` : chunks.map((c, i) => `sb-${ref}-auth-token.${i}=${c}`).join("; ");
+  for (const target of ["teams", "boss"]) {
+    const res = await fetch(`${BASE}/api/stripe/portal`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie }, body: JSON.stringify({ upgradeTo: target }) });
+    const body = await res.json();
+    if (!res.ok || !body.url) throw new Error(`portal upgrade to ${target} failed: ${res.status} ${JSON.stringify(body)}`);
+    log(`upgrade button -> ${target}:`, body.url.startsWith("https://billing.stripe.com/") ? "portal session created" : body.url);
+  }
+  // A plain Manage billing call still works with no body.
+  const plain = await fetch(`${BASE}/api/stripe/portal`, { method: "POST", headers: { Cookie: cookie } });
+  const plainBody = await plain.json();
+  if (!plain.ok || !plainBody.url) throw new Error(`portal home failed: ${plain.status} ${JSON.stringify(plainBody)}`);
+  log("manage billing:", "portal session created");
+}
+
 // ---- 5. cancel ---------------------------------------------------------------
 sub = await stripe.subscriptions.cancel(sub.id);
 await replay("customer.subscription.deleted", sub);
