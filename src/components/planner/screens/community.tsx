@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Hand, Heart, HelpCircle, MessageCircle, RefreshCw, Send, SmilePlus, Trophy } from "lucide-react";
+import { Check, Hand, Heart, HelpCircle, MessageCircle, Pencil, RefreshCw, Send, SmilePlus, Trash2, Trophy, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, C, Chip, QuoteCard, inputStyle, renderRich } from "../ui";
 import { ago } from "@/lib/planner/calendar";
@@ -21,6 +21,10 @@ export function CommunityScreen() {
   const [openReplies, setOpenReplies] = useState<string[]>([]);
   const [replyFor, setReplyFor] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [editing, setEditing] = useState<{ kind: "post" | "reply"; postId: string; replyId?: string; text: string } | null>(null);
+  const [confirmDel, setConfirmDel] = useState<{ kind: "post" | "reply"; postId: string; replyId?: string } | null>(null);
+  const [replyReactFor, setReplyReactFor] = useState<string | null>(null);
+  const editBox = "w-full rounded-xl border px-3 py-2 text-sm outline-none";
 
   const ts = (s: string) => new Date(s).getTime();
   const lastAct = (x: Post) => Math.max(ts(x.createdAt), ...x.replies.map((r) => ts(r.createdAt)), 0);
@@ -128,11 +132,60 @@ export function CommunityScreen() {
               <Icon size={13} style={{ color: meta.color }} />
               <span className="ml-auto text-xs" style={{ color: C.fade }}>
                 {ago(post.createdAt)}
+                {post.edited ? " · edited" : ""}
               </span>
+              {post.userId === p.me.id && !post.milestone && (
+                <span className="flex items-center gap-1">
+                  <button onClick={() => setEditing({ kind: "post", postId: post.id, text: post.text })} aria-label="Edit post">
+                    <Pencil size={13} style={{ color: C.fade }} />
+                  </button>
+                  <button onClick={() => setConfirmDel({ kind: "post", postId: post.id })} aria-label="Delete post">
+                    <Trash2 size={13} style={{ color: C.fade }} />
+                  </button>
+                </span>
+              )}
             </div>
-            <div className="text-sm" style={{ color: C.ink }}>
-              {renderRich(post.text)}
-            </div>
+            {editing?.kind === "post" && editing.postId === post.id ? (
+              <div className="mt-1">
+                <textarea className={editBox} style={inputStyle} rows={3} maxLength={2000} value={editing.text} onChange={(e) => setEditing({ ...editing, text: e.target.value })} />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => {
+                      void p.editPost(post.id, editing.text);
+                      setEditing(null);
+                    }}
+                    className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold"
+                    style={{ background: C.teal, color: C.ink }}
+                  >
+                    <Check size={13} /> Save
+                  </button>
+                  <button onClick={() => setEditing(null)} className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.mist, color: C.ink }}>
+                    <X size={13} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : confirmDel?.kind === "post" && confirmDel.postId === post.id ? (
+              <div className="mt-1 flex flex-wrap items-center gap-2 rounded-xl px-3 py-2 text-sm" style={{ background: "#FDE2E2", color: C.ink }}>
+                Delete this post and its replies?
+                <button
+                  onClick={() => {
+                    void p.deletePost(post.id);
+                    setConfirmDel(null);
+                  }}
+                  className="rounded-xl px-3 py-1 text-xs font-semibold text-white"
+                  style={{ background: C.coral }}
+                >
+                  Delete
+                </button>
+                <button onClick={() => setConfirmDel(null)} className="rounded-xl px-3 py-1 text-xs font-semibold" style={{ background: "#fff", color: C.ink }}>
+                  Keep it
+                </button>
+              </div>
+            ) : (
+              <div className="text-sm" style={{ color: C.ink }}>
+                {renderRich(post.text)}
+              </div>
+            )}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {REACTS.filter((r) => (post.reactions[r.id] || []).length > 0).map((r) => {
                 const arr = post.reactions[r.id] || [];
@@ -172,26 +225,115 @@ export function CommunityScreen() {
               {open && (
                 <div>
                   {reps.map((r) => (
-                    <div key={r.id} className="ml-3 mt-2 flex items-start gap-2 py-1 pl-3 text-sm" style={{ borderLeft: `2px solid ${C.line}`, color: C.ink }}>
-                      <button onClick={() => p.set("viewProfile", r.userId)}>
-                        <Avatar src={p.avatarOf(r.userId)} name={p.nameOf(r.userId)} size={18} />
-                      </button>
-                      <span className="flex-1">
-                        <span className="font-semibold" style={{ color: C.navy2 }}>
-                          {p.nameOf(r.userId)}:{" "}
+                    <div key={r.id} className="ml-3 mt-2 py-1 pl-3 text-sm" style={{ borderLeft: `2px solid ${C.line}`, color: C.ink }}>
+                      <div className="flex items-start gap-2">
+                        <button onClick={() => p.set("viewProfile", r.userId)}>
+                          <Avatar src={p.avatarOf(r.userId)} name={p.nameOf(r.userId)} size={18} />
+                        </button>
+                        {editing?.kind === "reply" && editing.replyId === r.id ? (
+                          <span className="flex-1">
+                            <textarea className={editBox} style={inputStyle} rows={2} maxLength={1000} value={editing.text} onChange={(e) => setEditing({ ...editing, text: e.target.value })} />
+                            <span className="mt-1.5 flex gap-2">
+                              <button
+                                onClick={() => {
+                                  void p.editReply(post.id, r.id, editing.text);
+                                  setEditing(null);
+                                }}
+                                className="flex items-center gap-1 rounded-xl px-3 py-1 text-xs font-semibold"
+                                style={{ background: C.teal, color: C.ink }}
+                              >
+                                <Check size={12} /> Save
+                              </button>
+                              <button onClick={() => setEditing(null)} className="flex items-center gap-1 rounded-xl px-3 py-1 text-xs font-semibold" style={{ background: C.mist, color: C.ink }}>
+                                <X size={12} /> Cancel
+                              </button>
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="flex-1">
+                            <span className="font-semibold" style={{ color: C.navy2 }}>
+                              {p.nameOf(r.userId)}:{" "}
+                            </span>
+                            {renderRich(r.text)}
+                            {r.edited && (
+                              <span className="ml-1 text-[10px]" style={{ color: C.fade }}>
+                                edited
+                              </span>
+                            )}
+                          </span>
+                        )}
+                        <span className="flex shrink-0 items-center gap-2">
+                          {r.userId === p.me.id && !editing && (
+                            <>
+                              <button onClick={() => setEditing({ kind: "reply", postId: post.id, replyId: r.id, text: r.text })} aria-label="Edit reply">
+                                <Pencil size={12} style={{ color: C.fade }} />
+                              </button>
+                              <button onClick={() => setConfirmDel({ kind: "reply", postId: post.id, replyId: r.id })} aria-label="Delete reply">
+                                <Trash2 size={12} style={{ color: C.fade }} />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => {
+                              setReplyFor(post.id);
+                              setReplyText(`@${p.nameOf(r.userId)} `);
+                            }}
+                            className="text-xs font-bold"
+                            style={{ color: C.gold }}
+                          >
+                            @
+                          </button>
                         </span>
-                        {renderRich(r.text)}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setReplyFor(post.id);
-                          setReplyText(`@${p.nameOf(r.userId)} `);
-                        }}
-                        className="shrink-0 text-xs font-bold"
-                        style={{ color: C.gold }}
-                      >
-                        @
-                      </button>
+                      </div>
+                      {confirmDel?.kind === "reply" && confirmDel.replyId === r.id && (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2 rounded-xl px-3 py-1.5 text-xs" style={{ background: "#FDE2E2", color: C.ink }}>
+                          Delete this reply?
+                          <button
+                            onClick={() => {
+                              void p.deleteReply(post.id, r.id);
+                              setConfirmDel(null);
+                            }}
+                            className="rounded-xl px-2.5 py-1 font-semibold text-white"
+                            style={{ background: C.coral }}
+                          >
+                            Delete
+                          </button>
+                          <button onClick={() => setConfirmDel(null)} className="rounded-xl px-2.5 py-1 font-semibold" style={{ background: "#fff", color: C.ink }}>
+                            Keep it
+                          </button>
+                        </div>
+                      )}
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {REACTS.filter((k) => (r.reactions[k.id] || []).length > 0).map((k) => {
+                          const arr = r.reactions[k.id] || [];
+                          const mine = arr.includes(p.me.id);
+                          return (
+                            <button key={k.id} onClick={() => void p.toggleReplyReact(post.id, r.id, k.id as ReactKind)} className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px]" style={{ background: mine ? C.goldSoft : C.mist, border: mine ? `1px solid ${C.gold}` : "1px solid transparent", color: C.ink }}>
+                              <span>{k.e}</span>
+                              <span className="font-semibold">{arr.length}</span>
+                            </button>
+                          );
+                        })}
+                        <button onClick={() => setReplyReactFor(replyReactFor === r.id ? null : r.id)} className="flex items-center rounded-full px-1.5 py-0.5" style={{ background: "#fff", border: `1px solid ${C.line}` }} aria-label="React to reply">
+                          <SmilePlus size={13} style={{ color: C.fade }} />
+                        </button>
+                        {replyReactFor === r.id && (
+                          <span className="flex items-center gap-0.5 rounded-full px-1.5 py-1" style={{ background: "#fff", border: `1px solid ${C.line}` }}>
+                            {REACTS.map((k) => (
+                              <button
+                                key={k.id}
+                                onClick={() => {
+                                  void p.toggleReplyReact(post.id, r.id, k.id as ReactKind);
+                                  setReplyReactFor(null);
+                                }}
+                                className="rounded-full px-1 text-base"
+                              >
+                                {k.e}
+                              </button>
+                            ))}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {replyFor === post.id ? (

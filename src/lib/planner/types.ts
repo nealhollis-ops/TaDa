@@ -102,7 +102,7 @@ export type TeamInvite = { id: string; teamId: string; email: string; token: str
 export type TeamMessage = { id: string; teamId: string; userId: string; text: string; createdAt: string };
 export type Assignment = { id: string; teamId: string; fromUser: string; toUser: string | null; title: string; date: string | null; done: boolean; doneAt: string | null; createdAt: string };
 
-export type Reply = { id: string; postId: string; userId: string; text: string; createdAt: string };
+export type Reply = { id: string; postId: string; userId: string; text: string; createdAt: string; edited: boolean; reactions: Record<string, string[]> };
 export type Post = {
   id: string;
   userId: string;
@@ -111,6 +111,7 @@ export type Post = {
   milestone: boolean;
   pinned: boolean;
   createdAt: string;
+  edited: boolean;
   replies: Reply[];
   reactions: Record<string, string[]>; // kind -> user ids
 };

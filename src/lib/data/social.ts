@@ -266,7 +266,16 @@ export async function loadPosts(sb: SB): Promise<Post[]> {
       sb.from("replies").select("*").in("post_id", ids).is("deleted_at", null).order("created_at"),
       sb.from("reactions").select("post_id,user_id,kind").in("post_id", ids),
     ]);
-    (replies ?? []).forEach((r) => (repliesBy[r.post_id] ||= []).push(toReply(r)));
+    const replyIds = (replies ?? []).map((r) => r.id);
+    const rr: Record<string, Record<string, string[]>> = {};
+    if (replyIds.length) {
+      const { data: replyReacts } = await sb.from("reply_reactions").select("reply_id,user_id,kind").in("reply_id", replyIds);
+      (replyReacts ?? []).forEach((r) => {
+        const m = (rr[r.reply_id] ||= {});
+        (m[r.kind] ||= []).push(r.user_id);
+      });
+    }
+    (replies ?? []).forEach((r) => (repliesBy[r.post_id] ||= []).push(toReply(r, rr[r.id] ?? {})));
     (reactions ?? []).forEach((r) => {
       const m = (reactionsBy[r.post_id] ||= {});
       (m[r.kind] ||= []).push(r.user_id);
@@ -298,7 +307,33 @@ export async function setReaction(sb: SB, me: string, postId: string, kind: Reac
 }
 
 export async function softDeletePost(sb: SB, id: string) {
-  await sb.from("posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  const { error } = await sb.from("posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function softDeleteReply(sb: SB, id: string) {
+  const { error } = await sb.from("replies").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function editPost(sb: SB, id: string, text: string) {
+  const { error } = await sb.from("posts").update({ text, edited_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function editReply(sb: SB, id: string, text: string) {
+  const { error } = await sb.from("replies").update({ text, edited_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function setReplyReaction(sb: SB, me: string, replyId: string, kind: ReactKind, on: boolean) {
+  if (on) {
+    const { error } = await sb.from("reply_reactions").upsert({ reply_id: replyId, user_id: me, kind }, { onConflict: "reply_id,user_id,kind", ignoreDuplicates: true });
+    if (error) throw error;
+  } else {
+    const { error } = await sb.from("reply_reactions").delete().eq("reply_id", replyId).eq("user_id", me).eq("kind", kind);
+    if (error) throw error;
+  }
 }
 
 // --------------------------------------------------------------- blocks --

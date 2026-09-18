@@ -108,6 +108,11 @@ export type PlannerActions = {
   addPost: (type: PostType, text: string) => Promise<void>;
   addReply: (postId: string, text: string) => Promise<void>;
   toggleReact: (postId: string, kind: ReactKind) => Promise<void>;
+  toggleReplyReact: (postId: string, replyId: string, kind: ReactKind) => Promise<void>;
+  editPost: (postId: string, text: string) => Promise<void>;
+  editReply: (postId: string, replyId: string, text: string) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
+  deleteReply: (postId: string, replyId: string) => Promise<void>;
   sendRequest: (to: string) => Promise<void>;
   acceptRequest: (r: PartnerRequest) => Promise<void>;
   declineRequest: (r: PartnerRequest) => Promise<void>;
@@ -478,6 +483,21 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     if (typeof Notification !== "undefined" && Notification.permission === "granted") void enablePush();
   }, [loading, me.notifOn]);
 
+  // The community feed reloads as one unit when anything in it changes; a short
+  // debounce folds a burst of events (a reply plus its notification) into one fetch.
+  const feedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reloadFeed = useCallback(() => {
+    if (feedTimer.current) clearTimeout(feedTimer.current);
+    feedTimer.current = setTimeout(() => {
+      void S.loadPosts(sb)
+        .then((ps) => {
+          setPosts(ps);
+          void ensureMembers(ps.flatMap((x) => [x.userId, ...x.replies.map((r) => r.userId)]));
+        })
+        .catch(() => {});
+    }, 400);
+  }, [sb, ensureMembers]);
+
   // ------------------------------------------------------------ realtime --
   useEffect(() => {
     if (loading) return;
@@ -494,6 +514,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         const n = toNotice(payload.new as Parameters<typeof toNotice>[0]);
         setInbox((list) => (list.some((x) => x.id === n.id) ? list : [n, ...list].slice(0, 60)));
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => reloadFeed())
+      .on("postgres_changes", { event: "*", schema: "public", table: "replies" }, () => reloadFeed())
+      .on("postgres_changes", { event: "*", schema: "public", table: "reactions" }, () => reloadFeed())
+      .on("postgres_changes", { event: "*", schema: "public", table: "reply_reactions" }, () => reloadFeed())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `to_user=eq.${me.id}` }, (payload) => {
         const r = payload.new as Record<string, string>;
         const msg: Message = { id: r.id, fromUser: r.from_user, toUser: r.to_user, text: r.text, createdAt: r.created_at, readAt: null };
@@ -536,7 +560,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       cancelled = true;
       if (ch) void sb.removeChannel(ch);
     };
-  }, [sb, me.id, loading, ensureMembers]);
+  }, [sb, me.id, loading, ensureMembers, reloadFeed]);
 
   // ------------------------------------------------------------ derived --
   const myPartnerIds = useMemo(() => partnerships.map((p) => (p.aUser === me.id ? p.bUser : p.aUser)), [partnerships, me.id]);
@@ -893,6 +917,85 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       }
     },
     [posts, me.id, sb, bumpEncourage, fail],
+  );
+
+  const toggleReplyReact = useCallback(
+    async (postId: string, replyId: string, kind: ReactKind) => {
+      const reply = posts.find((p) => p.id === postId)?.replies.find((r) => r.id === replyId);
+      const mine = !!reply?.reactions[kind]?.includes(me.id);
+      setPosts((list) =>
+        list.map((p) => {
+          if (p.id !== postId) return p;
+          return {
+            ...p,
+            replies: p.replies.map((r) => {
+              if (r.id !== replyId) return r;
+              const arr = r.reactions[kind] || [];
+              return { ...r, reactions: { ...r.reactions, [kind]: mine ? arr.filter((x) => x !== me.id) : [...arr, me.id] } };
+            }),
+          };
+        }),
+      );
+      try {
+        await S.setReplyReaction(sb, me.id, replyId, kind, !mine);
+        if (!mine) bumpEncourage();
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [posts, me.id, sb, bumpEncourage, fail],
+  );
+
+  const editPostAction = useCallback(
+    async (postId: string, text: string) => {
+      const t = text.trim();
+      if (!t) return;
+      setPosts((list) => list.map((p) => (p.id === postId ? { ...p, text: t, edited: true } : p)));
+      try {
+        await S.editPost(sb, postId, t);
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [sb, fail],
+  );
+
+  const editReplyAction = useCallback(
+    async (postId: string, replyId: string, text: string) => {
+      const t = text.trim();
+      if (!t) return;
+      setPosts((list) => list.map((p) => (p.id === postId ? { ...p, replies: p.replies.map((r) => (r.id === replyId ? { ...r, text: t, edited: true } : r)) } : p)));
+      try {
+        await S.editReply(sb, replyId, t);
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [sb, fail],
+  );
+
+  const deletePostAction = useCallback(
+    async (postId: string) => {
+      setPosts((list) => list.filter((p) => p.id !== postId));
+      try {
+        await S.softDeletePost(sb, postId);
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [sb, fail],
+  );
+
+  const deleteReplyAction = useCallback(
+    async (postId: string, replyId: string) => {
+      setPosts((list) => list.map((p) => (p.id === postId ? { ...p, replies: p.replies.filter((r) => r.id !== replyId) } : p)));
+      try {
+        await S.softDeleteReply(sb, replyId);
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [sb, fail],
   );
 
   // ------------------------------------------------------------ partners --
@@ -1275,7 +1378,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
-    sendMsg, addPost, addReply, toggleReact,
+    sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
