@@ -167,6 +167,16 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Inside a boss team, the hidden and private profile settings don't apply. Your boss and teammates can always open your profile, while everyone outside the team still sees only what your privacy settings allow.",
     "Even in a boss team, personal task lists stay personal. A boss sees the work the boss assigned.",
   ]},
+  { id: "teamguide", t: "Running a team, step by step", b: [
+    "Teams are for the Teams plan and up: a named group of people who see each other's progress and talk in their own room. Think a mastermind, a small group, or a crew working the same season. A team holds up to 50 people.",
+    "1. Create it. On Partners, scroll to Teams, type a name into the box that says Name a new team, and tap the button beside it. You're the owner.",
+    "2. Invite people. Open the team and type an email into Invite by email. Each person gets an email with a link plus an invite card on their own Partners tab, and they join with one tap. They need a TaDa account of their own on any plan; if they don't have one yet, the link takes them to sign up first.",
+    "3. Read the room. Tap the team name to open it. Every member shows with their photo, streak, badges, and a progress bar for the month. That's the whole point of a team: you see how each other is doing without seeing anyone's actual tasks.",
+    "4. Talk in the team room. At the bottom of the open team is a message box that says Message followed by the team's name. It's a private conversation for members only, separate from the public community. Messages arrive live, and a new one lights up the bell for everyone else in the team.",
+    "5. Keep it tidy. The owner can remove anyone with the small X beside their name, and you'll confirm first. Any member can leave with Leave this team at the bottom of the open team. The owner's version of that button is Delete this team, which removes the team and its room for everyone.",
+    "6. Run more than one. Create as many teams as you like, and one person can be on several. Each has its own room and its own progress view.",
+    "What a team can't do: assign tasks or set deadlines. That's the Boss plan, where the owner's teams become boss teams. Everything above still works the same way there, with the boss powers added on top.",
+  ]},
   { id: "bossguide", t: "Running a Boss team, step by step", b: [
     "1. Create the team. On Partners, under Teams, type a name into the box that says Name a new boss team and tap the button beside it. It's a boss team because you're on the Boss plan, and you can run more than one.",
     "2. Invite your people by email. Each person gets an email with a link and an invite card on their Partners tab. They don't need to be on a paid plan of their own; your seats cover them. Before they accept, they're told a boss team shares their signup email with you and that hidden and private settings don't apply inside it.",
