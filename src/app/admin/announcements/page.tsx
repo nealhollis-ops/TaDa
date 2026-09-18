@@ -13,7 +13,7 @@ export default async function AnnouncementsPage() {
   return (
     <div>
       <h1 className="text-2xl font-extrabold text-navy">Announcements</h1>
-      <p className="mt-1 text-sm text-fade">A pinned post sits at the top of its room in the community until you unpin it. Boosts is the room everyone reads for encouragement; Questions and Wins work too.</p>
+      <p className="mt-1 text-sm text-fade">A pinned post sits at the top of its room in the community until you unpin it. Encourage is the room everyone reads; Say Hi, Questions and Wins work too.</p>
       <AnnouncementForms pinned={(pinned ?? []).map((p) => ({ id: p.id, type: p.type, text: p.text, createdAt: p.created_at, by: nameOf(p.user_id) }))} />
     </div>
   );

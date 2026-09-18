@@ -165,7 +165,7 @@ export async function resolveReport(_prev: AdminResult, formData: FormData): Pro
 export async function postAnnouncement(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
   const { user } = await requireAdmin();
   const text = str(formData.get("text")).slice(0, 2000);
-  const type = ["question", "win", "boost"].includes(str(formData.get("type"))) ? str(formData.get("type")) : "boost";
+  const type = ["hi", "question", "win", "boost"].includes(str(formData.get("type"))) ? str(formData.get("type")) : "boost";
   if (!text) return { ok: false, message: "Write something first." };
   const admin = createAdminClient();
   const { error } = await admin.from("posts").insert({ user_id: user.id, type, text, pinned: true });

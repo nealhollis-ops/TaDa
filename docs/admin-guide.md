@@ -44,7 +44,7 @@ Members can also block each other without involving you. Blocks are private and 
 
 Two tools:
 
-- **Post and pin**: writes a post as you into the room you pick (Boosts is the one everyone reads) and pins it to the top until you unpin it. Pinned posts are listed below with Unpin and Remove.
+- **Post and pin**: writes a post as you into the room you pick (Encourage is the one everyone reads) and pins it to the top until you unpin it. Pinned posts are listed below with Unpin and Remove.
 - **Push to everyone**: a phone or desktop notification to every member with device alerts on, plus a bell entry for every active member whether or not their alerts are on. Title, a message of up to 160 characters, and which screen opens when tapped. The result line tells you how many inboxes and devices it reached. Every send is written to the admin log with the text and counts. There is no undo, so read it twice.
 
 ## Notifications, in one paragraph

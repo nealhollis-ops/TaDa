@@ -35,10 +35,13 @@ export const BLOCK_META = [
 export const blockLabel = (b: string) => BLOCK_META.find((x) => x.id === b)?.label ?? "Time TBD";
 export const blockMeta = (b: string) => BLOCK_META.find((x) => x.id === b) ?? null;
 
+// The four community rooms, in the order the tabs show. Keys are the database values;
+// "boost" keeps its key but reads as Encourage.
 export const PTYPE_META = {
-  question: { label: "Question", color: "#12B76A", fg: "#111111" },
-  win: { label: "Win", color: "#F8B018", fg: "#111111" },
-  boost: { label: "Boost", color: "#E30022", fg: "#ffffff" },
+  hi: { label: "Hello", tab: "Say Hi", cta: "Say hi", color: "#111111", fg: "#ffffff", placeholder: "Introduce yourself: who you are, what you're working on, what you hope TaDa does for you...", empty: "Nobody has said hi yet. Go first. Tell us who you are and what you're building." },
+  question: { label: "Question", tab: "Questions", cta: "Post a question", color: "#12B76A", fg: "#111111", placeholder: "Ask the group anything...", empty: "No questions yet. Ask the first one." },
+  win: { label: "Win", tab: "Wins", cta: "Post a win", color: "#F8B018", fg: "#111111", placeholder: "Tell everyone what you finished...", empty: "No wins posted yet. Go earn one, then come brag a little." },
+  boost: { label: "Encouragement", tab: "Encourage", cta: "Post encouragement", color: "#E30022", fg: "#ffffff", placeholder: "Drop a word that lifts someone up...", empty: "Nothing here yet. Drop a word that lifts somebody." },
 } as const;
 
 export const REACTS = [
@@ -187,7 +190,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "What you can't see: their personal task list, their streak details unless their profile allows it outside the team, and their private messages. What they can't see: each other's personal tasks. Progress numbers are shared; task lists never are.",
   ]},
   { id: "community", t: "The community", b: [
-    "Three rooms sit under Community: Questions, Wins, and Boosts. The tab you're on is the room you're posting in. The line at the top is the only rule: be the kind of voice you'd want to hear.",
+    "Four rooms sit under Community: Say Hi, Questions, Wins, and Encourage. Say Hi is where you introduce yourself when you arrive. The tab you're on is the room you're posting in. The line at the top is the only rule: be the kind of voice you'd want to hear.",
     "The feed sorts three ways. Active is the default, and a fresh reply lifts a post back to the top, so good conversations stay alive. New shows posts in the order they were made. Top raises the most loved posts. The Milestones button hides or shows the automatic badge posts, and Show more loads the feed in batches.",
     "Replies stay tucked behind a count, like 3 replies, so the feed stays clean. Tap the count to open the conversation. Reply tags the poster with an @ for you, and the @ on any reply tags that person instead. The small gray smiley button opens reactions: heart, fire, thumbs up, prayer, and smile. Tap a reaction chip again to take yours back.",
     "When someone replies to your post, or mentions you with an @, you get a notification under the bell and on your phone if alerts are on. You can switch community notifications off on their own in Account and keep everything else.",

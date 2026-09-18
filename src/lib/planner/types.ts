@@ -1,7 +1,7 @@
 export type Block = "auto" | "morning" | "afternoon" | "evening";
 export type Repeat = "none" | "daily" | "weekdays" | "weekly" | "monthly";
 export type Plan = "standard" | "teams" | "boss";
-export type PostType = "question" | "win" | "boost";
+export type PostType = "hi" | "question" | "win" | "boost";
 export type ReactKind = "heart" | "fire" | "up" | "pray" | "smile";
 
 export type Task = {

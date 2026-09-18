@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, HelpCircle, MessageCircle, RefreshCw, Send, SmilePlus, Trophy } from "lucide-react";
+import { Hand, Heart, HelpCircle, MessageCircle, RefreshCw, Send, SmilePlus, Trophy } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, C, Chip, QuoteCard, inputStyle, renderRich } from "../ui";
 import { ago } from "@/lib/planner/calendar";
 import { PTYPE_META, REACTS } from "@/lib/planner/content";
 import type { Post, PostType, ReactKind } from "@/lib/planner/types";
 
-const ICONS = { question: HelpCircle, win: Trophy, boost: Heart };
+const ICONS = { hi: Hand, question: HelpCircle, win: Trophy, boost: Heart };
 
 export function CommunityScreen() {
   const p = usePlanner();
@@ -57,7 +57,7 @@ export function CommunityScreen() {
           const Icon = ICONS[k];
           return (
             <button key={k} onClick={() => setPostType(k)} className="flex flex-1 items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-semibold" style={{ background: postType === k ? v.color : "#fff", color: postType === k ? v.fg : C.ink }}>
-              <Icon size={14} /> {v.label}s
+              <Icon size={14} /> {v.tab}
             </button>
           );
         })}
@@ -91,7 +91,7 @@ export function CommunityScreen() {
           className="w-full resize-none rounded-xl border px-3 py-2.5 text-sm outline-none"
           rows={2}
           style={inputStyle}
-          placeholder={postType === "question" ? "Ask the group anything..." : postType === "win" ? "Tell everyone what you finished..." : "Drop a word that lifts someone up..."}
+          placeholder={PTYPE_META[postType].placeholder}
           value={postText}
           onChange={(e) => setPostText(e.target.value)}
         />
@@ -103,7 +103,7 @@ export function CommunityScreen() {
           className="mt-2 w-full rounded-xl py-2.5 text-sm font-semibold"
           style={{ background: PTYPE_META[postType].color, color: PTYPE_META[postType].fg }}
         >
-          Post a {PTYPE_META[postType].label.toLowerCase()}
+          {PTYPE_META[postType].cta}
         </button>
       </div>
 
@@ -236,7 +236,7 @@ export function CommunityScreen() {
       )}
       {filtered.length === 0 && (
         <div className="rounded-2xl p-6 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
-          {postType === "question" ? "No questions yet. Ask the first one." : postType === "win" ? "No wins posted yet. Go earn one, then come brag a little." : "No boosts yet. Drop a word that lifts somebody."}
+          {PTYPE_META[postType].empty}
         </div>
       )}
     </div>

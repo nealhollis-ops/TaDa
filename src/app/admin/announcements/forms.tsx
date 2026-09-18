@@ -23,9 +23,10 @@ export function AnnouncementForms({ pinned }: { pinned: Pinned[] }) {
           <label className="text-xs text-fade">
             Room
             <select name="type" defaultValue="boost" className={`${input} block`}>
-              <option value="boost">Boosts</option>
-              <option value="win">Wins</option>
+              <option value="boost">Encourage</option>
+              <option value="hi">Say Hi</option>
               <option value="question">Questions</option>
+              <option value="win">Wins</option>
             </select>
           </label>
           <button type="submit" disabled={posting} className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
