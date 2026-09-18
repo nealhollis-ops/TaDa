@@ -139,7 +139,7 @@ export type PlannerActions = {
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
   startCheckout: (plan: Plan, interval: "monthly" | "yearly") => Promise<void>;
-  openPortal: () => Promise<void>;
+  openPortal: (upgradeTo?: Plan) => Promise<void>;
 };
 
 const Ctx = createContext<(PlannerState & PlannerActions) | null>(null);
@@ -971,9 +971,9 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [showToast],
   );
 
-  const openPortal = useCallback(async () => {
+  const openPortal = useCallback(async (upgradeTo?: Plan) => {
     try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const res = await fetch("/api/stripe/portal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(upgradeTo ? { upgradeTo } : {}) });
       const data = await res.json();
       if (!res.ok || !data.url) {
         showToast(data.error || "Billing did not open. Try again in a moment.");

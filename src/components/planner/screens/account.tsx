@@ -190,8 +190,23 @@ export function AccountScreen() {
                     : `Active. Renews ${fmtDate(p.billing.expiresAt)}.`}
               {p.plan === "boss" && ` ${p.billing.seatsIncluded} boss seats on your plan.`}
             </p>
-            <button onClick={() => void p.openPortal()} className="mt-3 rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.goldSoft, color: C.goldDeep }}>
-              Manage billing: change plan, card, or cancel
+            {p.plan !== "boss" && p.billing.status !== "canceled" && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {p.plan === "standard" && (
+                  <button onClick={() => void p.openPortal("teams")} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.coral, color: "#fff" }}>
+                    Upgrade to Teams, $27/mo
+                  </button>
+                )}
+                <button onClick={() => void p.openPortal("boss")} className="rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.coral, color: "#fff" }}>
+                  Upgrade to Boss, $97/mo
+                </button>
+              </div>
+            )}
+            <p className="mt-2 text-xs" style={{ color: C.goldSoft }}>
+              {p.plan !== "boss" && p.billing.status !== "canceled" ? "Upgrades take effect right away and only charge the difference for the rest of this period. Yearly plans upgrade to the yearly price." : ""}
+            </p>
+            <button onClick={() => void p.openPortal()} className="mt-1 rounded-xl px-3 py-2 text-xs font-semibold" style={{ background: C.goldSoft, color: C.goldDeep }}>
+              Manage billing: card, invoices, change or cancel plan
             </button>
           </>
         ) : (

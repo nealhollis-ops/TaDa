@@ -203,7 +203,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   { id: "plans", t: "Plans and pricing", b: [
     "Standard is $17 a month or $170 a year with two months free. It holds the full planner, celebrations, community, and one accountability partner.",
     "Teams is $27 a month or $270 a year, adding unlimited partners and named groups. Boss is $97 a month or $970 a year with 7 member seats included and $9 a month per extra seat.",
-    "Every new account starts with 14 days free, no card needed. Add a card before the trial ends to keep going, or let it lapse and nothing is charged. Upgrades prorate, so unused time on your old plan counts toward the new one. Cancel any time from Account, and see the Refund Policy for the rest.",
+    "Every new account starts with 14 days free, no card needed. Add a card before the trial ends to keep going, or let it lapse and nothing is charged. To upgrade, open Account and tap Upgrade to Teams or Upgrade to Boss on the Your plan card. It takes effect right away and charges only the difference for the rest of the period. Cancel any time from the Manage billing button on the same card, and see the Refund Policy for the rest.",
   ]},
   { id: "notifs", t: "Notifications and the bell", b: [
     "The bell at the top of every screen collects everything that needs you: new messages, partner requests, team invites, work assigned by a boss, badges and levels you earn, replies and mentions in the community, and the occasional announcement from us. A red number on the bell is your unread count. Tap an item to open the right screen; Mark all read clears the count.",
