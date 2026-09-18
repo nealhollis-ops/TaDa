@@ -238,7 +238,11 @@ export function AccountScreen() {
           Help
         </div>
         <p className="mb-2 text-xs" style={{ color: C.fade }}>
-          Tap any topic for exact instructions.
+          Tap any topic for exact instructions, or read the whole guide on one page at{" "}
+          <Link href="/help" className="underline">
+            How TaDa works
+          </Link>
+          .
         </p>
         {HELP.map((h) => (
           <div key={h.id} style={{ borderBottom: `1px solid ${C.line}` }}>

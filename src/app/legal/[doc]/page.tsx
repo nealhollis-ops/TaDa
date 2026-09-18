@@ -78,6 +78,10 @@ export default async function LegalPage({ params }: { params: Promise<{ doc: str
         <Link href="/today" className="underline">
           Back to TaDa
         </Link>
+        {" · "}
+        <Link href="/help" className="underline">
+          How TaDa works
+        </Link>
       </p>
     </main>
   );

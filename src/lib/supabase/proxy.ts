@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv, supabaseConfigured } from "@/lib/env";
 
 /** Paths that never require a session. Everything else under the app does. */
-const PUBLIC_PATHS = ["/login", "/auth", "/offline", "/api", "/manifest.webmanifest", "/sw.js", "/icons", "/legal"];
+const PUBLIC_PATHS = ["/login", "/auth", "/offline", "/api", "/manifest.webmanifest", "/sw.js", "/icons", "/brand", "/legal", "/help"];
 // /api routes check the session themselves and answer 401 instead of redirecting.
 
 function isPublic(pathname: string) {

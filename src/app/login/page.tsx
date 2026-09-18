@@ -32,7 +32,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
       <InstallPrompt />
 
       <p className="max-w-xs text-center text-xs text-fade">
-        By continuing you agree to the{" "}
+        New here?{" "}
+        <Link href="/help" className="underline">
+          See how TaDa works
+        </Link>
+        . By continuing you agree to the{" "}
         <Link href="/legal/terms" className="underline">
           Terms of Service
         </Link>{" "}
