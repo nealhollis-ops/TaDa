@@ -156,9 +156,9 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Last month stays exactly as it was, finished and unfinished, so your streak history and badge progress are untouched. A task only carries once; if you leave it undone again, it carries again the following month.",
   ]},
   { id: "checkoff", t: "Checking things off", b: [
-    "Tap the circle next to any task. You'll get a celebration on screen, Deb's ta-da, and a buzz on phones that support it. Five celebration styles take turns. Big wins get twice the show: twice the fireworks, bigger and faster, for twice as long.",
+    "Tap the circle next to any task. You'll get a celebration on screen, Deb's TaDa, and a buzz on phones that support it. Five celebration styles take turns. Big wins get twice the show: twice the fireworks, bigger and faster, for twice as long.",
     "Tapped by accident? Tap it again and everything adjusts.",
-    "Need it quiet? Tap the speaker icon in the header to mute every app sound. The visuals keep playing, and the app remembers your choice. The welcome ta-da plays once when you arrive and stays quiet after that.",
+    "Need it quiet? Tap the speaker icon in the header to mute every app sound. The visuals keep playing, and the app remembers your choice. The welcome TaDa plays once when you arrive and stays quiet after that.",
   ]},
   { id: "streaks", t: "Streaks and badges", b: [
     "Finish at least one task in a day and your streak grows. The flame with a number shows on Today and next to your name around the app.",

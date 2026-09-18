@@ -111,7 +111,7 @@ export const DOCS: Record<string, LegalDoc> = {
       {
         h: "12. Our property",
         body: [
-          "TaDa, its name, logo, design, code, the Ta-Da! recording, the daily power lines and the help content belong to Data Forge Media. You may use them inside the app as intended and not otherwise without our written permission.",
+          "TaDa, its name, logo, design, code, the TaDa! recording, the daily power lines and the help content belong to Data Forge Media. You may use them inside the app as intended and not otherwise without our written permission.",
         ],
       },
       {

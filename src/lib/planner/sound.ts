@@ -1,5 +1,5 @@
 /**
- * Check-off sound and buzz: Deb's real "Ta-Da!".
+ * Check-off sound and buzz: Deb's real "TaDa!".
  * The recording ships with the app at /audio/tada.mp3 (NEXT_PUBLIC_TADA_URL can
  * point somewhere else). If the clip cannot play (it has not loaded yet, or the
  * browser blocks audio before the first tap), the app stays quiet or plays the
@@ -119,7 +119,7 @@ export const buzzGrand = () => {
   }
 };
 
-// Full fanfare for badge milestones: Deb's ta-da, then the brass.
+// Full fanfare for badge milestones: Deb's TaDa, then the brass.
 export const playGrand = () => {
   if (!soundOn) return;
   sayTada();

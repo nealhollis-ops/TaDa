@@ -246,7 +246,7 @@ function inviteHtml(from: string, plan: Plan, link: string) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F5;padding:32px 16px;"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;border:1px solid #DDDDDD;">
 <tr><td style="padding:32px 32px 8px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#111111;">TaDa</div>
-<div style="font-size:13px;color:#666666;margin-top:4px;">Plan your day, check it off, and hear the ta-da.</div></td></tr>
+<div style="font-size:13px;color:#666666;margin-top:4px;">Plan your day, check it off, and hear the TaDa.</div></td></tr>
 <tr><td style="padding:16px 32px 0;"><h1 style="margin:0 0 8px;font-size:22px;">Your TaDa ${planName} access is ready</h1>
 <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">${escapeHtml(from)} set you up with TaDa ${planName} at no charge. Create your account with this email address and you land straight in your planner. No checkout, no card.</p>
 <p style="margin:0 0 24px;text-align:center;"><a href="${link}" style="display:inline-block;background:#E30022;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 28px;border-radius:999px;">Create my account</a></p>

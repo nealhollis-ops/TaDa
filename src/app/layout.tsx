@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.appUrl),
   title: { default: "TaDa", template: "%s | TaDa" },
-  description: "Plan your day, check it off, and hear the ta-da.",
+  description: "Plan your day, check it off, and hear the TaDa.",
   applicationName: "TaDa",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   openGraph: {
     title: "TaDa",
-    description: "Plan your day, check it off, and hear the ta-da.",
+    description: "Plan your day, check it off, and hear the TaDa.",
     url: publicEnv.appUrl,
     siteName: "TaDa",
     type: "website",

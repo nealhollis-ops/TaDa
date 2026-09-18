@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "TaDa",
     short_name: "TaDa",
-    description: "Plan your day, check it off, and hear the ta-da.",
+    description: "Plan your day, check it off, and hear the TaDa.",
     start_url: "/",
     scope: "/",
     display: "standalone",

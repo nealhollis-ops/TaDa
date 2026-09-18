@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
       <div className="flex flex-col items-center gap-3 text-center">
         <h1 className="sr-only">Tada!</h1>
         <Image src="/brand/wordmark.png" alt="Tada!" width={190} height={120} priority />
-        <p className="max-w-xs text-fade">Plan your day, check it off, and hear the ta-da.</p>
+        <p className="max-w-xs text-fade">Plan your day, check it off, and hear the TaDa.</p>
       </div>
 
       <LoginForm next={next} initialError={linkError} initialMode={mode} initialEmail={email} />

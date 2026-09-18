@@ -16,7 +16,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [ ] Create the Stripe account and grab the TEST keys (live keys come in Phase 7)
 - [ ] Create an Anthropic API key at console.anthropic.com for the brain dump and the talk-to-the-calendar bar
 - [ ] Create a Resend account for app emails and verify a sending domain like mail.gettada.me (it gives you DNS records to add)
-- [ ] Record two assets while it's easy: Deb saying "Ta-Da!" as a one second mp3, and the welcome tour video
+- [ ] Record two assets while it's easy: Deb saying "TaDa!" as a one second mp3, and the welcome tour video
 
 ## Phase 1: Scaffold the project with Claude Code
 
@@ -36,13 +36,13 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [x] Row level security on every table, enforcing the privacy promises server side: tasks visible to their owner only, assignments visible to boss and assignee, messages visible to sender and recipient only, hidden and private profile respected everywhere except inside a shared boss team
 - [x] Seed script: create Deb and Neal, set role to admin, and give each an entitlement of plan boss with source admin, no expiry. Admins ride at the top level free, forever
 - [x] Keep history: no monthly data deletion. The month flip becomes a query filter, and repeaters regenerate by rule
-- [x] Storage buckets: avatars, audio (the ta-da mp3), assets (tour video if self-hosted)
+- [x] Storage buckets: avatars, audio (the TaDa mp3), assets (tour video if self-hosted)
 
 ## Phase 3: Port the app screen by screen
 
 - [x] Planner core: Today, Plan, Timeline, the Organize button, repeats with pinned days, calendar weeks Monday through Sunday
 - [x] Brain dump and the voice command bar call a server route that holds your Anthropic key, with a per-member daily cap of about 30 calls so costs stay at pennies
-- [x] Celebrations, the ta-da voice, streaks with the Saturday and Sunday rules, badges, Mountain Levels, and ceremonies port as they are
+- [x] Celebrations, the TaDa voice, streaks with the Saturday and Sunday rules, badges, Mountain Levels, and ceremonies port as they are
 - [x] Partners: seeking, requests, accepts, and direct messages running on Supabase Realtime so chat is live with no refresh button
 - [x] Teams and Boss: rosters, invitations sent BY EMAIL with a magic link, assignments with deadlines, the holding tank, member removal with confirmation, and the seat counter
 - [x] Community: three rooms, Active and New and Top sorting, collapsed reply counts, @tags, reactions, milestone auto-posts, and a nightly digest job that rolls the day's milestones into one post once volume grows
@@ -77,7 +77,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 - [ ] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line
 - [ ] Transactional emails wired: welcome, trial reminder on day 11, receipt on conversion, payment failed, partner request received, work assigned
-- [ ] Upload the ta-da mp3 and point the app at it so every check-off plays Deb's actual voice
+- [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice
 - [ ] Drop the tour video link into the welcome checklist
 - [ ] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb
 
@@ -89,4 +89,4 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [ ] Private beta: comp 10 to 20 Faith Hub Unleashed members through the admin invite, run two weeks, fix what they find
 - [ ] Build the ClickFunnels sales page for the three tiers with checkout links, and add TaDa to the Faith Hub Unleashed package page as an included benefit
 - [ ] Confirm Supabase backups are on and clientcare@gettada.me reaches a real inbox
-- [ ] Launch, and check something off the list one last time just to hear the ta-da
+- [ ] Launch, and check something off the list one last time just to hear the TaDa

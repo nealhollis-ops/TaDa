@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F5;padding:32px 16px;"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;border:1px solid #DDDDDD;">
 <tr><td style="padding:32px 32px 8px;text-align:center;"><div style="font-size:28px;font-weight:800;color:#111111;">TaDa</div>
-<div style="font-size:13px;color:#666666;margin-top:4px;">Plan your day, check it off, and hear the ta-da.</div></td></tr>
+<div style="font-size:13px;color:#666666;margin-top:4px;">Plan your day, check it off, and hear the TaDa.</div></td></tr>
 <tr><td style="padding:16px 32px 0;"><h1 style="margin:0 0 8px;font-size:22px;">You're invited to ${escapeHtml(team?.name ?? "a team")}</h1>
 <p style="margin:0 0 12px;font-size:16px;line-height:1.5;">${escapeHtml(inviter?.name ?? "A TaDa member")} added you to their team. Tap below to join. If you don't have a TaDa account yet, you'll create one on the way in.</p>
 <p style="margin:0 0 20px;font-size:14px;line-height:1.5;color:#666666;">${kindLine}</p>

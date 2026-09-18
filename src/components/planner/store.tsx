@@ -424,7 +424,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Greeting: one Ta-Da when the member first arrives, and never again this session.
+  // Greeting: one TaDa when the member first arrives, and never again this session.
   // Browsers often block audio before the first tap, so we try right away and only fall back
   // to the first tap if that attempt was refused. Reloads and tab changes do not replay it.
   const greetRef = useRef(false);

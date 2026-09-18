@@ -1,6 +1,6 @@
 # TaDa
 
-Plan your day, check it off, and hear the ta-da.
+Plan your day, check it off, and hear the TaDa.
 
 Live at **https://app.gettada.me** (Vercel). Backend on Supabase.
 
@@ -66,7 +66,7 @@ npm run test:rls
   Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` in Vercel or pushes are silently skipped.
 - Team invitations go out by email from `/api/invites/send`; the link lands on `/invite/<token>`.
 - `/api/cron/digest` (nightly, Vercel cron) rolls a busy day's milestone posts into one digest. Needs `CRON_SECRET`.
-- `NEXT_PUBLIC_TADA_URL` (Deb's recorded ta-da) and `NEXT_PUBLIC_TOUR_URL` (tour video embed) are filled in Phase 6.
+- `NEXT_PUBLIC_TADA_URL` (Deb's recorded TaDa) and `NEXT_PUBLIC_TOUR_URL` (tour video embed) are filled in Phase 6.
 
 ## Billing (Phase 4)
 
