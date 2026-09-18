@@ -48,8 +48,9 @@ export function CommunityScreen() {
         <h2 className="text-lg font-bold" style={{ color: C.navy }}>
           Community
         </h2>
-        <button onClick={() => void p.refreshShared()} className="rounded-full p-2" style={{ background: "#fff" }} aria-label="Refresh">
-          <RefreshCw size={16} style={{ color: C.navy2 }} className={p.refreshing ? "animate-spin" : ""} />
+        <button onClick={() => void p.refreshShared()} className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm" style={{ background: "#fff", color: C.navy, border: `1px solid ${C.line}` }} aria-label="Refresh the feed">
+          <RefreshCw size={18} style={{ color: C.coral }} className={p.refreshing ? "animate-spin" : ""} />
+          {p.refreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
       <p className="mb-3 text-xs" style={{ color: C.fade }}>
@@ -99,6 +100,10 @@ export function CommunityScreen() {
           value={postText}
           onChange={(e) => setPostText(e.target.value)}
         />
+        <MentionSuggest text={postText} onPick={setPostText} />
+        <p className="mt-1 text-[11px]" style={{ color: C.fade }}>
+          Type @ and a name to tag someone. They get a notification.
+        </p>
         <button
           onClick={() => {
             void p.addPost(postType, postText);
@@ -276,7 +281,7 @@ export function CommunityScreen() {
                           <button
                             onClick={() => {
                               setReplyFor(post.id);
-                              setReplyText(`@${p.nameOf(r.userId)} `);
+                              setReplyText(`@${p.nameOf(r.userId).split(/\s+/)[0]} `);
                             }}
                             className="text-xs font-bold"
                             style={{ color: C.gold }}
@@ -337,27 +342,30 @@ export function CommunityScreen() {
                     </div>
                   ))}
                   {replyFor === post.id ? (
-                    <div className="mt-2 flex gap-2">
-                      <input
-                        className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
-                        style={inputStyle}
-                        placeholder="Write a reply..."
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") submitReply(post.id);
-                        }}
-                        autoFocus
-                      />
-                      <button onClick={() => submitReply(post.id)} className="rounded-xl px-3" style={{ background: C.teal }} aria-label="Send reply">
-                        <Send size={15} style={{ color: "#fff" }} />
-                      </button>
+                    <div className="mt-2">
+                      <div className="flex gap-2">
+                        <input
+                          className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
+                          style={inputStyle}
+                          placeholder="Write a reply... type @ to tag someone"
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") submitReply(post.id);
+                          }}
+                          autoFocus
+                        />
+                        <button onClick={() => submitReply(post.id)} className="rounded-xl px-3" style={{ background: C.teal }} aria-label="Send reply">
+                          <Send size={15} style={{ color: C.ink }} />
+                        </button>
+                      </div>
+                      <MentionSuggest text={replyText} onPick={setReplyText} prefer={[post.userId, ...post.replies.map((x) => x.userId)]} />
                     </div>
                   ) : (
                     <button
                       onClick={() => {
                         setReplyFor(post.id);
-                        setReplyText(`@${p.nameOf(post.userId)} `);
+                        setReplyText(`@${p.nameOf(post.userId).split(/\s+/)[0]} `);
                       }}
                       className="mt-2 text-xs font-medium"
                       style={{ color: C.teal }}
@@ -381,6 +389,44 @@ export function CommunityScreen() {
           {PTYPE_META[postType].empty}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Tag picker. When the text ends in "@" plus part of a name, lists matching members
+ * as chips; tapping one swaps the partial for "@FirstName ". People already in the
+ * thread come first, then everyone else the app has loaded, never yourself.
+ */
+function MentionSuggest({ text, onPick, prefer = [] }: { text: string; onPick: (next: string) => void; prefer?: string[] }) {
+  const p = usePlanner();
+  const m = text.match(/(^|\s)@([\w'-]*)$/);
+  if (!m) return null;
+  const q = m[2].toLowerCase();
+  const first = (name: string) => (name || "").trim().split(/\s+/)[0] ?? "";
+  const seen = new Set<string>();
+  const ordered = [...prefer.map((id) => p.members[id]).filter(Boolean), ...Object.values(p.members)].filter((mem) => {
+    if (!mem || mem.id === p.me.id || seen.has(mem.id)) return false;
+    seen.add(mem.id);
+    return mem.name.toLowerCase().startsWith(q) || first(mem.name).toLowerCase().startsWith(q);
+  });
+  const list = ordered.slice(0, 6);
+  if (!list.length) return null;
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1.5">
+      {list.map((mem) => (
+        <button
+          key={mem.id}
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onPick(text.replace(/@[\w'-]*$/, `@${first(mem.name)} `))}
+          className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-xs font-semibold"
+          style={{ background: C.goldSoft, color: C.ink, border: `1px solid ${C.gold}` }}
+        >
+          <Avatar src={mem.avatarUrl} name={mem.name} size={18} />
+          {mem.name}
+        </button>
+      ))}
     </div>
   );
 }
