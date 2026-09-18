@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # TaDa project notes
 
-- Product spec lives in `docs/tada-launch-checklist.md`; the UI prototype to port is `docs/prototype/well-done.jsx` (reference only, not compiled).
+- Product spec lives in `docs/tada-launch-checklist.md`; the UI prototype to port is `docs/prototype/well-done.jsx` (reference only, not compiled). Admin how-to is `docs/admin-guide.md`; member help is the `HELP` array in `src/lib/planner/content.ts`, rendered in Account and at `/help`.
 - Production URL is `https://app.gettada.me` (Vercel). Supabase project is named TaDa.
 - Next 16: use `src/proxy.ts` (not middleware.ts) for request-time logic.
 - Env vars: read through `src/lib/env.ts`. Secrets only via `serverEnv()` in server code.
