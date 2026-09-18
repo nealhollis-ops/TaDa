@@ -61,7 +61,7 @@ export function serverEnv() {
     stripeWebhookSecret: required("STRIPE_WEBHOOK_SECRET"),
     anthropicApiKey: required("ANTHROPIC_API_KEY"),
     resendApiKey: required("RESEND_API_KEY"),
-    emailFrom: process.env.EMAIL_FROM ?? "TaDa <hello@mail.gettada.me>",
+    emailFrom: process.env.EMAIL_FROM ?? "TaDa <hello@gettada.me>",
     vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? "",
     vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:clientcare@gettada.me",
   };
