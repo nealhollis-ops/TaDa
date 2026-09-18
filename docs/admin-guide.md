@@ -23,7 +23,7 @@ Everyone with an account: name, plan, status and join date, searchable. Click a 
 The detail page shows their profile, plan and where it comes from (Stripe, comp or admin), streak and totals, teams, and any reports about them. Two actions:
 
 - **Comp grant**: give the member Standard, Teams or Boss for free, with an optional expiry date. This writes a `comp` row in `entitlements`. It never touches their Stripe subscription; if they are also paying, the higher of the two wins and the Stripe row keeps billing until they cancel. **Remove comp** deletes the comp row.
-- **Ban this member**: locks them out at their next request, shows them the "account closed" screen, and hides every post and reply they wrote. Their subscription is not changed, so if they are paying, cancel it in Stripe as well. Unban from the same page. Bans are not visible to other members.
+- **Ban this member**: locks them out at their next request, shows them the "account closed" screen, and hides every post and reply they wrote. Their subscription is not changed, so if they are paying, cancel it in Stripe as well. The same button becomes **Lift ban** on a banned member; lifting it lets them sign in again but their earlier posts stay hidden. Admins cannot be banned from the panel. Bans are not visible to other members.
 
 ### Comp grants (`/admin/comp`)
 
