@@ -11,6 +11,8 @@ export async function GET() {
     ok: true,
     app: "tada",
     time: new Date().toISOString(),
+    // The From address is printed on every email anyway, so showing its domain here is safe and lets a deploy be checked.
+    emailFromDomain: (process.env.EMAIL_FROM ?? "TaDa <hello@gettada.me>").split("@").pop()?.replace(/[>\s]/g, "") ?? null,
     env: {
       NEXT_PUBLIC_APP_URL: present("NEXT_PUBLIC_APP_URL"),
       NEXT_PUBLIC_SUPABASE_URL: present("NEXT_PUBLIC_SUPABASE_URL"),
