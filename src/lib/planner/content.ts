@@ -111,16 +111,23 @@ export const levelIcon = (lv: number) => (lv >= 10 ? "🌋" : lv >= 7 ? "🏔️
 // ---------- help content ----------
 export const HELP: { id: string; t: string; b: string[] }[] = [
   { id: "start", t: "Getting started", b: [
-    "Sign in and you're in. Tap the circle icon at the top right to open your Account, where you can add a photo and a short bio.",
+    "Sign in and you're in. Today greets you by name, shows the day's power line, and lists what's on for the morning, afternoon, and evening.",
+    "The icons at the top right, left to right: the bell for notifications, the speaker to mute sounds, the circle for your Account, and the door to log out.",
     "The app runs on the current calendar month. Weeks go Monday through Sunday, and Sunday is the built in rest day.",
     "A getting started checklist floats at the bottom right until you finish it: watch the tour, add a task, check one off, say hi in the community, and reach out for a partner. Finish all five and the confetti flies.",
   ]},
+  { id: "install", t: "Installing on your phone", b: [
+    "TaDa is a web app, so there's nothing to find in an app store. Install it from your Account: scroll to Install TaDa on this phone and follow the steps for your device. It gets its own icon, opens full screen, and works like any other app.",
+    "On Android use Chrome, tap the three-dot menu, and choose Add to Home screen or Install app. On iPhone use Safari, tap Share, then Add to Home Screen.",
+    "Removed it by accident? Open app.gettada.me in your browser, sign in, and install it again from Account. Your tasks are safe either way; they live in your account, not on the phone.",
+  ]},
   { id: "addtasks", t: "Adding tasks", b: [
     "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or let the app choose one for you inside the week you select.",
-    "Pick a time block if you want: morning, afternoon, or evening. Check Big win for your major tasks. Big wins get bigger celebrations, and the app schedules them in mornings when it does the placing.",
+    "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip.",
+    "Check Big win for your major tasks. Big wins get a celebration twice the size, and the app schedules them in mornings when it does the placing.",
   ]},
   { id: "dump", t: "The brain dump", b: [
-    "The navy card at the top of Plan called Pour it all out takes everything at once. Type the whole jumble, or tap the mic on your phone keyboard and just talk.",
+    "The black card at the top of Plan called Pour it all out takes everything at once. Type the whole jumble, or tap the mic on your phone keyboard and just talk.",
     "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Then Add them to my month places every task on your calendar for you.",
   ]},
   { id: "organize", t: "The Organize button", b: [
@@ -130,7 +137,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   { id: "voice", t: "Talking to the calendar", b: [
     "The bar under the header on Today, Plan, and Timeline is your voice control. Tap the round mic button, say the change, and stop talking. It runs the request on its own.",
     "Try things like: move the workbook to Thursday. Take the printer call off Tuesday. Mark the emails done. Add a dentist visit on the 22nd. You can also type into the bar and tap the arrow.",
-    "When it isn't sure what you meant, it asks a question in the gold note instead of guessing, and nothing moves until it understands you.",
+    "When it isn't sure what you meant, it asks a question in the yellow note instead of guessing, and nothing moves until it understands you.",
   ]},
   { id: "repeat", t: "Repeating tasks", b: [
     "When adding or editing a task, choose Daily, Daily (Mon - Fri), Every week, or Every month. Daily puts a copy on every remaining day of the month, Mon - Fri skips the weekend, and Every week drops a copy into each remaining week. Every month brings the task back when the calendar flips, without you doing anything.",
@@ -138,16 +145,16 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Pin a repeat to a day, like Every Monday or the 1st of every month, and the copies land on that exact day, with the pattern shown on a small badge on the task.",
   ]},
   { id: "checkoff", t: "Checking things off", b: [
-    "Tap the circle next to any task. You'll get a celebration on screen, a ta-da sound, and a buzz on phones that support it. Five celebration styles take turns, and big wins get the deluxe show.",
+    "Tap the circle next to any task. You'll get a celebration on screen, Deb's ta-da, and a buzz on phones that support it. Five celebration styles take turns. Big wins get twice the show: twice the fireworks, bigger and faster, for twice as long.",
     "Tapped by accident? Tap it again and everything adjusts.",
-    "Need it quiet? Tap the speaker icon in the header to mute every app sound. The visuals keep playing, and the app remembers your choice.",
+    "Need it quiet? Tap the speaker icon in the header to mute every app sound. The visuals keep playing, and the app remembers your choice. The welcome ta-da plays once when you arrive and stays quiet after that.",
   ]},
   { id: "streaks", t: "Streaks and badges", b: [
     "Finish at least one task in a day and your streak grows. The flame with a number shows on Today and next to your name around the app.",
     "Sundays always count toward your streak. Saturdays count too, unless you scheduled tasks for that Saturday and left them undone.",
     "Badges live in the badge case here in Account. Locked ones show your progress toward them, and your top two show next to your name. Break a streak of three or more, then rebuild it, and the Comeback badge is yours.",
-    "Tasks completed build your Mountain Level, shown as a small mountain with a number next to your name. Level 1 comes at 10 finished tasks, and the climb keeps going from there. The mountain changes as you rise: teal foothills to start, navy at level 4, a gold peak with a snow cap at level 7, and at level 10 it becomes a volcano.",
-    "Every new badge and every new level sets off a full ceremony and posts the win to the community, so people can cheer for you.",
+    "Tasks completed build your Mountain Level, shown as a small mountain with a number next to your name. Level 1 comes at 10 finished tasks, and the climb keeps going from there. The mountain changes as you rise: green foothills to start, charcoal at level 4, a golden peak at level 7, and at level 10 it turns red and becomes a volcano.",
+    "Every new badge and every new level sets off a full ceremony, posts the win to the community so people can cheer, and sends you a notification you can find under the bell.",
   ]},
   { id: "partners", t: "Accountability partners", b: [
     "Partners see your weekly and monthly progress only. Nobody, partner included, ever sees your actual task list.",
@@ -159,14 +166,21 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "On the Boss plan, teams you create are boss teams. The owner assigns tasks with deadlines, sees every assignment and its status, and can remove assignments. Assigned work shows up on the member's Today tab marked Due today or Overdue.",
     "Inside a boss team, the hidden and private profile settings don't apply. Your boss and teammates can always open your profile, while everyone outside the team still sees only what your privacy settings allow.",
     "Even in a boss team, personal task lists stay personal. A boss sees the work the boss assigned.",
-    "A boss can remove any member with the small X beside their name. You'll confirm first, and the member's unfinished assigned work drops into a holding tank inside the team, where you reassign each task or let it go. At launch, removing a member frees the seat the boss pays for.",
-    "Boss plans include 7 member seats shared across all your boss teams, with extras at $9 a month each. One person on two of your teams uses one seat. The seat meter above your teams shows what's in use, and removing a member either frees an included seat or ends an extra charge on your next bill.",
-    "Bosses also get a Your seats roster in Account: every seat holder with their photo, name, signup email, and which of your teams they're on.",
+  ]},
+  { id: "bossguide", t: "Running a Boss team, step by step", b: [
+    "1. Create the team. On Partners, under Teams, type a name into the box that says Name a new boss team and tap the button beside it. It's a boss team because you're on the Boss plan, and you can run more than one.",
+    "2. Invite your people by email. Each person gets an email with a link and an invite card on their Partners tab. They don't need to be on a paid plan of their own; your seats cover them. Before they accept, they're told a boss team shares their signup email with you and that hidden and private settings don't apply inside it.",
+    "3. Assign work. Open the team, tap Assign, type the task, pick the person and a deadline. It lands on their Today tab marked Due today or Overdue, with a notification. You see every assignment and whether it's done from the team's progress view.",
+    "4. Keep the conversation in the team room. Every team has its own discussion, separate from the public community, so the back-and-forth about the work stays with the work.",
+    "5. Watch your seats. Seven member seats are included across all your boss teams, and extras are $9 a month each. One person on two of your teams uses one seat. The seat meter above your teams shows what's in use, and the Your seats roster in Account lists every seat holder with their email and teams.",
+    "6. Removing someone. Tap the small X beside their name and confirm. Their unfinished assigned work drops into a holding tank inside the team, where you reassign each task or let it go. Removing a member frees an included seat or ends an extra charge on your next bill; seats are counted once a day.",
+    "What you can't see: their personal task list, their streak details unless their profile allows it outside the team, and their private messages. What they can't see: each other's personal tasks. Progress numbers are shared; task lists never are.",
   ]},
   { id: "community", t: "The community", b: [
-    "Three rooms sit under Community: Questions, Wins, and Boosts. The tab you're on is the room you're posting in.",
+    "Three rooms sit under Community: Questions, Wins, and Boosts. The tab you're on is the room you're posting in. The line at the top is the only rule: be the kind of voice you'd want to hear.",
     "The feed sorts three ways. Active is the default, and a fresh reply lifts a post back to the top, so good conversations stay alive. New shows posts in the order they were made. Top raises the most loved posts. The Milestones button hides or shows the automatic badge posts, and Show more loads the feed in batches.",
-    "Replies stay tucked behind a count, like 3 replies, so the feed stays clean. Tap the count to open the conversation. Reply tags the poster with an @ for you, and the gold @ on any reply tags that person instead. The small gray smiley button opens reactions: heart, fire, thumbs up, prayer, and smile. Tap a reaction chip again to take yours back.",
+    "Replies stay tucked behind a count, like 3 replies, so the feed stays clean. Tap the count to open the conversation. Reply tags the poster with an @ for you, and the @ on any reply tags that person instead. The small gray smiley button opens reactions: heart, fire, thumbs up, prayer, and smile. Tap a reaction chip again to take yours back.",
+    "When someone replies to your post, or mentions you with an @, you get a notification under the bell and on your phone if alerts are on. You can switch community notifications off on their own in Account and keep everything else.",
     "Tap anyone's photo or name to open their profile: their bio, streak, best streak, Mountain Level, this month's progress, and every badge they've earned.",
   ]},
   { id: "privacy", t: "Privacy and hiding", b: [
@@ -174,15 +188,21 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Private profile is its own checkbox in Account. Turn it on and nobody can open your profile card, which keeps your badges, streaks, and bio to yourself. Your name and posts still show.",
     "Messages and partner activity arrive live. If something looks stale, tap the refresh arrow.",
     "Block anyone from their profile. Open a profile, tap Block this member, and their posts, replies, and messages vanish from your view. They're never notified. Unblock any time under Blocked members in your Account. The Report button beside it sends the profile to us for a look.",
+    "The full Privacy Policy and Terms are linked at the bottom of Account.",
   ]},
   { id: "plans", t: "Plans and pricing", b: [
     "Standard is $17 a month or $170 a year with two months free. It holds the full planner, celebrations, community, and one accountability partner.",
     "Teams is $27 a month or $270 a year, adding unlimited partners and named groups. Boss is $97 a month or $970 a year with 7 member seats included and $9 a month per extra seat.",
-    "Every new account starts with 14 days free, then rolls into Standard unless you choose a higher plan. Upgrades prorate, so unused time on your old plan counts toward the new one.",
+    "Every new account starts with 14 days free, no card needed. Add a card before the trial ends to keep going, or let it lapse and nothing is charged. Upgrades prorate, so unused time on your old plan counts toward the new one. Cancel any time from Account, and see the Refund Policy for the rest.",
   ]},
-  { id: "notifs", t: "Notifications", b: [
-    "Notifications are on from day one. When you're away from the app, your device alerts you about new messages, partner requests, team invites, and freshly assigned work.",
-    "Turn them off any time with the Notifications checkbox in Account, and flip them back on just as fast. Your browser or phone may ask for permission the first time, and alerts only work once you allow it. On iPhone, install TaDa to your home screen first.",
+  { id: "notifs", t: "Notifications and the bell", b: [
+    "The bell at the top of every screen collects everything that needs you: new messages, partner requests, team invites, work assigned by a boss, badges and levels you earn, replies and mentions in the community, and the occasional announcement from us. A red number on the bell is your unread count. Tap an item to open the right screen; Mark all read clears the count.",
+    "Device alerts are separate and on from day one. Your phone or computer gets a short notification for the same events when you're away from the app. Turn them off with the Notifications switch in Account, and flip them back just as fast. Your browser may ask for permission the first time, and alerts only work once you allow it. On iPhone, install TaDa to your home screen first.",
+    "Want the community quieter? The From the community switch under Notifications turns off replies and mentions only, both on your device and under the bell, while everything else still comes through.",
+  ]},
+  { id: "logout", t: "Logging out and switching accounts", b: [
+    "Tap the door icon at the top right of any screen, or the Log out button in Account. You'll land on the sign-in page. On a shared computer, log out when you're done.",
+    "To sign in on a new device, open app.gettada.me and use the same email. A magic link or your password gets you in; set or change a password from the link at the bottom of Account.",
   ]},
   { id: "faq", t: "Common questions", b: [
     "Q: Can anyone see my tasks?",
@@ -197,6 +217,10 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "A: Tap its pencil, switch it to One time, and remove any leftover copies you don't want.",
     "Q: How do I turn the sound off?",
     "A: Tap the speaker icon in the header. The visuals keep playing, and sound stays off until you tap it again.",
+    "Q: I deleted the app from my phone. How do I get it back?",
+    "A: Open app.gettada.me in your browser, sign in, and use Install TaDa on this phone in Account. Nothing was lost.",
+    "Q: I'm getting too many notifications from the community.",
+    "A: In Account, under Notifications, switch off From the community. Messages, partners, teams, and badges still come through.",
     "Q: How do I reach a real person?",
     "A: Email clientcare@gettada.me and we'll take care of you.",
   ]},
