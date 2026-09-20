@@ -128,6 +128,7 @@ export type PlannerActions = {
   assignTask: (teamId: string, toUser: string, title: string, date: string | null) => Promise<void>;
   toggleAssigned: (a: Assignment) => Promise<void>;
   removeAssigned: (id: string) => Promise<void>;
+  editAssignment: (id: string, patch: { title: string; toUser: string; date: string | null }) => Promise<void>;
   blockUser: (id: string) => Promise<void>;
   unblockUser: (id: string) => Promise<void>;
   reportUser: (id: string, reason: string) => Promise<void>;
@@ -1246,6 +1247,23 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [sb, me.id, persistStats, celebrate, fail],
   );
 
+  /** Boss edits an assignment after the fact. A new assignee gets told; a title or deadline change stays quiet. */
+  const editAssignment = useCallback(
+    async (id: string, patch: { title: string; toUser: string; date: string | null }) => {
+      const title = patch.title.trim();
+      if (!title || !patch.toUser) return;
+      const before = assignments.find((a) => a.id === id);
+      try {
+        await S.updateAssignment(sb, id, { title, toUser: patch.toUser, date: patch.date });
+        setAssignments((list) => list.map((a) => (a.id === id ? { ...a, title, toUser: patch.toUser, date: patch.date } : a)));
+        if (before && before.toUser !== patch.toUser) S.notify("assignment", patch.toUser);
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [sb, assignments, fail],
+  );
+
   const removeAssigned = useCallback(
     async (id: string) => {
       try {
@@ -1380,7 +1398,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 

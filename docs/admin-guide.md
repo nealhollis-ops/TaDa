@@ -106,5 +106,5 @@ Staging costs nothing (free Supabase tier, Vercel previews are included). Supaba
 - **A member says their name shows as their email or the admin button vanished**: a profile column was added without a grant. See `supabase/migrations/0010_notif_community_grants.sql` for the fix pattern.
 - **Invite emails fail**: check `/api/health` for `emailFromDomain`, then Resend's domains page. Only `gettada.me` is verified.
 - **A push never arrives**: the member must have alerts on, a registered device, and on iPhone the app installed to the home screen. The bell entry arrives regardless.
-- **Realtime looks dead** (messages not appearing live): test in real Chrome, not an embedded browser, and ask the member to tap the refresh arrow.
+- **Realtime looks dead** (messages not appearing live): test in real Chrome, not an embedded browser, and ask the member to tap Refresh.
 - **Anything else**: clientcare@gettada.me reaches you both, and the admin log tells you what happened last.

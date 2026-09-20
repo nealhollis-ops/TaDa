@@ -240,11 +240,13 @@ export async function createAssignment(sb: SB, me: string, teamId: string, toUse
   return toAssignment(data);
 }
 
-export async function updateAssignment(sb: SB, id: string, patch: { done?: boolean; doneAt?: string | null; toUser?: string | null }) {
+export async function updateAssignment(sb: SB, id: string, patch: { done?: boolean; doneAt?: string | null; toUser?: string | null; title?: string; date?: string | null }) {
   const row: Record<string, unknown> = {};
   if (patch.done !== undefined) row.done = patch.done;
   if (patch.doneAt !== undefined) row.done_at = patch.doneAt;
   if (patch.toUser !== undefined) row.to_user = patch.toUser;
+  if (patch.title !== undefined) row.title = patch.title.slice(0, 120);
+  if (patch.date !== undefined) row.date = patch.date;
   const { error } = await sb.from("assignments").update(row).eq("id", id);
   if (error) throw error;
 }
