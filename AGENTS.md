@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Product spec lives in `docs/tada-launch-checklist.md`; the UI prototype to port is `docs/prototype/well-done.jsx` (reference only, not compiled). Admin how-to is `docs/admin-guide.md`; member help is the `HELP` array in `src/lib/planner/content.ts`, rendered in Account and at `/help`.
 - Production URL is `https://app.gettada.me` (Vercel). Supabase project is named TaDa.
+- Staging: Vercel preview of the `staging` branch at `https://ta-da-git-staging-nealhollis-ops-projects.vercel.app`, backed by Supabase project `tada-staging`; secrets in `.env.staging` (gitignored). Try risky changes there first: `npm run migrate:staging`, then merge to `main` and apply the migration to prod. Details in `docs/admin-guide.md` under Staging.
 - Next 16: use `src/proxy.ts` (not middleware.ts) for request-time logic.
 - Env vars: read through `src/lib/env.ts`. Secrets only via `serverEnv()` in server code.
 - Supabase clients: `@/lib/supabase/client` in Client Components, `@/lib/supabase/server` in server code, `@/lib/supabase/admin` only for trusted server code (webhooks, admin, seeds). Never import admin from the browser.

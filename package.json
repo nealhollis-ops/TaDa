@@ -9,6 +9,9 @@
     "lint": "eslint",
     "seed:admins": "node --env-file=.env.local scripts/seed-admins.mjs",
     "seed:demo": "node --use-system-ca --env-file=.env.local scripts/seed-demo.mjs",
+    "seed:demo:staging": "node --use-system-ca --env-file=.env.staging scripts/seed-demo.mjs",
+    "seed:admins:staging": "node --env-file=.env.staging scripts/seed-admins.mjs",
+    "migrate:staging": "node --env-file=.env.staging scripts/migrate-staging.mjs",
     "test:rls": "node --env-file=.env.local scripts/rls-smoke-test.mjs",
     "stripe:setup": "node --env-file=.env.local scripts/stripe-setup.mjs",
     "test:stripe": "node --env-file=.env.local scripts/stripe-smoke-test.mjs"
@@ -33,6 +36,7 @@
     "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "pg": "^8.23.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -70,14 +70,36 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 | `npm run test:rls` | Creates throwaway members and proves the privacy rules hold: tasks, stats, messages, role changes, entitlements. Run after any change to database policies. |
 | `npm run stripe:setup` | Creates the TaDa products, prices and webhook in whichever Stripe mode the key in `.env.local` points at. |
 | `npm run test:stripe` | End-to-end checkout and webhook check against a running dev server. |
+| `npm run migrate:staging` | Applies `supabase/migrations` to the staging database (refuses to touch production). Add a file prefix to run one. |
+| `npm run seed:demo:staging` / `seed:admins:staging` | The seed scripts, pointed at staging via `.env.staging`. |
 
 ## Where things live
 
 - Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth.
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
+- Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.
 - Payments: Stripe. Products are keyed `tada_<plan>_<monthly|yearly>` and `tada_boss_seat_*`.
 - AI: Anthropic, for the brain dump and the talking calendar. Each member gets 30 calls a day.
+
+## Staging, for trying changes before members see them
+
+There is a full copy of TaDa that is safe to break.
+
+- **Site**: https://ta-da-git-staging-nealhollis-ops-projects.vercel.app (Vercel preview of the `staging` branch; no Vercel login needed).
+- **Database and sign-in**: Supabase project `tada-staging` in the free "TaDa Staging" organization. Same schema as production, seeded with the demo members and both founders as admins. Sign-in emails on staging go through Supabase's built-in mailer, which allows only a few per hour, so use a password rather than magic links.
+- **Shared with production**: Stripe (test mode), Anthropic, Resend and the push keys. A checkout on staging creates a test-mode Stripe subscription like production would; the webhook only reaches production, so entitlements on staging are granted with the admin comp tool instead.
+- **Secrets**: `.env.staging` in the project folder (never committed). It holds the staging Supabase keys, the database connection string and the deploy hook URL.
+
+**The workflow for a change (Boss mode, for example)**
+
+1. Branch off `main`: `git checkout -b boss-mode`. Build and commit there.
+2. Put it on staging: `git checkout staging && git merge boss-mode && git push`, then `curl -X POST "$STAGING_DEPLOY_HOOK"` (the URL is in `.env.staging`). Two minutes later the staging site is running the branch. `vercel deploy --yes` from the branch also works and gives a one-off URL.
+3. New migrations go to the staging database first: `npm run migrate:staging` replays every file (they are all idempotent), or `npm run migrate:staging -- 0014` for just one. `npm run seed:demo:staging` resets the demo data if it needs a fresh start.
+4. Try it on the staging site. Break things. Nobody notices.
+5. When it is approved: apply the same migration to production in the Supabase SQL editor, then `git checkout main && git merge boss-mode && git push`. Production deploys from `main` as usual.
+
+Staging costs nothing (free Supabase tier, Vercel previews are included). Supabase pauses free projects after a week without traffic; open the project in the dashboard to wake it.
 
 ## If something is wrong
 
