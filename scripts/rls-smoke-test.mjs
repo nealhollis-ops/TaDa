@@ -34,12 +34,21 @@ const promo = await a.from("profiles").update({ role: "admin" }).eq("id", A.id).
 const ent = await a.from("entitlements").insert({ user_id: A.id, plan: "boss", source: "comp" }); out.self_entitle_blocked = !!ent.error;
 // effective_plan for A (none) via rpc
 const ep = await a.rpc("effective_plan", { uid: A.id }); out.a_plan = ep.data;
-// message A->B then B reads; a third party cannot
+// strangers cannot message each other; partners can, and B reads it
+const strange = await a.from("messages").insert({ from_user: A.id, to_user: B.id, text: "hi" }); out.stranger_dm_blocked = !!strange.error;
+await admin.from("partnerships").insert({ a_user: A.id, b_user: B.id });
 await a.from("messages").insert({ from_user: A.id, to_user: B.id, text: "hi" });
 const bMsg = await b.from("messages").select("text"); out.b_reads_dm = bMsg.data?.length;
+// boss line: a boss can DM a member of their boss team and back, but two members cannot DM each other
+const Cc = await mk("rls-test-c@example.com"); const c = await asUser("rls-test-c@example.com");
+const team = await admin.from("teams").insert({ name: "rls boss team", kind: "boss", owner_id: A.id }).select("id").single();
+await admin.from("team_members").insert([{ team_id: team.data.id, user_id: B.id }, { team_id: team.data.id, user_id: Cc.id }]);
+const bossDm = await a.from("messages").insert({ from_user: A.id, to_user: Cc.id, text: "boss to member" }); out.boss_dm_member_ok = !bossDm.error;
+const upDm = await c.from("messages").insert({ from_user: Cc.id, to_user: A.id, text: "member to boss" }); out.member_dm_boss_ok = !upDm.error;
+const peerDm = await c.from("messages").insert({ from_user: Cc.id, to_user: B.id, text: "member to member" }); out.member_dm_member_blocked = !!peerDm.error;
 // stripe function must not be callable by users
 const st = await a.rpc("apply_stripe_entitlement", { p_user_id: A.id, p_plan: "boss", p_status: "active", p_stripe_customer_id: "x", p_stripe_sub_id: "y" }); out.stripe_fn_blocked_for_users = !!st.error;
 // cleanup
-await admin.auth.admin.deleteUser(A.id); await admin.auth.admin.deleteUser(B.id);
+await admin.auth.admin.deleteUser(A.id); await admin.auth.admin.deleteUser(B.id); await admin.auth.admin.deleteUser(Cc.id);
 const left = await admin.from("tasks").select("id"); out.cleanup_tasks_left = left.data?.length;
 console.log(JSON.stringify(out, null, 2));
