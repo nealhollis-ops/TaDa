@@ -30,6 +30,8 @@ await a.from("profiles").update({ hidden: true }).eq("id", A.id);
 const bStats = await b.from("stats").select("user_id").eq("user_id", A.id); out.b_sees_hidden_stats = bStats.data?.length;
 // A cannot promote self to admin
 const promo = await a.from("profiles").update({ role: "admin" }).eq("id", A.id).select("role"); out.self_promote = promo.error ? "blocked:" + promo.error.code : promo.data;
+// A (a member) cannot set the admin-only profile link
+const lk = await a.from("profiles").update({ link: "https://example.com" }).eq("id", A.id); out.member_link_blocked = !!lk.error;
 // A cannot grant self an entitlement
 const ent = await a.from("entitlements").insert({ user_id: A.id, plan: "boss", source: "comp" }); out.self_entitle_blocked = !!ent.error;
 // effective_plan for A (none) via rpc

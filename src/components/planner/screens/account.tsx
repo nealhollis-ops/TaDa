@@ -19,10 +19,24 @@ const PLAN_COPY = {
   boss: "Everything in Teams plus boss powers: assign tasks with deadlines, see every assignment and its status, manage the work, and message the team. $97 a month, or $970 a year, with 7 member seats included and $9 a month per extra seat.",
 };
 
+/** Accept "mysite.com" as well as a full URL; anything that is not http(s) is dropped. */
+function normalizeLink(raw: string): string {
+  const v = raw.trim().slice(0, 200);
+  if (!v) return "";
+  const withScheme = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  try {
+    const u = new URL(withScheme);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 export function AccountScreen() {
   const p = usePlanner();
   const [name, setName] = useState(p.me.name);
   const [bio, setBio] = useState(p.me.bio);
+  const [link, setLink] = useState(p.me.link);
   const [hidden, setHidden] = useState(p.me.hidden);
   const [priv, setPriv] = useState(p.me.private);
   const [seeking, setSeeking] = useState(p.me.seeking);
@@ -36,7 +50,9 @@ export function AccountScreen() {
 
   const save = async () => {
     setSaving(true);
-    await p.saveAccount({ name: name.trim() || p.me.name, bio: bio.slice(0, 150), hidden, private: priv, seeking });
+    const admin = p.me.role === "admin";
+    await p.saveAccount({ name: name.trim() || p.me.name, bio: bio.slice(0, 150), hidden, private: priv, seeking, ...(admin ? { link: normalizeLink(link) } : {}) });
+    if (admin) setLink(normalizeLink(link));
     setSaving(false);
   };
 
@@ -85,6 +101,14 @@ export function AccountScreen() {
         <div className="text-right text-xs" style={{ color: C.fade }}>
           {bio.length}/150
         </div>
+        {p.me.role === "admin" && (
+          <div className="mt-1">
+            <input className={inputCls} style={inputStyle} type="url" inputMode="url" placeholder="https://your-site.com" maxLength={200} value={link} onChange={(e) => setLink(e.target.value)} />
+            <p className="mt-1 text-xs" style={{ color: C.fade }}>
+              Admins only: a link to your bio, website or product. It shows as a button on your profile when members open it.
+            </p>
+          </div>
+        )}
         <label className="mt-3 flex items-start gap-2 text-sm" style={{ color: C.ink }}>
           <input type="checkbox" className="mt-0.5" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
           <span>Keep me hidden. Your progress card stays out of everyone&rsquo;s open circle and partner lists. Your partners and boss teammates still see your progress.</span>

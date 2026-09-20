@@ -13,7 +13,7 @@ type SB = SupabaseClient;
 
 export async function loadMe(sb: SB, userId: string, email: string): Promise<MyProfile> {
   const [{ data: p, error }, { data: card }] = await Promise.all([
-    sb.from("profiles").select("id,name,slug,avatar_url,role,hidden,private,seeking,muted,notif_on,notif_community,onboarding").eq("id", userId).single(),
+    sb.from("profiles").select("id,name,slug,avatar_url,role,hidden,private,seeking,muted,notif_on,notif_community,onboarding,link").eq("id", userId).single(),
     sb.rpc("profile_card", { target: userId }),
   ]);
   if (error || !p) throw error ?? new Error("profile missing");
@@ -24,6 +24,7 @@ export async function loadMe(sb: SB, userId: string, email: string): Promise<MyP
     slug: p.slug ?? "",
     avatarUrl: p.avatar_url ?? null,
     bio: (card as { bio?: string } | null)?.bio ?? "",
+    link: p.link ?? "",
     role: p.role ?? "member",
     hidden: !!p.hidden,
     private: !!p.private,
@@ -35,10 +36,11 @@ export async function loadMe(sb: SB, userId: string, email: string): Promise<MyP
   };
 }
 
-export async function saveMe(sb: SB, userId: string, patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking" | "muted" | "notifOn" | "notifCommunity" | "onboarding" | "avatarUrl">>) {
+export async function saveMe(sb: SB, userId: string, patch: Partial<Pick<MyProfile, "name" | "bio" | "link" | "hidden" | "private" | "seeking" | "muted" | "notifOn" | "notifCommunity" | "onboarding" | "avatarUrl">>) {
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name.trim().slice(0, 40) || "friend";
   if (patch.bio !== undefined) row.bio = patch.bio.slice(0, 150);
+  if (patch.link !== undefined) row.link = patch.link.trim().slice(0, 200) || null;
   if (patch.hidden !== undefined) row.hidden = patch.hidden;
   if (patch.private !== undefined) row.private = patch.private;
   if (patch.seeking !== undefined) row.seeking = patch.seeking;

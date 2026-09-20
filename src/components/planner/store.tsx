@@ -138,7 +138,7 @@ export type PlannerActions = {
   toggleMute: () => void;
   toggleNotif: () => Promise<void>;
   toggleCommunityNotif: () => Promise<void>;
-  saveAccount: (patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking">>) => Promise<void>;
+  saveAccount: (patch: Partial<Pick<MyProfile, "name" | "bio" | "link" | "hidden" | "private" | "seeking">>) => Promise<void>;
   pickAvatar: (file: File) => Promise<void>;
   removeAvatar: () => Promise<void>;
   markTour: () => void;
@@ -1363,7 +1363,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   }, [me.notifCommunity, saveProfile]);
 
   const saveAccount = useCallback(
-    async (patch: Partial<Pick<MyProfile, "name" | "bio" | "hidden" | "private" | "seeking">>) => {
+    async (patch: Partial<Pick<MyProfile, "name" | "bio" | "link" | "hidden" | "private" | "seeking">>) => {
       await saveProfile(patch);
       setMembers((m) => ({ ...m, [me.id]: { ...(m[me.id] ?? { id: me.id, slug: me.slug, role: me.role, avatarUrl: me.avatarUrl, hidden: me.hidden, private: me.private, seeking: me.seeking, name: me.name }), ...("name" in patch ? { name: patch.name ?? me.name } : {}), ...("hidden" in patch ? { hidden: !!patch.hidden } : {}), ...("private" in patch ? { private: !!patch.private } : {}), ...("seeking" in patch ? { seeking: !!patch.seeking } : {}) } }));
       showToast("Saved.");

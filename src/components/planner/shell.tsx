@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
+import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
@@ -243,7 +243,7 @@ function TourModal() {
 
 function ProfileModal({ id }: { id: string }) {
   const p = usePlanner();
-  const [card, setCard] = useState<(MemberCard & { bio: string | null; canView: boolean }) | null | undefined>(undefined);
+  const [card, setCard] = useState<(MemberCard & { bio: string | null; link: string | null; canView: boolean }) | null | undefined>(undefined);
   const [reporting, setReporting] = useState(false);
   const [reason, setReason] = useState("");
   useEffect(() => {
@@ -291,6 +291,7 @@ function ProfileModal({ id }: { id: string }) {
           <p className="mt-2 text-xs" style={{ color: C.fade }}>
             This profile is private.
           </p>
+          <ProfileLink href={card.link} center />
           {!isMe && !blocked && (
             <button onClick={() => void p.blockUser(id)} className="mt-3 rounded-xl px-4 py-2 text-xs font-semibold" style={{ background: "#FDE2E2", color: C.coral }}>
               Block this member
@@ -313,6 +314,7 @@ function ProfileModal({ id }: { id: string }) {
               )}
             </div>
           </div>
+          <ProfileLink href={card.link} />
           {card.stats ? (
             <div className="mb-3 flex flex-wrap gap-2">
               <Chip color="#E30022" bg="#FDE2E2">🔥 {card.stats.streak} day streak</Chip>
@@ -587,5 +589,24 @@ function InboxPanel() {
         </div>
       )}
     </Overlay>
+  );
+}
+
+/** An admin's outbound link on their profile card, shown as a button with the bare domain. */
+function ProfileLink({ href, center = false }: { href: string | null; center?: boolean }) {
+  if (!href) return null;
+  let label = href;
+  try {
+    label = new URL(href).hostname.replace(/^www\./, "");
+  } catch {
+    // keep the raw value
+  }
+  return (
+    <div className={`mb-3 flex ${center ? "justify-center" : ""}`}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold" style={{ background: C.navy, color: C.cream }}>
+        <ExternalLink size={13} />
+        {label}
+      </a>
+    </div>
   );
 }

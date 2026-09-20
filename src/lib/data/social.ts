@@ -43,7 +43,7 @@ export async function loadCards(sb: SB, ids: string[], month: string): Promise<R
 }
 
 /** The profile modal payload, privacy applied by the database. */
-export async function loadProfileCard(sb: SB, id: string): Promise<(MemberCard & { bio: string | null; canView: boolean }) | null> {
+export async function loadProfileCard(sb: SB, id: string): Promise<(MemberCard & { bio: string | null; link: string | null; canView: boolean }) | null> {
   const { data, error } = await sb.rpc("profile_card", { target: id });
   if (error) throw error;
   if (!data) return null;
@@ -58,8 +58,9 @@ export async function loadProfileCard(sb: SB, id: string): Promise<(MemberCard &
     hidden: false,
     private: !!d.private,
     seeking: !!d.seeking,
-    role: "member",
+    role: d.is_admin ? "admin" : "member",
     bio: (d.bio as string) ?? null,
+    link: (d.link as string) ?? null,
     canView: !!d.can_view,
     hasPartner: !!d.has_partner,
     stats: st

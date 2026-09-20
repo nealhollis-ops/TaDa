@@ -83,6 +83,8 @@ export type MyProfile = {
   slug: string;
   avatarUrl: string | null;
   bio: string;
+  /** Admins only: a URL to their bio page, site or product. */
+  link: string;
   role: "member" | "admin";
   hidden: boolean;
   private: boolean;
