@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { Mic, Plus, Sparkles, Star, Wand2, X } from "lucide-react";
 import { usePlanner } from "../store";
-import { C, Chip, inputCls, inputStyle } from "../ui";
+import { C, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
 import { dayLabel, dstr, ord, WDFULL, weekdayOf } from "@/lib/planner/calendar";
 import { BLOCK_META } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import type { Block, Repeat } from "@/lib/planner/types";
 
-type DumpItem = { title: string; week: number; big: boolean };
+type DumpItem = { title: string; week: number; big: boolean; date?: string | null };
 
 export function PlanScreen() {
   const p = usePlanner();
@@ -78,7 +78,7 @@ export function PlanScreen() {
         {dumpPreview.length > 0 && (
           <div className="mt-3 rounded-xl p-3" style={{ background: "#fff" }}>
             <div className="mb-2 text-xs font-semibold" style={{ color: C.navy }}>
-              Found {dumpPreview.length} tasks. Tap the star for a big win, or remove anything wrong.
+              Found {dumpPreview.length} tasks. Tap the star for a big win, pick a day or leave it on Auto, or remove anything wrong.
             </div>
             {dumpPreview.map((x, i) => (
               <div key={i} className="flex items-center gap-2 py-1.5" style={{ borderBottom: `1px solid ${C.line}` }}>
@@ -88,7 +88,20 @@ export function PlanScreen() {
                 <span className="flex-1 truncate text-sm" style={{ color: C.ink }}>
                   {x.title}
                 </span>
-                <Chip>{m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`}</Chip>
+                <select
+                  className="rounded-lg border px-1.5 py-1 text-xs"
+                  style={{ ...inputStyle, color: x.date ? C.ink : C.fade, maxWidth: 112 }}
+                  value={x.date ? String(parseInt(x.date.slice(-2), 10)) : "auto"}
+                  onChange={(e) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: e.target.value === "auto" ? null : dstr(m, parseInt(e.target.value, 10)) } : y)))}
+                  aria-label="Due day"
+                >
+                  <option value="auto">Auto ({m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`})</option>
+                  {Array.from({ length: m.days }, (_, d) => d + 1).map((d) => (
+                    <option key={d} value={d}>
+                      Due {dayLabel(m, dstr(m, d))}
+                    </option>
+                  ))}
+                </select>
                 <button onClick={() => setDumpPreview(dumpPreview.filter((_, j) => j !== i))} aria-label="Remove">
                   <X size={14} style={{ color: C.fade }} />
                 </button>

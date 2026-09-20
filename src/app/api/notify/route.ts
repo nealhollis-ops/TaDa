@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { publicEnv, serverEnv } from "@/lib/env";
+import { pushOnly } from "@/lib/notify/deliver";
 
 type Copy = { title: string; body: string; url: string };
 type Extra = Record<string, string | undefined>;
@@ -14,7 +13,10 @@ const clean = (s: string | undefined, max: number) => (s ?? "").replace(/\s+/g, 
  * are the member's own milestones and may only be sent to themselves.
  */
 const COPY: Record<string, { self: boolean; community?: boolean; make: (x: Extra) => Copy }> = {
-  message: { self: false, make: () => ({ title: "TaDa", body: "You have a new message.", url: "/partners" }) },
+  message: {
+    self: false,
+    make: (x) => ({ title: "TaDa", body: x.name ? `${clean(x.name, 40)} sent you a message.` : "You have a new message.", url: x.boss ? "/partners?tab=boss" : "/partners" }),
+  },
   partner_request: { self: false, make: () => ({ title: "TaDa", body: "Someone asked to be your accountability partner.", url: "/partners" }) },
   team_invite: { self: false, make: () => ({ title: "TaDa", body: "You've been invited to a team.", url: "/partners" }) },
   assignment: { self: false, make: () => ({ title: "TaDa", body: "New work was assigned to you.", url: "/today" }) },
@@ -77,24 +79,6 @@ export async function POST(request: Request) {
   const copy = def.make(body ?? {});
   await admin.from("notifications").insert({ user_id: toUser, kind: body!.kind, title: copy.title, body: copy.body, url: copy.url });
 
-  const env = serverEnv();
-  if (profile.notif_on === false || !env.vapidPrivateKey || !publicEnv.vapidPublicKey) return NextResponse.json({ ok: true, sent: 0 });
-  const { data: subs } = await admin.from("push_subscriptions").select("id,endpoint,keys").eq("user_id", toUser);
-  if (!subs?.length) return NextResponse.json({ ok: true, sent: 0 });
-
-  webpush.setVapidDetails(env.vapidSubject, publicEnv.vapidPublicKey, env.vapidPrivateKey);
-  const payload = JSON.stringify(copy);
-  let sent = 0;
-  await Promise.all(
-    subs.map(async (s) => {
-      try {
-        await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys as { p256dh: string; auth: string } }, payload, { TTL: 60 * 60 });
-        sent += 1;
-      } catch (err) {
-        const status = (err as { statusCode?: number }).statusCode;
-        if (status === 404 || status === 410) await admin.from("push_subscriptions").delete().eq("id", s.id);
-      }
-    }),
-  );
+  const sent = await pushOnly(admin, toUser, copy, profile.notif_on !== false);
   return NextResponse.json({ ok: true, sent });
 }

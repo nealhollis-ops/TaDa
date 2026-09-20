@@ -99,7 +99,7 @@ export type PlannerActions = {
   addTask: (form: NewTaskForm) => void;
   organize: () => void;
   parseDump: (text: string) => Promise<{ title: string; week: number; big: boolean }[]>;
-  addDumped: (items: { title: string; week: number; big: boolean }[]) => void;
+  addDumped: (items: { title: string; week: number; big: boolean; date?: string | null }[]) => void;
   runCommand: (text?: string) => Promise<void>;
   startListening: () => void;
   saveEdit: (e: Task) => void;
@@ -129,6 +129,9 @@ export type PlannerActions = {
   toggleAssigned: (a: Assignment) => Promise<void>;
   removeAssigned: (id: string) => Promise<void>;
   editAssignment: (id: string, patch: { title: string; toUser: string; date: string | null }) => Promise<void>;
+  /** Direct messages with anyone: partners here, boss-team contacts on the Boss Mode tab. */
+  threadWith: (userId: string) => Message[];
+  sendDirect: (toUser: string, text: string, opts?: { boss?: boolean }) => Promise<void>;
   blockUser: (id: string) => Promise<void>;
   unblockUser: (id: string) => Promise<void>;
   reportUser: (id: string, reason: string) => Promise<void>;
@@ -726,9 +729,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   );
 
   const addDumped = useCallback(
-    (items: { title: string; week: number; big: boolean }[]) => {
+    (items: { title: string; week: number; big: boolean; date?: string | null }[]) => {
       if (!items.length) return;
-      const fresh: Task[] = items.map((x) => ({ id: uid(), rootId: null, title: x.title, big: x.big, month: month.prefix, week: x.week, date: null, block: "auto", repeat: "none", anchor: null, done: false, doneAt: null, sort: Date.now(), carriedFrom: null }));
+      // A day the member picked sticks; Organize only places tasks that have no date.
+      const fresh: Task[] = items.map((x) => ({ id: uid(), rootId: null, title: x.title, big: x.big, month: month.prefix, week: taskWeek(month, { date: x.date ?? null, week: x.week }), date: x.date ?? null, block: x.date ? (x.big ? "morning" : "afternoon") : "auto", repeat: "none", anchor: null, done: false, doneAt: null, sort: Date.now(), carriedFrom: null }));
       void persistTasks(organizeList(month, [...tasksRef.current, ...fresh]));
     },
     [month, persistTasks],
@@ -818,6 +822,26 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   }, [persistStats, hasPartner, fireCeremony]);
 
   // ------------------------------------------------------------ messages --
+  const threadWith = useCallback(
+    (userId: string) => messages.filter((m) => !isBlocked(m.fromUser) && ((m.fromUser === me.id && m.toUser === userId) || (m.fromUser === userId && m.toUser === me.id))),
+    [messages, me.id, isBlocked],
+  );
+
+  const sendDirect = useCallback(
+    async (toUser: string, text: string, opts?: { boss?: boolean }) => {
+      const t = text.trim();
+      if (!t || !toUser || toUser === me.id) return;
+      try {
+        const msg = await S.sendMessage(sb, me.id, toUser, t);
+        setMessages((list) => (list.some((m) => m.id === msg.id) ? list : [...list, msg]));
+        S.notify("message", toUser, { name: me.name, ...(opts?.boss ? { boss: "1" } : {}) });
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [sb, me.id, me.name, fail],
+  );
+
   const sendMsg = useCallback(
     async (text: string) => {
       const t = text.trim();
@@ -825,12 +849,12 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       try {
         const msg = await S.sendMessage(sb, me.id, activeChat, t);
         setMessages((list) => (list.some((m) => m.id === msg.id) ? list : [...list, msg]));
-        S.notify("message", activeChat);
+        S.notify("message", activeChat, { name: me.name });
       } catch (e) {
         fail(e);
       }
     },
-    [sb, me.id, activeChat, fail],
+    [sb, me.id, me.name, activeChat, fail],
   );
 
   // ----------------------------------------------------------- community --
@@ -1398,7 +1422,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment, threadWith, sendDirect,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 

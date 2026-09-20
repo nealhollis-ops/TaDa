@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, Bar, C, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
@@ -19,7 +20,9 @@ type Tab = "partners" | "teams" | "boss";
  */
 export function PartnersScreen() {
   const p = usePlanner();
-  const [tab, setTab] = useState<Tab>("partners");
+  const params = useSearchParams();
+  const wanted = params.get("tab");
+  const [tab, setTab] = useState<Tab>(wanted === "boss" || wanted === "teams" ? wanted : "partners");
 
   const plainTeams = p.myTeams.filter((t) => t.kind !== "boss");
   const bossTeams = p.myTeams.filter((t) => t.kind === "boss");
@@ -620,7 +623,9 @@ function TeamCard({ t }: { t: Team }) {
               <AssignmentTracker t={t} owner={false} />
             </div>
           )}
-          <div className="mt-3 rounded-xl p-2" style={{ background: C.cream, maxHeight: 220, overflowY: "auto" }}>
+          {t.kind === "boss" && <DirectMessages t={t} owner={owner} />}
+          <SectionLabel>Team room</SectionLabel>
+          <div className="rounded-xl p-2" style={{ background: C.cream, maxHeight: 220, overflowY: "auto" }}>
             {tMsgs.length === 0 && (
               <div className="py-3 text-center text-xs" style={{ color: C.fade }}>
                 The team room is quiet. Say something.
@@ -873,6 +878,84 @@ function AssignmentEditor({ a, t, onDone }: { a: Assignment; t: Team; onDone: ()
         </button>
         <button onClick={onDone} className="flex-1 rounded-xl py-2 text-xs font-semibold" style={{ background: C.mist, color: C.ink }}>
           Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One-to-one messages inside a boss team. The boss picks a member; a member
+ * talks to the boss. Same messages table as partner chat, so a thread started
+ * here also shows on Partners if the two are partners.
+ */
+function DirectMessages({ t, owner }: { t: Team; owner: boolean }) {
+  const p = usePlanner();
+  const others = owner ? t.members.filter((id) => id !== p.me.id) : [t.ownerId];
+  const [who, setWho] = useState(others[0] ?? "");
+  const [text, setText] = useState("");
+  const end = useRef<HTMLDivElement>(null);
+  const to = others.includes(who) ? who : (others[0] ?? "");
+  const thread = to ? p.threadWith(to) : [];
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "nearest" });
+  }, [thread.length, to]);
+  const send = () => {
+    if (!to) return;
+    void p.sendDirect(to, text, { boss: true });
+    setText("");
+  };
+  if (!others.length) return null;
+  return (
+    <div className="mt-3">
+      <SectionLabel>{owner ? "Direct messages" : "Message your boss"}</SectionLabel>
+      {owner && (
+        <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm font-medium" style={{ ...inputStyle, borderColor: C.navy }} value={to} onChange={(e) => setWho(e.target.value)}>
+          {others.map((id) => (
+            <option key={id} value={id}>
+              {p.nameOf(id)}
+            </option>
+          ))}
+        </select>
+      )}
+      <div className="rounded-xl p-2" style={{ background: C.cream, maxHeight: 220, overflowY: "auto" }}>
+        {thread.length === 0 && (
+          <div className="py-3 text-center text-xs" style={{ color: C.fade }}>
+            {to ? `Only you and ${p.nameOf(to)} see this.` : "Nobody to message yet."}
+          </div>
+        )}
+        {thread.slice(-60).map((m) => {
+          const mine = m.fromUser === p.me.id;
+          return (
+            <div key={m.id} className={`mb-1.5 flex items-end gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
+              {!mine && <Avatar src={p.avatarOf(m.fromUser)} name={p.nameOf(m.fromUser)} size={18} />}
+              <div className="max-w-xs rounded-2xl px-3 py-1.5" style={{ background: mine ? C.navy : "#fff" }}>
+                <div className="text-sm" style={{ color: mine ? C.cream : C.ink }}>
+                  {renderRich(m.text)}
+                </div>
+                <div className="text-right" style={{ color: mine ? C.goldSoft : C.fade, fontSize: 10 }}>
+                  {ago(m.createdAt)}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={end} />
+      </div>
+      <div className="mt-2 flex gap-2">
+        <input
+          className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
+          style={inputStyle}
+          placeholder={to ? `Message ${p.nameOf(to)} privately...` : "Nobody to message yet"}
+          disabled={!to}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") send();
+          }}
+        />
+        <button onClick={send} className="rounded-xl px-3" style={{ background: C.navy }} aria-label="Send private message">
+          <Send size={16} style={{ color: C.cream }} />
         </button>
       </div>
     </div>

@@ -133,7 +133,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   ]},
   { id: "dump", t: "The brain dump", b: [
     "The black card at the top of Plan called Pour it all out takes everything at once. Type the whole jumble, or tap the mic on your phone keyboard and just talk.",
-    "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Then Add them to my month places every task on your calendar for you.",
+    "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row has a day picker set to Auto; leave it and the app chooses a light day in that week, or pick the exact day yourself and it stays put. Then Add them to my month places everything on your calendar.",
   ]},
   { id: "organize", t: "The Organize button", b: [
     "Organize places every unscheduled task on your lightest open day, spreading the load across the week. Sundays are left open on purpose.",
@@ -195,7 +195,8 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "3. Assign work. Open the team and under Assign work pick the person, type the task, choose a deadline and tap Assign. It lands on their Today tab marked Due today or Overdue, with a notification.",
     "4. Track progress. Under Track progress, pick a team member from the dropdown, or All members, and their work sorts into Assigned and Completed tabs with counts, the same way your own Plan does. Overdue items show in red.",
     "5. Change your mind. Every assignment has a pencil and a trash can. The pencil lets you reword it, move the deadline or hand it to someone else; handing it to a new person notifies them. The trash can asks you to confirm before it deletes.",
-    "6. Keep the conversation in the team room. Every team has its own discussion, separate from the public community, so the back-and-forth about the work stays with the work.",
+    "6. Keep the conversation in the team room, or go direct. Every team has its own discussion, separate from the public community. Above it, Direct messages lets you pick one member and talk privately; they see the thread under Message your boss in their own Boss Mode tab. Only the two of you can read it.",
+    "Past-due reminders. The morning after an assigned task's deadline passes with it still open, the person it belongs to gets one reminder in their bell (and a push if their alerts are on). It says Past due with the task name. You see the same task marked Overdue in red under Track progress.",
     "7. Watch your seats. Seven member seats are included across all your boss teams, and extras are $9 a month each. One person on two of your teams uses one seat. The seat meter above your teams shows what's in use, and the Your seats roster in Account lists every seat holder with their email and teams.",
     "8. Removing someone. Tap the small X beside their name and confirm. Their unfinished assigned work drops into a holding tank inside the team, where you reassign each task or let it go. Removing a member frees an included seat or ends an extra charge on your next bill; seats are counted once a day.",
     "What you can't see: their personal task list, their streak details unless their profile allows it outside the team, and their private messages. What they can't see: each other's personal tasks. Progress numbers are shared; task lists never are.",
@@ -221,7 +222,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Every new account starts with 14 days free. You add a card when you pick a plan, nothing is charged until day 15, and cancelling before then costs nothing. To upgrade, open Account and tap Upgrade to Teams or Upgrade to Boss on the Your plan card. It takes effect right away and charges only the difference for the rest of the period. Cancel any time from the Manage billing button on the same card, and see the Refund Policy for the rest.",
   ]},
   { id: "notifs", t: "Notifications and the bell", b: [
-    "The bell at the top of every screen collects everything that needs you: new messages, partner requests, team invites, work assigned by a boss, badges and levels you earn, replies and mentions in the community, and the occasional announcement from us. A red number on the bell is your unread count. Tap an item to open the right screen; Mark all read clears the count.",
+    "The bell at the top of every screen collects everything that needs you: new messages, partner requests, team invites, work assigned by a boss and past-due reminders for it, badges and levels you earn, replies and mentions in the community, and the occasional announcement from us. A red number on the bell is your unread count. Tap an item to open the right screen; Mark all read clears the count.",
     "Device alerts are separate and on from day one. Your phone or computer gets a short notification for the same events when you're away from the app. Turn them off with the Notifications switch in Account, and flip them back just as fast. Your browser may ask for permission the first time, and alerts only work once you allow it. On iPhone, install TaDa to your home screen first.",
     "Want the community quieter? The From the community switch under Notifications turns off replies and mentions only, both on your device and under the bell, while everything else still comes through.",
   ]},
