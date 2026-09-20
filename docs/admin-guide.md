@@ -1,6 +1,6 @@
 # TaDa admin guide
 
-For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 18, 2026.
+For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 20, 2026.
 
 The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts whose profile role is `admin`. Members never see it, and the "Open the admin panel" button on Account only appears for admins.
 
@@ -9,6 +9,7 @@ The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts
 - Admin is a role on the profile, not a plan. Both founders were seeded as admins with permanent Boss access.
 - Nobody can change their own role from the app, including admins. A database trigger blocks it. To make someone an admin, add their email to `SEED_ADMIN_EMAILS` and run `npm run seed:admins`, or set `role = 'admin'` on their profile row in the Supabase SQL editor.
 - Admins bypass the paywall. An admin with no plan still gets in.
+- Admins get one extra field in Account: a **profile link** (your bio page, website or product). It shows as a button on your profile card when members open it, even if your profile is private. Members never see the field and a database trigger stops them setting one. Paste a full URL or just `mysite.com`; anything that is not a web address is dropped on save.
 
 ## The pages
 
@@ -49,13 +50,23 @@ Two tools:
 
 ## Notifications, in one paragraph
 
-Every push the app sends also lands in the member's bell. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
+Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
 
 ## Billing, what you can and cannot do here
 
 - The app decides who gets in from the `entitlements` table only. Stripe writes rows with `source = 'stripe'` through the webhook; comp and admin rows are yours. Stripe code never touches your rows and you should never edit a Stripe row by hand.
 - Refunds, cancellations on a member's behalf, card problems and receipts are done in the Stripe dashboard, not in the admin panel. Search Stripe by the member's email.
 - Boss seat counts sync once a day at 05:30 UTC. Removing a member from a boss team changes the next invoice, not today's.
+
+## Scheduled jobs (Vercel crons, production only)
+
+| Time (UTC) | Path | What it does |
+|---|---|---|
+| 05:00 | `/api/cron/digest` | Rolls the day's automatic milestone posts into one Wins digest once there are five or more. |
+| 05:30 | `/api/cron/seats` | Recounts boss seats and updates the Stripe extra-seat quantity. |
+| 13:00 (8am Central) | `/api/cron/overdue` | Finds assigned work still open the day after its deadline and sends the assignee one Past due notice, bell plus push. Stamps `assignments.overdue_notified_at` so it never repeats. |
+
+To run one by hand (for example on staging, where crons do not fire): `curl -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/overdue`. Each returns a small JSON summary.
 - Until launch, Stripe is in test mode. The `stripe:setup` script creates the live products, prices and webhook when you are ready.
 
 ## The admin log
@@ -67,7 +78,7 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 | Command | What it does |
 |---|---|
 | `npm run seed:admins` | Creates or updates the founder accounts as admins with permanent Boss access. Safe to re-run. |
-| `npm run test:rls` | Creates throwaway members and proves the privacy rules hold: tasks, stats, messages, role changes, entitlements. Run after any change to database policies. |
+| `npm run test:rls` | Creates throwaway members and proves the privacy rules hold: tasks, stats, partner and boss-line messages, the admin-only profile link, role changes, entitlements. Run after any change to database policies. |
 | `npm run stripe:setup` | Creates the TaDa products, prices and webhook in whichever Stripe mode the key in `.env.local` points at. |
 | `npm run test:stripe` | End-to-end checkout and webhook check against a running dev server. |
 | `npm run migrate:staging` | Applies `supabase/migrations` to the staging database (refuses to touch production). Add a file prefix to run one. |
@@ -75,7 +86,7 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 
 ## Where things live
 
-- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth.
+- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0017` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks.
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
 - Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.
@@ -107,4 +118,6 @@ Staging costs nothing (free Supabase tier, Vercel previews are included). Supaba
 - **Invite emails fail**: check `/api/health` for `emailFromDomain`, then Resend's domains page. Only `gettada.me` is verified.
 - **A push never arrives**: the member must have alerts on, a registered device, and on iPhone the app installed to the home screen. The bell entry arrives regardless.
 - **Realtime looks dead** (messages not appearing live): test in real Chrome, not an embedded browser, and ask the member to tap Refresh.
+- **A boss says they cannot message a member**: the boss line only works between the team owner and people on that boss team, in either direction. Two members of the same team cannot message each other privately, and nobody can message a stranger. Partner chat is separate.
+- **A past-due reminder never came**: the cron runs once a day at 13:00 UTC on production only, reminds each task once, and skips banned members. Check `assignments.overdue_notified_at` for the row.
 - **Anything else**: clientcare@gettada.me reaches you both, and the admin log tells you what happened last.

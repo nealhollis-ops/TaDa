@@ -125,7 +125,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Removed it by accident? Open app.gettada.me in your browser, sign in, and install it again from Account. Your tasks are safe either way; they live in your account, not on the phone.",
   ]},
   { id: "addtasks", t: "Adding tasks", b: [
-    "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or let the app choose one for you inside the week you select.",
+    "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or let the app choose one for you inside the week you select. Day lists only offer today onward, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
     "The month below the buttons has two tabs. Active shows what is still to do, week by week. Completed shows what you have already checked off, so finished work moves out of the way but is never lost. The counts on the tabs are for the whole month.",
     "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip, and tasks with no day yet show Day TBD.",
     "A gray chip like From September means the task was left unfinished last month and carried into this one with no day set. Tap Organize to place it, tap the pencil to choose a day, or remove it if it no longer matters. See When the month turns for the full story.",
@@ -133,7 +133,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   ]},
   { id: "dump", t: "The brain dump", b: [
     "The black card at the top of Plan called Pour it all out takes everything at once. Type the whole jumble, or tap the mic on your phone keyboard and just talk.",
-    "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row has a day picker set to Auto; leave it and the app chooses a light day in that week, or pick the exact day yourself and it stays put. Then Add them to my month places everything on your calendar.",
+    "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row has a day picker set to Auto; leave it and the app chooses a light day in that week, or pick the exact day yourself and it stays put. Only today and later are offered. Then Add them to my month places everything on your calendar.",
   ]},
   { id: "organize", t: "The Organize button", b: [
     "Organize places every unscheduled task on your lightest open day, spreading the load across the week. Sundays are left open on purpose.",
@@ -170,11 +170,11 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   { id: "partners", t: "Accountability partners", b: [
     "Partners see your weekly and monthly progress only. Nobody, partner included, ever sees your actual task list.",
     "Turn on I'm looking for a partner here in Account, and your name appears on everyone's Partners tab. Someone taps Ask to partner, you get a request with Accept and Decline, and accepting creates the partnership.",
-    "Messaging works between partners only. With more than one partner, tap a name chip above the chat to switch threads. End partnership sits on every partner card.",
+    "The Messages box on the Partners tab is for partners. With more than one partner, tap a name chip above the chat to switch threads. End partnership sits on every partner card. Boss teams have their own private line under Boss Mode; see Running a Boss team.",
   ]},
   { id: "teams", t: "Teams and Boss teams", b: [
     "The Partners screen has up to three tabs at the top: Partners for everyone, Teams on the Teams plan and up, and Boss Mode on the Boss plan. If someone invites you to a team, the matching tab appears for you too, whatever plan you're on.",
-    "On the Teams plan you can create named groups under the Teams tab. Each team has its own member progress view and its own discussion room. Invite people by email, and they join from the link in their inbox or the invite card on their Teams tab.",
+    "On the Teams plan you can create named groups under the Teams tab. Each team has its own member progress view and its own Team room, a boxed chat at the bottom of the team card. Invite people by email, and they join from the link in their inbox or the invite card on their Teams tab.",
     "On the Boss plan, teams you create are boss teams and live under Boss Mode. The owner assigns tasks with deadlines, sees every assignment sorted into Assigned and Completed for each member, and can edit or remove any assignment after the fact. Assigned work shows up on the member's Today tab marked Due today or Overdue, and on their own Boss Mode tab.",
     "Inside a boss team, the hidden and private profile settings don't apply. Your boss and teammates can always open your profile, while everyone outside the team still sees only what your privacy settings allow.",
     "Even in a boss team, personal task lists stay personal. A boss sees the work the boss assigned.",
@@ -195,7 +195,8 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "3. Assign work. Open the team and under Assign work pick the person, type the task, choose a deadline and tap Assign. It lands on their Today tab marked Due today or Overdue, with a notification.",
     "4. Track progress. Under Track progress, pick a team member from the dropdown, or All members, and their work sorts into Assigned and Completed tabs with counts, the same way your own Plan does. Overdue items show in red.",
     "5. Change your mind. Every assignment has a pencil and a trash can. The pencil lets you reword it, move the deadline or hand it to someone else; handing it to a new person notifies them. The trash can asks you to confirm before it deletes.",
-    "6. Keep the conversation in the team room, or go direct. Every team has its own discussion, separate from the public community. Above it, Direct messages lets you pick one member and talk privately; they see the thread under Message your boss in their own Boss Mode tab. Only the two of you can read it.",
+    "6. Talk in two boxes. At the bottom of every boss team card sit two conversations, each in its own box. Team room comes first and everyone on the team reads it. Direct messages sits below it: pick one member from the dropdown and talk privately; they see the thread as Message your boss on their own Boss Mode tab, and only the two of you can read it. A red N new badge on the Direct messages title, and (2 new) beside a name in the dropdown, tell you who is waiting on you.",
+    "Both boxes keep things tidy: only the opening message shows, and everything after it sits behind a bar that reads 3 replies, with a red unread count if any are new to you. Tap the bar to open the replies, which marks them read; Hide replies closes it again. Sending a message opens the box for you.",
     "Past-due reminders. The morning after an assigned task's deadline passes with it still open, the person it belongs to gets one reminder in their bell (and a push if their alerts are on). It says Past due with the task name. You see the same task marked Overdue in red under Track progress.",
     "7. Watch your seats. Seven member seats are included across all your boss teams, and extras are $9 a month each. One person on two of your teams uses one seat. The seat meter above your teams shows what's in use, and the Your seats roster in Account lists every seat holder with their email and teams.",
     "8. Removing someone. Tap the small X beside their name and confirm. Their unfinished assigned work drops into a holding tank inside the team, where you reassign each task or let it go. Removing a member frees an included seat or ends an extra charge on your next bill; seats are counted once a day.",
@@ -207,7 +208,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Replies stay tucked behind a count, like 3 replies, so the feed stays clean. Tap the count to open the conversation. Reply tags the poster with an @ for you, and the @ on any reply tags that person instead. To tag anyone else, type @ and the start of their name in a post or reply and pick them from the chips that appear; they get a notification. The Refresh button at the top reloads the feed if you ever want to be sure you have the latest. The small gray smiley button opens reactions: heart, fire, thumbs up, prayer, and smile. Posts and replies both take reactions. Tap a reaction chip again to take yours back.",
     "Your own posts and replies show a small pencil and trash can. Pencil lets you fix the wording, and an edited note appears beside the time. Trash asks once, then removes it for everyone; deleting a post takes its replies with it. New posts, replies and reactions appear for everyone as they happen, no refresh needed.",
     "When someone replies to your post, or mentions you with an @, you get a notification under the bell and on your phone if alerts are on. You can switch community notifications off on their own in Account and keep everything else.",
-    "Tap anyone's photo or name to open their profile: their bio, streak, best streak, Mountain Level, this month's progress, and every badge they've earned.",
+    "Tap anyone's photo or name to open their profile: their bio, streak, best streak, Mountain Level, this month's progress, and every badge they've earned. The TaDa team's profiles also carry a link button to their site; tap it to open in a new tab.",
   ]},
   { id: "privacy", t: "Privacy and hiding", b: [
     "Check Keep me hidden here in Account and save. Your card leaves every list and nobody can find you by browsing. Progress numbers are the only thing the app ever shares about you, and hiding stops even that from being listed.",
@@ -236,7 +237,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Q: Why didn't my streak break over the weekend?",
     "A: Sundays always count, and an unscheduled Saturday counts too. Rest was part of the design.",
     "Q: My partner's message isn't showing.",
-    "A: Tap Refresh at the top of the Partners screen or open the app again, and it'll be there.",
+    "A: Tap Refresh at the top of the Partners screen or open the app again, and it'll be there. In a boss team, check the right box: Team room is for everyone, Direct messages is just you and your boss, and replies sit behind the replies bar until you tap it.",
     "Q: How do I move a task to a different day?",
     "A: Tap the pencil on the task, or just tell the calendar bar something like move it to Thursday.",
     "Q: What happens to tasks I didn't finish last month?",

@@ -17,7 +17,7 @@ const FIRST_DAY = [
   { t: "Put it on your phone", d: "In Account, scroll to Install TaDa on this phone and follow the two taps for Android or iPhone. It becomes a real app with its own icon." },
   { t: "Add three things", d: "Go to Plan, tap Add task, and add what's on your plate. Or open Pour it all out, type the whole jumble, and let TaDa sort it into tasks." },
   { t: "Check one off", d: "Back on Today, tap the circle beside a task. Fireworks, Deb's TaDa, and your streak starts." },
-  { t: "Find a partner", d: "On Partners, ask someone to be your accountability partner. They see your progress numbers, never your tasks, and you keep each other honest." },
+  { t: "Find a partner", d: "On the Partners tab, ask someone to be your accountability partner. They see your progress numbers, never your tasks, and you keep each other honest. Teams and Boss Mode get their own tabs on the same screen once your plan or an invitation unlocks them." },
 ];
 
 /** "Q: ... / A: ..." pairs render as a definition list; everything else is a paragraph. */

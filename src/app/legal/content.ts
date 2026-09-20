@@ -10,7 +10,7 @@ export type LegalDoc = {
   sections: { h: string; body: string[] }[];
 };
 
-export const LEGAL_UPDATED = "September 18, 2026";
+export const LEGAL_UPDATED = "September 20, 2026";
 
 export const DOCS: Record<string, LegalDoc> = {
   terms: {
@@ -71,7 +71,7 @@ export const DOCS: Record<string, LegalDoc> = {
         body: [
           "Accountability partners see each other's weekly and monthly progress numbers only. Nobody can see another member's task list, not even a partner.",
           "Teams are groups with their own discussion and a shared progress view. The person who creates a team owns it, can invite and remove members, and is responsible for how the team is used.",
-          "A boss team is different, and you will be told before you join one. The team owner (the boss) can assign work to you with deadlines, sees the status of the work they assigned, and sees the email address you signed up with. Hidden and private settings do not apply inside a boss team. Your own task list stays yours; the boss only sees what the boss assigned.",
+          "A boss team is different, and you will be told before you join one. The team owner (the boss) can assign work to you with deadlines, change or remove it later, sees the status of the work they assigned, and sees the email address you signed up with. The boss can also message you privately inside the team, and you can message the boss; other members cannot read those messages. If assigned work is still open the day after its deadline, we send you one reminder. Hidden and private settings do not apply inside a boss team. Your own task list stays yours; the boss only sees what the boss assigned.",
           "You can leave any team at any time from the Partners screen.",
         ],
       },
@@ -198,7 +198,7 @@ export const DOCS: Record<string, LegalDoc> = {
           "Accountability partners see each other's weekly and monthly progress numbers. They do not see task titles.",
           "In a standard team, members see each other's progress numbers and the team discussion.",
           "In a boss team, the team owner also sees the work they assigned to you, its status, and the email address on your account. You are told this before you join a boss team.",
-          "Your name, photo, streak, badges and level appear on your profile card, which other members can open. You can turn on \"Private profile\" in Account to stop that, or \"Keep me hidden\" to stay out of open partner lists. Your name still appears next to anything you post.",
+          "Your name, photo, streak, badges and level appear on your profile card, which other members can open. Data Forge Media staff profiles may also show a link to our website. You can turn on \"Private profile\" in Account to stop that, or \"Keep me hidden\" to stay out of open partner lists. Your name still appears next to anything you post.",
           "Community posts and replies are visible to every signed-in member.",
           "Data Forge Media staff can see account and billing details, and community content, in order to run the service and handle reports. Staff do not browse members' task lists.",
         ],
@@ -226,7 +226,7 @@ export const DOCS: Record<string, LegalDoc> = {
         h: "6. Emails and notifications",
         body: [
           "We send emails you need: sign-in links, password resets, invitations, trial and billing notices, and occasional news about TaDa. You cannot opt out of the ones required to run your account, such as billing notices, while you have an account.",
-          "Push notifications are off until you turn them on in Account. When on, your device is alerted to new direct messages, partner requests, team invitations, work assigned to you by a boss, and the occasional announcement from us. Turn them off at any time with the same switch.",
+          "Push notifications are off until you turn them on in Account. When on, your device is alerted to new direct messages, partner requests, team invitations, work assigned to you by a boss and a one-time reminder when it goes past due, badges and levels you earn, community replies and mentions, and the occasional announcement from us. Turn them off at any time with the same switch. We also record how far you have read in each team room, so the app can show you an unread count.",
         ],
       },
       {
