@@ -8,7 +8,7 @@ import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogO
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
-import { ago, dayLabel, dstr, ord, WDFULL } from "@/lib/planner/calendar";
+import { ago, dayLabel, dstr, ord, pickableDays, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, computeBadges, levelColor, levelIcon, levelOf } from "@/lib/planner/content";
 import { loadProfileCard } from "@/lib/data/social";
 import type { Block, MemberCard, Repeat } from "@/lib/planner/types";
@@ -470,7 +470,7 @@ function EditSheet() {
       <div className="mb-3 grid grid-cols-2 gap-2">
         <select className={sel} style={inputStyle} value={e.date ? parseInt(e.date.slice(8), 10) : "auto"} onChange={(ev) => upd(ev.target.value === "auto" ? { date: null } : { date: dstr(m, parseInt(ev.target.value, 10)) })}>
           <option value="auto">No day yet</option>
-          {Array.from({ length: m.days }, (_, i) => i + 1).map((d) => (
+          {pickableDays(m, p.today, e.date).map((d) => (
             <option key={d} value={d}>
               {dayLabel(m, dstr(m, d))}
             </option>

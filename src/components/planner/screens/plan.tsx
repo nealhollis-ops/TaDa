@@ -5,7 +5,7 @@ import { Mic, Plus, Sparkles, Star, Wand2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { C, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
-import { dayLabel, dstr, ord, WDFULL, weekdayOf } from "@/lib/planner/calendar";
+import { dayLabel, dstr, ord, pickableDays, WDFULL, weekdayOf } from "@/lib/planner/calendar";
 import { BLOCK_META } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import type { Block, Repeat } from "@/lib/planner/types";
@@ -96,7 +96,7 @@ export function PlanScreen() {
                   aria-label="Due day"
                 >
                   <option value="auto">Auto ({m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`})</option>
-                  {Array.from({ length: m.days }, (_, d) => d + 1).map((d) => (
+                  {pickableDays(m, p.today, x.date ?? null).map((d) => (
                     <option key={d} value={d}>
                       Due {dayLabel(m, dstr(m, d))}
                     </option>
@@ -137,7 +137,7 @@ export function PlanScreen() {
           <div className="mb-2 grid grid-cols-2 gap-2">
             <select className={sel} style={inputStyle} value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })}>
               <option value="auto">Pick my day for me</option>
-              {Array.from({ length: m.days }, (_, i) => i + 1).map((d) => (
+              {pickableDays(m, p.today).map((d) => (
                 <option key={d} value={d}>
                   {dayLabel(m, dstr(m, d))}
                   {weekdayOf(m, d) === 0 ? " (rest)" : ""}

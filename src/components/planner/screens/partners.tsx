@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, Bar, C, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
-import { ago, dayLabel, dstr } from "@/lib/planner/calendar";
+import { ago, dayLabel, dstr, pickableDays } from "@/lib/planner/calendar";
 import { levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import type { Assignment, Team, TeamInvite } from "@/lib/planner/types";
 
@@ -656,10 +656,12 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function DaySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const p = usePlanner();
+  // Deadlines run from today; a deadline already set in the past stays listed while editing.
+  const keep = value === "none" ? null : dstr(p.month, parseInt(value, 10));
   return (
     <select className="min-w-0 flex-1 rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={value} onChange={(e) => onChange(e.target.value)}>
       <option value="none">No deadline</option>
-      {Array.from({ length: p.month.days }, (_, i) => i + 1).map((d) => (
+      {pickableDays(p.month, p.today, keep).map((d) => (
         <option key={d} value={d}>
           Due {dayLabel(p.month, dstr(p.month, d))}
         </option>

@@ -55,6 +55,19 @@ export function monthInfo(at: Date = new Date()): MonthInfo {
 
 export const dstr = (m: MonthInfo, d: number) => `${m.prefix}-${pad(d)}`;
 
+/**
+ * Days of the month still worth offering in a day picker: today onward, so
+ * nobody schedules into the past by accident. `keep` is a date already on the
+ * task, which stays listed even when it has gone by.
+ */
+export const pickableDays = (m: MonthInfo, today: string, keep: string | null = null): number[] => {
+  const from = today.startsWith(m.prefix) ? parseInt(today.slice(8), 10) : today > m.prefix ? m.days + 1 : 1;
+  const days = Array.from({ length: m.days }, (_, i) => i + 1).filter((d) => d >= from);
+  const kept = keep && keep.startsWith(m.prefix) ? parseInt(keep.slice(8), 10) : null;
+  if (kept && !days.includes(kept)) days.unshift(kept);
+  return days;
+};
+
 export const todayStr = () => {
   const t = new Date();
   return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
