@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
@@ -74,9 +74,11 @@ function RefreshButton({ label }: { label: string }) {
 function PartnersTab() {
   const p = usePlanner();
   const [msgText, setMsgText] = useState("");
-  const chatEnd = useRef<HTMLDivElement>(null);
+  // Keep the chat box scrolled to the newest message without moving the page itself.
+  const chatBox = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    chatEnd.current?.scrollIntoView({ behavior: "smooth" });
+    const el = chatBox.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [p.thread.length]);
 
   const meCard = p.cards[p.me.id];
@@ -247,7 +249,7 @@ function PartnersTab() {
           ))}
         </div>
       )}
-      <div className="mb-3 rounded-2xl p-3" style={{ background: "#fff", maxHeight: 300, overflowY: "auto" }}>
+      <div ref={chatBox} className="mb-3 rounded-2xl p-3" style={{ background: "#fff", maxHeight: 300, overflowY: "auto" }}>
         {p.thread.length === 0 && (
           <div className="py-4 text-center text-xs" style={{ color: C.fade }}>
             {p.activeChat ? "No messages yet. Send the first one." : "Messaging unlocks when you have a partner."}
@@ -278,7 +280,6 @@ function PartnersTab() {
             </div>
           );
         })}
-        <div ref={chatEnd} />
       </div>
       <div className="flex gap-2">
         <input
@@ -465,7 +466,6 @@ function TeamCard({ t }: { t: Team }) {
   const owner = t.ownerId === p.me.id;
   const [inviteText, setInviteText] = useState("");
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
-  const [teamMsgText, setTeamMsgText] = useState("");
   const [assignTo, setAssignTo] = useState("");
   const [assignTitle, setAssignTitle] = useState("");
   const [assignDay, setAssignDay] = useState("none");
@@ -623,52 +623,20 @@ function TeamCard({ t }: { t: Team }) {
               <AssignmentTracker t={t} owner={false} />
             </div>
           )}
+          <ThreadBox
+            title="Team room"
+            note={t.kind === "boss" ? "Everyone on the team sees this." : undefined}
+            rollup={t.kind === "boss"}
+            messages={tMsgs.map((m) => ({ id: m.id, from: m.userId, text: m.text, at: m.createdAt }))}
+            unread={t.kind === "boss" ? p.teamUnread(t.id) : 0}
+            onRead={() => void p.markTeamRead(t.id)}
+            placeholder={`Message ${t.name}...`}
+            onSend={(text) => void p.sendTeamMsg(t.id, text)}
+            sendBg={C.gold}
+            sendFg={C.navy}
+            empty="The team room is quiet. Say something."
+          />
           {t.kind === "boss" && <DirectMessages t={t} owner={owner} />}
-          <SectionLabel>Team room</SectionLabel>
-          <div className="rounded-xl p-2" style={{ background: C.cream, maxHeight: 220, overflowY: "auto" }}>
-            {tMsgs.length === 0 && (
-              <div className="py-3 text-center text-xs" style={{ color: C.fade }}>
-                The team room is quiet. Say something.
-              </div>
-            )}
-            {tMsgs.slice(-50).map((m) => (
-              <div key={m.id} className="mb-2 flex items-start gap-1.5">
-                <Avatar src={p.avatarOf(m.userId)} name={p.nameOf(m.userId)} size={18} />
-                <span className="flex-1 text-sm" style={{ color: C.ink }}>
-                  <span className="text-xs font-bold" style={{ color: m.userId === p.me.id ? C.gold : C.navy2 }}>
-                    {p.nameOf(m.userId)}:{" "}
-                  </span>
-                  {renderRich(m.text)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 flex gap-2">
-            <input
-              className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
-              style={inputStyle}
-              placeholder={`Message ${t.name}...`}
-              value={teamMsgText}
-              onChange={(e) => setTeamMsgText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  void p.sendTeamMsg(t.id, teamMsgText);
-                  setTeamMsgText("");
-                }
-              }}
-            />
-            <button
-              onClick={() => {
-                void p.sendTeamMsg(t.id, teamMsgText);
-                setTeamMsgText("");
-              }}
-              className="rounded-xl px-3"
-              style={{ background: C.gold }}
-              aria-label="Send"
-            >
-              <Send size={16} style={{ color: C.navy }} />
-            </button>
-          </div>
           <button onClick={() => void p.leaveTeam(t.id)} className="mt-2 text-xs" style={{ color: C.fade, textDecoration: "underline" }}>
             {owner ? "Delete this team" : "Leave this team"}
           </button>
@@ -893,69 +861,187 @@ function DirectMessages({ t, owner }: { t: Team; owner: boolean }) {
   const p = usePlanner();
   const others = owner ? t.members.filter((id) => id !== p.me.id) : [t.ownerId];
   const [who, setWho] = useState(others[0] ?? "");
-  const [text, setText] = useState("");
-  const end = useRef<HTMLDivElement>(null);
   const to = others.includes(who) ? who : (others[0] ?? "");
   const thread = to ? p.threadWith(to) : [];
-  useEffect(() => {
-    end.current?.scrollIntoView({ block: "nearest" });
-  }, [thread.length, to]);
-  const send = () => {
-    if (!to) return;
-    void p.sendDirect(to, text, { boss: true });
-    setText("");
-  };
+  const onRead = useCallback(() => {
+    if (to) void p.markThreadRead(to);
+  }, [p, to]);
   if (!others.length) return null;
+  const totalUnread = others.reduce((n, id) => n + p.dmUnread(id), 0);
   return (
-    <div className="mt-3">
-      <SectionLabel>{owner ? "Direct messages" : "Message your boss"}</SectionLabel>
-      {owner && (
-        <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm font-medium" style={{ ...inputStyle, borderColor: C.navy }} value={to} onChange={(e) => setWho(e.target.value)}>
-          {others.map((id) => (
-            <option key={id} value={id}>
-              {p.nameOf(id)}
-            </option>
-          ))}
-        </select>
+    <ThreadBox
+      key={to}
+      title={owner ? "Direct messages" : "Message your boss"}
+      note={to ? `Only you and ${p.nameOf(to)} see this.` : undefined}
+      badge={owner ? totalUnread : 0}
+      picker={
+        owner ? (
+          <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm font-medium" style={{ ...inputStyle, borderColor: C.navy }} value={to} onChange={(e) => setWho(e.target.value)}>
+            {others.map((id) => {
+              const n = p.dmUnread(id);
+              return (
+                <option key={id} value={id}>
+                  {p.nameOf(id)}
+                  {n > 0 ? ` (${n} new)` : ""}
+                </option>
+              );
+            })}
+          </select>
+        ) : null
+      }
+      rollup
+      messages={thread.map((m) => ({ id: m.id, from: m.fromUser, text: m.text, at: m.createdAt }))}
+      unread={to ? p.dmUnread(to) : 0}
+      onRead={onRead}
+      placeholder={to ? `Message ${p.nameOf(to)} privately...` : "Nobody to message yet"}
+      disabled={!to}
+      onSend={(text) => {
+        if (to) void p.sendDirect(to, text, { boss: true });
+      }}
+      sendBg={C.navy}
+      sendFg={C.cream}
+      empty={to ? "Nothing yet. Start the conversation." : "Nobody to message yet."}
+    />
+  );
+}
+
+type ThreadMsg = { id: string; from: string; text: string; at: string };
+
+/**
+ * A boxed conversation. With `rollup`, only the opening message shows; the
+ * replies sit behind a closed roll-up that carries the unread count, and
+ * opening it marks them read. Without it, the whole thread is visible.
+ * Give it a `key` per thread so switching threads closes the roll-up again.
+ */
+function ThreadBox({
+  title,
+  note,
+  badge = 0,
+  picker,
+  rollup = false,
+  messages,
+  unread,
+  onRead,
+  placeholder,
+  disabled = false,
+  onSend,
+  sendBg,
+  sendFg,
+  empty,
+}: {
+  title: string;
+  note?: string;
+  badge?: number;
+  picker?: React.ReactNode;
+  rollup?: boolean;
+  messages: ThreadMsg[];
+  unread: number;
+  onRead: () => void;
+  placeholder: string;
+  disabled?: boolean;
+  onSend: (text: string) => void;
+  sendBg: string;
+  sendFg: string;
+  empty: string;
+}) {
+  const p = usePlanner();
+  const [text, setText] = useState("");
+  const [open, setOpen] = useState(!rollup);
+  const box = useRef<HTMLDivElement>(null);
+  const first = messages[0];
+  const replies = messages.slice(1);
+  const showAll = open || !rollup;
+
+  // Whatever is on screen counts as read, and the box stays scrolled to the newest line.
+  useEffect(() => {
+    if (unread > 0 && (showAll || messages.length <= 1)) onRead();
+    const el = box.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [showAll, messages.length, unread, onRead]);
+
+  const send = () => {
+    const t = text.trim();
+    if (!t || disabled) return;
+    onSend(t);
+    setText("");
+    setOpen(true);
+  };
+
+  const line = (m: ThreadMsg) => (
+    <div key={m.id} className="mb-2 flex items-start gap-1.5">
+      <Avatar src={p.avatarOf(m.from)} name={p.nameOf(m.from)} size={18} />
+      <span className="min-w-0 flex-1 text-sm" style={{ color: C.ink }}>
+        <span className="text-xs font-bold" style={{ color: m.from === p.me.id ? C.gold : C.navy2 }}>
+          {p.nameOf(m.from)}:{" "}
+        </span>
+        {renderRich(m.text)}
+        <span className="ml-1.5" style={{ fontSize: 10, color: C.fade }}>
+          {ago(m.at)}
+        </span>
+      </span>
+    </div>
+  );
+
+  return (
+    <div className="mt-3 rounded-2xl p-3" style={{ background: "#fff", border: `1.5px solid ${C.line}` }}>
+      <div className="mb-1 flex items-center gap-2">
+        <span className="text-sm font-bold" style={{ color: C.navy }}>
+          {title}
+        </span>
+        {badge > 0 && (
+          <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ background: C.coral, color: "#fff" }}>
+            {badge} new
+          </span>
+        )}
+      </div>
+      {note && (
+        <p className="mb-2 text-xs" style={{ color: C.fade }}>
+          {note}
+        </p>
       )}
-      <div className="rounded-xl p-2" style={{ background: C.cream, maxHeight: 220, overflowY: "auto" }}>
-        {thread.length === 0 && (
+      {picker}
+      <div ref={box} className="rounded-xl p-2" style={{ background: C.cream, maxHeight: 240, overflowY: "auto" }}>
+        {!first && (
           <div className="py-3 text-center text-xs" style={{ color: C.fade }}>
-            {to ? `Only you and ${p.nameOf(to)} see this.` : "Nobody to message yet."}
+            {empty}
           </div>
         )}
-        {thread.slice(-60).map((m) => {
-          const mine = m.fromUser === p.me.id;
-          return (
-            <div key={m.id} className={`mb-1.5 flex items-end gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
-              {!mine && <Avatar src={p.avatarOf(m.fromUser)} name={p.nameOf(m.fromUser)} size={18} />}
-              <div className="max-w-xs rounded-2xl px-3 py-1.5" style={{ background: mine ? C.navy : "#fff" }}>
-                <div className="text-sm" style={{ color: mine ? C.cream : C.ink }}>
-                  {renderRich(m.text)}
-                </div>
-                <div className="text-right" style={{ color: mine ? C.goldSoft : C.fade, fontSize: 10 }}>
-                  {ago(m.createdAt)}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        <div ref={end} />
+        {first && line(first)}
+        {rollup && replies.length > 0 && !open && (
+          <button onClick={() => setOpen(true)} className="mt-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold" style={{ background: "#fff", color: C.navy, border: `1px solid ${C.line}` }}>
+            <span>
+              {replies.length} {replies.length === 1 ? "reply" : "replies"}
+            </span>
+            {unread > 0 ? (
+              <span className="rounded-full px-2 py-0.5" style={{ background: C.coral, color: "#fff" }}>
+                {unread} unread
+              </span>
+            ) : (
+              <span style={{ color: C.fade }}>Show</span>
+            )}
+          </button>
+        )}
+        {showAll && replies.slice(-80).map(line)}
+        {rollup && replies.length > 0 && open && (
+          <button onClick={() => setOpen(false)} className="mt-1 text-xs underline" style={{ color: C.fade }}>
+            Hide replies
+          </button>
+        )}
       </div>
       <div className="mt-2 flex gap-2">
         <input
           className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none"
           style={inputStyle}
-          placeholder={to ? `Message ${p.nameOf(to)} privately...` : "Nobody to message yet"}
-          disabled={!to}
+          placeholder={placeholder}
+          disabled={disabled}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") send();
           }}
         />
-        <button onClick={send} className="rounded-xl px-3" style={{ background: C.navy }} aria-label="Send private message">
-          <Send size={16} style={{ color: C.cream }} />
+        <button onClick={send} className="rounded-xl px-3" style={{ background: sendBg }} aria-label={`Send to ${title}`}>
+          <Send size={16} style={{ color: sendFg }} />
         </button>
       </div>
     </div>

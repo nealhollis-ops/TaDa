@@ -132,6 +132,11 @@ export type PlannerActions = {
   /** Direct messages with anyone: partners here, boss-team contacts on the Boss Mode tab. */
   threadWith: (userId: string) => Message[];
   sendDirect: (toUser: string, text: string, opts?: { boss?: boolean }) => Promise<void>;
+  /** Unread counts and read marks for the rolled-up rooms and threads. */
+  dmUnread: (userId: string) => number;
+  markThreadRead: (userId: string) => Promise<void>;
+  teamUnread: (teamId: string) => number;
+  markTeamRead: (teamId: string) => Promise<void>;
   blockUser: (id: string) => Promise<void>;
   unblockUser: (id: string) => Promise<void>;
   reportUser: (id: string, reason: string) => Promise<void>;
@@ -180,6 +185,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [myInvites, setMyInvites] = useState<TeamInvite[]>([]);
   const [outgoingInvites, setOutgoingInvites] = useState<TeamInvite[]>([]);
   const [teamMsgs, setTeamMsgs] = useState<TeamMessage[]>([]);
+  const [teamReads, setTeamReads] = useState<Record<string, string>>({});
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
@@ -352,7 +358,8 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         S.loadBlocks(sb, me.id),
         S.loadSeekers(sb),
       ]);
-      const [tmsgs, outInv] = await Promise.all([S.loadTeamMessages(sb, tms.map((t) => t.id)), S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id))]);
+      const [tmsgs, outInv, reads] = await Promise.all([S.loadTeamMessages(sb, tms.map((t) => t.id)), S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id)), S.loadTeamReads(sb, me.id).catch(() => ({}))]);
+      setTeamReads(reads);
       setRequests(reqs);
       setPartnerships(pairs);
       setMessages(msgs);
@@ -840,6 +847,44 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       }
     },
     [sb, me.id, me.name, fail],
+  );
+
+  const dmUnread = useCallback((userId: string) => messages.filter((m) => m.fromUser === userId && m.toUser === me.id && !m.readAt).length, [messages, me.id]);
+
+  const markThreadRead = useCallback(
+    async (userId: string) => {
+      if (!messages.some((m) => m.fromUser === userId && m.toUser === me.id && !m.readAt)) return;
+      const now = new Date().toISOString();
+      setMessages((list) => list.map((m) => (m.fromUser === userId && m.toUser === me.id && !m.readAt ? { ...m, readAt: now } : m)));
+      try {
+        await S.markThreadRead(sb, me.id, userId);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [sb, me.id, messages],
+  );
+
+  const teamUnread = useCallback(
+    (teamId: string) => {
+      const since = teamReads[teamId] ?? "";
+      return teamMsgs.filter((m) => m.teamId === teamId && m.userId !== me.id && m.createdAt > since).length;
+    },
+    [teamMsgs, teamReads, me.id],
+  );
+
+  const markTeamRead = useCallback(
+    async (teamId: string) => {
+      const latest = teamMsgs.filter((m) => m.teamId === teamId).map((m) => m.createdAt).sort().pop();
+      if (!latest || (teamReads[teamId] ?? "") >= latest) return;
+      setTeamReads((r) => ({ ...r, [teamId]: latest }));
+      try {
+        await S.markTeamRead(sb, me.id, teamId, latest);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [sb, me.id, teamMsgs, teamReads],
   );
 
   const sendMsg = useCallback(
@@ -1422,7 +1467,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment, threadWith, sendDirect,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 

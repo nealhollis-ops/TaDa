@@ -123,6 +123,24 @@ export async function sendMessage(sb: SB, me: string, to: string, text: string):
   return toMessage(data);
 }
 
+/** Mark everything a member sent me as read. */
+export async function markThreadRead(sb: SB, me: string, from: string) {
+  const { error } = await sb.from("messages").update({ read_at: new Date().toISOString() }).eq("to_user", me).eq("from_user", from).is("read_at", null);
+  if (error) throw error;
+}
+
+// ----------------------------------------------------------- room reads --
+export async function loadTeamReads(sb: SB, me: string): Promise<Record<string, string>> {
+  const { data, error } = await sb.from("team_room_reads").select("team_id,read_at").eq("user_id", me);
+  if (error) throw error;
+  return Object.fromEntries((data ?? []).map((r) => [r.team_id as string, r.read_at as string]));
+}
+
+export async function markTeamRead(sb: SB, me: string, teamId: string, at: string) {
+  const { error } = await sb.from("team_room_reads").upsert({ team_id: teamId, user_id: me, read_at: at }, { onConflict: "team_id,user_id" });
+  if (error) throw error;
+}
+
 // ---------------------------------------------------------------- teams --
 export async function loadTeams(sb: SB): Promise<Team[]> {
   const { data: teams, error } = await sb.from("teams").select("*").order("created_at");
