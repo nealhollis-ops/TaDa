@@ -1,6 +1,7 @@
 /**
  * One-time Stripe setup for TaDa (run in TEST mode first, LIVE mode at launch):
- *   node --env-file=.env.local scripts/stripe-setup.mjs
+ *   node --env-file=.env.local scripts/stripe-setup.mjs        (test)
+ *   node --env-file=.env.live  scripts/stripe-setup.mjs        (live; .env.live holds only STRIPE_SECRET_KEY and NEXT_PUBLIC_APP_URL)
  *
  * Idempotent. Creates (or finds) in the connected Stripe account:
  *  - products "TaDa Standard / Teams / Boss / Boss extra seat" (metadata app=tada)
@@ -16,6 +17,10 @@ import Stripe from "stripe";
 const key = process.env.STRIPE_SECRET_KEY;
 if (!key) {
   console.error("STRIPE_SECRET_KEY missing");
+  process.exit(1);
+}
+if (!key.startsWith("sk_")) {
+  console.error(`STRIPE_SECRET_KEY must be a Secret key (sk_test_... or sk_live_...). This one starts with ${key.slice(0, 8)}..., which looks like a ${key.startsWith("rk_") ? "restricted" : "publishable or other"} key.`);
   process.exit(1);
 }
 const stripe = new Stripe(key);
@@ -111,12 +116,13 @@ if (wh) {
   wh = await stripe.webhookEndpoints.create({ url: whUrl, enabled_events: events, description: "TaDa app", metadata: { app: "tada" } });
   console.log(`webhook endpoint created (${wh.id})`);
   if (wh.secret) {
-    const envPath = ".env.local";
+    // Test secrets go to .env.local for local dev. A live secret goes to .env.live so the test one is not overwritten.
+    const envPath = mode === "LIVE" ? ".env.live" : ".env.local";
     if (fs.existsSync(envPath)) {
       let env = fs.readFileSync(envPath, "utf8");
       env = env.match(/^STRIPE_WEBHOOK_SECRET=.*$/m) ? env.replace(/^STRIPE_WEBHOOK_SECRET=.*$/m, `STRIPE_WEBHOOK_SECRET=${wh.secret}`) : env + `\nSTRIPE_WEBHOOK_SECRET=${wh.secret}\n`;
       fs.writeFileSync(envPath, env);
-      console.log("STRIPE_WEBHOOK_SECRET written to .env.local. Copy the same value into Vercel.");
+      console.log(`STRIPE_WEBHOOK_SECRET written to ${envPath}. Copy the same value into Vercel.`);
     } else {
       console.log("Signing secret:", wh.secret);
     }
