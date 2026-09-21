@@ -72,7 +72,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
         </section>
       </div>
 
-      <MemberActions userId={p.id} isAdmin={p.role === "admin"} banned={!!p.banned_at} comp={m.entitlements.find((e) => e.source === "comp") ?? null} />
+      <MemberActions userId={p.id} email={p.email} isAdmin={p.role === "admin"} banned={!!p.banned_at} comp={m.entitlements.find((e) => e.source === "comp") ?? null} sub={m.subscription} />
 
       {m.log.length > 0 && (
         <section className="mt-6 rounded-2xl border border-line bg-white p-4">

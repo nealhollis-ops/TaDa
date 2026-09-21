@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logAdmin } from "@/lib/admin";
 import { publicEnv, serverEnv } from "@/lib/env";
 import { requestOrigin } from "@/lib/request-origin";
+import { getStripe } from "@/lib/stripe";
 import type { Plan } from "@/lib/planner/types";
 
 export type AdminResult = { ok: boolean; message: string } | null;
@@ -70,6 +71,70 @@ export async function setBan(_prev: AdminResult, formData: FormData): Promise<Ad
   revalidatePath(`/admin/members/${userId}`);
   revalidatePath("/admin/members");
   return { ok: true, message: ban ? "Member banned. Their posts are hidden." : "Ban lifted." };
+}
+
+/** The member's live Stripe subscription, if they have one that is still billing. */
+async function activeStripeSub(userId: string) {
+  const admin = createAdminClient();
+  const { data } = await admin.from("entitlements").select("stripe_sub_id,status").eq("user_id", userId).eq("source", "stripe").maybeSingle();
+  if (!data?.stripe_sub_id || !["trialing", "active", "past_due", "unpaid"].includes(data.status)) return null;
+  return data.stripe_sub_id as string;
+}
+
+/**
+ * Cancel a member's Stripe subscription from here instead of the Stripe
+ * dashboard. "end" lets them keep what they paid for until the period ends;
+ * "now" stops it immediately. Stripe's webhook then updates the entitlement
+ * row, so nothing is written to it here.
+ */
+export async function cancelSubscription(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
+  const { user } = await requireAdmin();
+  const userId = str(formData.get("userId"));
+  const when = str(formData.get("when")) === "now" ? "now" : "end";
+  const subId = await activeStripeSub(userId);
+  if (!subId) return { ok: false, message: "No active Stripe subscription to cancel." };
+  try {
+    const stripe = getStripe();
+    if (when === "now") await stripe.subscriptions.cancel(subId, { prorate: false });
+    else await stripe.subscriptions.update(subId, { cancel_at_period_end: true });
+  } catch (e) {
+    return { ok: false, message: (e as Error).message };
+  }
+  await logAdmin(user.id, "subscription.cancel", userId, { subId, when });
+  revalidatePath(`/admin/members/${userId}`);
+  return { ok: true, message: when === "now" ? "Subscription cancelled. Access ends as soon as Stripe confirms, usually within a minute." : "Subscription set to end at the close of the current period. They keep access until then." };
+}
+
+/**
+ * Delete a member for good: their sign-in, profile, tasks, stats, messages,
+ * posts and replies all go (the database cascades from the auth user). Any
+ * live Stripe subscription is cancelled first so nothing bills afterwards.
+ * The Stripe customer and its invoices stay in Stripe for your records.
+ */
+export async function deleteMember(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
+  const { user } = await requireAdmin();
+  const userId = str(formData.get("userId"));
+  const confirm = str(formData.get("confirm")).toLowerCase();
+  if (userId === user.id) return { ok: false, message: "You cannot delete yourself." };
+  const admin = createAdminClient();
+  const { data: target } = await admin.from("profiles").select("email,name,role").eq("id", userId).maybeSingle();
+  if (!target) return { ok: false, message: "Member not found." };
+  if (target.role === "admin") return { ok: false, message: "Admins cannot be deleted from here." };
+  if (confirm !== "delete") return { ok: false, message: "Type delete to confirm." };
+  const subId = await activeStripeSub(userId);
+  if (subId) {
+    try {
+      await getStripe().subscriptions.cancel(subId, { prorate: false });
+    } catch (e) {
+      return { ok: false, message: `Could not cancel their Stripe subscription (${(e as Error).message}). Nothing was deleted.` };
+    }
+  }
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { ok: false, message: error.message };
+  await logAdmin(user.id, "member.delete", userId, { email: target.email, name: target.name, cancelledSub: subId });
+  revalidatePath("/admin/members");
+  revalidatePath("/admin");
+  return { ok: true, message: `${target.email} deleted${subId ? " and their subscription cancelled" : ""}.` };
 }
 
 /**

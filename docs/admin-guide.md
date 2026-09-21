@@ -21,10 +21,12 @@ The dashboard. Counts for members, paying, trials running, past due, cancels in 
 
 Everyone with an account: name, plan, status and join date, searchable. Click a member to open their detail page.
 
-The detail page shows their profile, plan and where it comes from (Stripe, comp or admin), streak and totals, teams, and any reports about them. Two actions:
+The detail page shows their profile, plan and where it comes from (Stripe, comp or admin), streak and totals, teams, and any reports about them. Four cards of actions:
 
 - **Comp grant**: give the member Standard, Teams or Boss for free, with an optional expiry date. This writes a `comp` row in `entitlements`. It never touches their Stripe subscription; if they are also paying, the higher of the two wins and the Stripe row keeps billing until they cancel. **Remove comp** deletes the comp row.
-- **Ban this member**: locks them out at their next request, shows them the "account closed" screen, and hides every post and reply they wrote. Their subscription is not changed, so if they are paying, cancel it in Stripe as well. The same button becomes **Lift ban** on a banned member; lifting it lets them sign in again but their earlier posts stay hidden. Admins cannot be banned from the panel. Bans are not visible to other members.
+- **Subscription**: shows their live Stripe subscription and its status. **Cancel at period end** lets them keep what they paid for until the current month or year runs out; **Cancel now** stops it immediately with no proration. Either way Stripe confirms through the webhook and their access updates within a minute; nothing is written to the entitlement row by hand. Refunds are still done in Stripe, via the "Refund or manage in Stripe" link on the same page.
+- **Ban this member**: locks them out at their next request, shows them the "account closed" screen, and hides every post and reply they wrote. Their subscription is not changed; use the Subscription card if it should stop. The same button becomes **Lift ban** on a banned member; lifting it lets them sign in again but their earlier posts stay hidden. Admins cannot be banned from the panel. Bans are not visible to other members.
+- **Delete this member**: the permanent one. Type `delete` to enable the button. It cancels any live Stripe subscription first, then removes their sign-in, profile, tasks, stats, messages, posts, replies and team memberships. The Stripe customer and invoices stay in Stripe for your records. No undo, so reach for Ban when you might want them back. Admins cannot be deleted from the panel; you and Deb are safe from each other.
 
 ### Comp grants (`/admin/comp`)
 
@@ -55,8 +57,10 @@ Every push the app sends also lands in the member's bell. The app sends them for
 ## Billing, what you can and cannot do here
 
 - The app decides who gets in from the `entitlements` table only. Stripe writes rows with `source = 'stripe'` through the webhook; comp and admin rows are yours. Stripe code never touches your rows and you should never edit a Stripe row by hand.
-- Refunds, cancellations on a member's behalf, card problems and receipts are done in the Stripe dashboard, not in the admin panel. Search Stripe by the member's email.
+- Cancellations can be done from the member's page (Subscription card). Refunds, card problems and receipts are done in the Stripe dashboard. Search Stripe by the member's email.
+- Stripe is **live** as of September 21, 2026. Preview/staging deployments and `.env.local` still use test mode.
 - Boss seat counts sync once a day at 05:30 UTC. Removing a member from a boss team changes the next invoice, not today's.
+- The `stripe:setup` script is idempotent and mode-aware; re-run it against `.env.live` if a live price or the webhook ever needs recreating.
 
 ## Scheduled jobs (Vercel crons, production only)
 
@@ -67,7 +71,6 @@ Every push the app sends also lands in the member's bell. The app sends them for
 | 13:00 (8am Central) | `/api/cron/overdue` | Finds assigned work still open the day after its deadline and sends the assignee one Past due notice, bell plus push. Stamps `assignments.overdue_notified_at` so it never repeats. |
 
 To run one by hand (for example on staging, where crons do not fire): `curl -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/overdue`. Each returns a small JSON summary.
-- Until launch, Stripe is in test mode. The `stripe:setup` script creates the live products, prices and webhook when you are ready.
 
 ## The admin log
 
