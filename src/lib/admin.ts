@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getStripe } from "@/lib/stripe";
 import { serverEnv } from "@/lib/env";
 import type { Plan } from "@/lib/planner/types";
 
@@ -81,10 +82,22 @@ export async function getMember(id: string) {
   if (!p) return null;
   const rows = (ents ?? []) as EntitlementRow[];
   const customerId = bc?.stripe_customer_id ?? rows.find((e) => e.stripe_customer_id)?.stripe_customer_id ?? null;
+  // The live subscription, straight from Stripe, so the page can say whether it is already winding down.
+  const stripeRow = rows.find((e) => e.source === "stripe" && e.stripe_sub_id && ["trialing", "active", "past_due", "unpaid"].includes(e.status));
+  let subscription: { plan: Plan; status: string; cancelAtPeriodEnd: boolean } | null = null;
+  if (stripeRow?.stripe_sub_id) {
+    try {
+      const sub = await getStripe().subscriptions.retrieve(stripeRow.stripe_sub_id);
+      subscription = { plan: stripeRow.plan, status: sub.status, cancelAtPeriodEnd: !!sub.cancel_at_period_end };
+    } catch {
+      subscription = { plan: stripeRow.plan, status: stripeRow.status, cancelAtPeriodEnd: false };
+    }
+  }
   return {
     profile: p,
     entitlements: rows,
     effective: effectiveRow(rows),
+    subscription,
     stripeCustomerId: customerId,
     stripeUrl: customerId ? stripeCustomerUrl(customerId) : null,
     stats: st,
