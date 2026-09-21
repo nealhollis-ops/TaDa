@@ -223,6 +223,16 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const celebRef = useRef(0);
   const recogRef = useRef<SpeechRecognition | null>(null);
 
+  // If the browser's sign-in changes underneath this tab (another tab signed in
+  // as someone else, or signed out), every write here would fail the privacy
+  // rules as the wrong person. Reload so the screen matches the session.
+  useEffect(() => {
+    const { data } = sb.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || (session && session.user.id !== me.id)) window.location.reload();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [sb, me.id]);
+
   const showToast = useCallback((text: string) => {
     const id = Date.now();
     setToast({ id, text });
