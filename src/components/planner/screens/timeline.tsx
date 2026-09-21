@@ -3,6 +3,7 @@
 import { usePlanner } from "../store";
 import { Bar, C } from "../ui";
 import { taskWeek } from "@/lib/planner/tasks";
+import { BADGE_CATALOG, levelFloor, levelIcon, levelOf, nextBadges, nextLevelAt } from "@/lib/planner/content";
 
 export function TimelineScreen() {
   const p = usePlanner();
@@ -45,6 +46,121 @@ export function TimelineScreen() {
           </div>
         );
       })}
+      <Lifetime />
+    </div>
+  );
+}
+
+/**
+ * Everything a member has earned since day one, in one place: streaks, totals,
+ * Mountain Level with the climb to the next one, and every badge earned or
+ * within reach. All of it comes from stats the app already keeps.
+ */
+function Lifetime() {
+  const p = usePlanner();
+  const s = p.stats;
+  const hasPartner = p.myPartnerIds.length > 0;
+  const level = levelOf(s.totalDone);
+  const floor = levelFloor(s.totalDone);
+  const next = nextLevelAt(s.totalDone);
+  const climb = next > floor ? Math.min(100, ((s.totalDone - floor) / (next - floor)) * 100) : 100;
+  const toGo = Math.max(0, next - s.totalDone);
+  const upcoming = nextBadges(s, hasPartner);
+  const tiles: [string, number, string][] = [
+    ["🔥", s.streak, "day streak"],
+    ["🏆", s.bestStreak, "longest streak"],
+    ["", s.totalDone, "tasks finished"],
+    ["⭐", s.bigDone, "big wins"],
+  ];
+  const minis = [`🎯 ${s.perfectWeeks} perfect ${s.perfectWeeks === 1 ? "week" : "weeks"}`, `🌅 ${s.morningDone} morning ${s.morningDone === 1 ? "finish" : "finishes"}`, `🕊️ ${s.encourages} ${s.encourages === 1 ? "encourage" : "encourages"}`];
+  if (s.comebacks > 0) minis.push(`🦅 ${s.comebacks} ${s.comebacks === 1 ? "comeback" : "comebacks"}`);
+
+  return (
+    <div className="mt-2 rounded-2xl p-4" style={{ background: "#fff", border: `2px solid ${C.navy}` }}>
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div>
+          <div className="text-xs font-bold uppercase" style={{ color: C.coral, letterSpacing: 0.6 }}>
+            Lifetime
+          </div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 20, color: C.ink }}>{p.me.name}</div>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold" style={{ background: C.navy, color: "#fff" }}>
+          <span>{levelIcon(level)}</span>
+          <span>Level {level}</span>
+        </span>
+      </div>
+
+      <div className="mb-3 grid grid-cols-2 gap-2">
+        {tiles.map(([e, n, label]) => (
+          <div key={label} className="rounded-xl px-3 py-2.5" style={{ background: C.cream }}>
+            <div className="flex items-baseline gap-1.5" style={{ fontFamily: "Georgia, serif", fontSize: 28, lineHeight: 1, color: C.ink, fontVariantNumeric: "tabular-nums" }}>
+              {e && <span style={{ fontSize: 18 }}>{e}</span>}
+              {n}
+            </div>
+            <div className="mt-1 text-xs" style={{ color: C.fade }}>
+              {label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-3">
+        <div className="mb-1.5 flex items-center justify-between text-xs" style={{ color: C.ink }}>
+          <span>
+            Level {level} &rarr; Level {level + 1}
+          </span>
+          <span>
+            <b style={{ color: C.coral }}>{toGo}</b> more {toGo === 1 ? "task" : "tasks"}
+          </span>
+        </div>
+        <Bar pct={climb} />
+        <div className="mt-1 flex justify-between" style={{ fontSize: 10, color: C.fade, fontVariantNumeric: "tabular-nums" }}>
+          <span>{floor}</span>
+          <span>{next}</span>
+        </div>
+      </div>
+
+      <div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs" style={{ color: C.navy2 }}>
+        {minis.map((m) => (
+          <span key={m}>{m}</span>
+        ))}
+      </div>
+
+      <div className="mb-1.5 text-xs font-bold uppercase" style={{ color: C.fade, letterSpacing: 0.5 }}>
+        Badges &middot; {p.myBadges.length} of {BADGE_CATALOG.length}
+      </div>
+      {p.myBadges.length === 0 ? (
+        <p className="mb-2 text-xs" style={{ color: C.fade }}>
+          None yet. Your first is 10 Finished; it&rsquo;s closer than it looks.
+        </p>
+      ) : (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {p.myBadges.map((b) => (
+            <span key={b.id} className="inline-flex items-center gap-1 rounded-full py-0.5 pl-1.5 pr-2.5 text-xs font-semibold" style={{ background: C.goldSoft, color: C.goldDeep }}>
+              <span style={{ fontSize: 13 }}>{b.e}</span>
+              {b.name}
+            </span>
+          ))}
+        </div>
+      )}
+      {upcoming.length > 0 && (
+        <>
+          <div className="mb-1.5 mt-2 text-xs font-bold uppercase" style={{ color: C.fade, letterSpacing: 0.5 }}>
+            Next up
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {upcoming.map((b) => (
+              <span key={b.id} className="inline-flex items-center gap-1 rounded-full py-0.5 pl-1.5 pr-2.5 text-xs font-semibold" style={{ background: C.mist, color: "#8A8A8A" }}>
+                <span style={{ fontSize: 13, filter: "grayscale(1)", opacity: 0.6 }}>{b.e}</span>
+                {b.name}
+                <span className="ml-0.5 font-medium" style={{ fontSize: 10, opacity: 0.85 }}>
+                  {b.have}/{b.target}
+                </span>
+              </span>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

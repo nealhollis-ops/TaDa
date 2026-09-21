@@ -87,6 +87,13 @@ export const computeBadges = (s: StatsLike, hasPartner: boolean): Badge[] => {
   return earned.map((b) => ({ id: b.id, e: b.e, name: b.name }));
 };
 
+/** Badges not yet earned, closest first, with how far along the member is. Iron needs a partner, so it waits until they have one. */
+export const nextBadges = (s: StatsLike, hasPartner: boolean, limit = 6): (Badge & { have: number; target: number })[] =>
+  BADGE_CATALOG.filter((b) => b.val(s, hasPartner) < b.target && (b.id !== "iron" || hasPartner))
+    .map((b) => ({ id: b.id, e: b.e, name: b.name, have: b.val(s, hasPartner), target: b.target }))
+    .sort((a, b) => b.have / b.target - a.have / a.target)
+    .slice(0, limit);
+
 export const findNewBadge = (before: StatsLike, after: StatsLike, hasPartner: boolean): Badge | null => {
   const prev = computeBadges(before, hasPartner);
   const now = computeBadges(after, hasPartner);
@@ -102,6 +109,13 @@ export const levelOf = (total: number) => {
   });
   if (total > 1000) lv += Math.floor((total - 1000) / 300);
   return lv;
+};
+/** The step the member last crossed, so a level bar can run from there to the next one. */
+export const levelFloor = (total: number) => {
+  let floor = 0;
+  for (const s of LEVEL_STEPS) if (total >= s) floor = s;
+  if (total > 1000) floor = 1000 + Math.floor((total - 1000) / 300) * 300;
+  return floor;
 };
 export const nextLevelAt = (total: number) => {
   for (const s of LEVEL_STEPS) if (total < s) return s;
@@ -161,6 +175,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Need it quiet? Tap the speaker icon in the header to mute every app sound. The visuals keep playing, and the app remembers your choice. The welcome TaDa plays once when you arrive and stays quiet after that.",
   ]},
   { id: "streaks", t: "Streaks and badges", b: [
+    "The Lifetime card at the bottom of Timeline gathers it all in one place: your current streak, your longest ever, tasks finished since day one, big wins, your Mountain Level with a bar to the next one and exactly how many tasks are left, and every badge you've earned. Next up shows the badges within reach and your progress toward each.",
     "Finish at least one task in a day and your streak grows. The flame with a number shows on Today and next to your name around the app.",
     "Sundays always count toward your streak. Saturdays count too, unless you scheduled tasks for that Saturday and left them undone.",
     "Badges live in the badge case here in Account. Locked ones show your progress toward them, and your top two show next to your name. Break a streak of three or more, then rebuild it, and the Comeback badge is yours.",
