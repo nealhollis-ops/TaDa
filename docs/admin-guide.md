@@ -110,4 +110,5 @@ Staging costs nothing (free Supabase tier, Vercel previews are included). Supaba
 - **Invite emails fail**: check `/api/health` for `emailFromDomain`, then Resend's domains page. Only `gettada.me` is verified.
 - **A push never arrives**: the member must have alerts on, a registered device, and on iPhone the app installed to the home screen. The bell entry arrives regardless.
 - **Realtime looks dead** (messages not appearing live): test in real Chrome, not an embedded browser, and ask the member to tap Refresh.
+- **"Row-level security" errors while testing**: almost always two tabs in one browser signed in as different members. The newer sign-in replaces the cookie for the whole browser, so the older tab writes as the wrong person and the database refuses. The app now reloads a tab when that happens; if you see it anyway, reload the page. Use a private window for the second account.
 - **Anything else**: clientcare@gettada.me reaches you both, and the admin log tells you what happened last.
