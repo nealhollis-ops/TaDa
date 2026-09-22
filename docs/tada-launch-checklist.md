@@ -78,7 +78,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [ ] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line
 - [ ] Transactional emails wired: welcome, trial reminder on day 11, receipt on conversion, payment failed, partner request received, work assigned
 - [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice
-- [ ] Drop the tour video link into the welcome checklist
+- [x] Drop the tour video link into the welcome checklist
 - [ ] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb
 
 ## Phase 7: Deploy, verify, launch
