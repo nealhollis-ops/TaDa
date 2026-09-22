@@ -8,7 +8,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { dayOfYear, monthOfDate, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
+import { dateLabel, dayOfYear, monthOfDate, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
@@ -747,7 +747,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       }
       if (ahead.length) {
         void persistLater([...laterRef.current, ...ahead]);
-        showToast(ahead.length === 1 ? `Saved for ${ahead[0].date ? ahead[0].date.slice(5) : "later"}. It is under Later on Plan.` : `${ahead.length} saved for later. They are under Later on Plan.`);
+        showToast(ahead.length === 1 && ahead[0].date ? `Saved for ${dateLabel(ahead[0].date, month)}. It is under Later on Plan.` : "Saved under Later on Plan.");
       }
     },
     [month, currentWeek, persistTasks, persistLater, showToast],
