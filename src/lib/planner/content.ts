@@ -129,10 +129,11 @@ export const levelIcon = (lv: number) => (lv >= 10 ? "🌋" : lv >= 7 ? "🏔️
 export const HELP: { id: string; t: string; b: string[] }[] = [
   { id: "start", t: "Getting started", b: [
     "Sign in and you're in. Today greets you by name, shows the day's power line, and lists what's on for the morning, afternoon, and evening.",
-    "The icons at the top right, left to right: the bell for notifications, the speaker to mute sounds, the circle for your Account, and the door to log out.",
+    "Across the top right, left to right: the month, the bell for notifications, the speaker to mute sounds, your streak once you have one going, your photo for your Account, and the door to log out.",
     "The app runs on the current calendar month. Weeks go Monday through Sunday, and Sunday is the built in rest day.",
     "A getting started checklist floats at the bottom right until you finish it: watch the tour, add a task, check one off, say hi in the community, and reach out for a partner. Finish all five and the confetti flies.",
     "Missed the welcome tour, or want to see it again? Use the Watch the welcome tour link at the end of this section. It is a short video walk through the whole app.",
+    "Add a photo in Account and you get to place it: drag it around inside the circle, pinch or use the zoom slider, and what sits in the circle is what everyone sees. Change it whenever you like.",
   ]},
   { id: "install", t: "Installing on your phone", b: [
     "TaDa is a web app, so there's nothing to find in an app store. Install it from your Account: scroll to Install TaDa on this phone and follow the steps for your device. It gets its own icon, opens full screen, and works like any other app.",
