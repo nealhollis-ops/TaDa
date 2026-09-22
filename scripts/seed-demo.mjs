@@ -85,6 +85,17 @@ const CAST = [
 const castEmail = (c) => `${c.key}@tada-demo.example.com`;
 
 // ------------------------------------------------------- month of tasks --
+// The day the screenshots are taken from: always a full, believable day, with a
+// Big morning task left open so the celebration shot has something to check off.
+// [title, block, big?, done?]
+const TODAY_TASKS = [
+  ["Deliver the Bright Path storyboard", "morning", true, false],
+  ["Morning pages and coffee", "morning", false, true],
+  ["Reply to the 3 inbound leads", "afternoon", false, false],
+  ["Send the Aster Tea invoice", "afternoon", false, true],
+  ["Read 30 pages of 'Grid Systems'", "evening", false, false],
+];
+
 // [title, day | {week}, block, big?, repeat?]  day "past" means done, future pending.
 const TASKS = [
   // Repeaters (fanned out below)
@@ -135,10 +146,17 @@ function buildTasks(userId) {
   const rows = [];
   let sort = Date.now() - 5_000_000;
   const push = (t) => rows.push({ id: randomUUID(), user_id: userId, sort: sort++, done_at: null, ...t });
+
+  // Today is owned by TODAY_TASKS, so drop any fixed-day task that lands on it.
+  for (const [title, block, big, done] of TODAY_TASKS) {
+    push({ title, big, month: M.prefix, week: weekOf(TODAY), date: dstr(TODAY), block, repeat: "none", anchor: null, root_id: null, done, done_at: done ? doneAt(TODAY, block) : null });
+  }
+
   for (const t of TASKS) {
     if (Array.isArray(t)) {
       const [title, when, block, big = false] = t;
       const day = typeof when === "number" ? when : null;
+      if (day === TODAY) continue;
       const done = day !== null && day < TODAY;
       push({
         title, big, month: M.prefix,
