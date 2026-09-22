@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, Maximize2, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
+import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
@@ -215,33 +215,8 @@ function OnboardingWidget() {
   );
 }
 
-/** Phone: take the player full screen and turn the phone sideways so a 16:9 video is watchable. */
-function goFullScreen(el: HTMLElement | null) {
-  if (!el || !el.requestFullscreen) return;
-  el.requestFullscreen()
-    .then(() => {
-      const o = screen.orientation as ScreenOrientation & { lock?: (t: string) => Promise<void> };
-      return o.lock?.("landscape").catch(() => {});
-    })
-    .catch(() => {});
-}
-
 function TourModal() {
   const p = usePlanner();
-  const player = useRef<HTMLDivElement>(null);
-  // Only rendered after a tap, so window is there. iPhone Safari has no requestFullscreen; its player button does the job instead.
-  const [canFullScreen] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches && typeof document.documentElement.requestFullscreen === "function",
-  );
-  useEffect(() => {
-    // The tap that opened the modal is still a fresh user gesture, so the browser lets us go full screen right away.
-    if (canFullScreen) goFullScreen(player.current);
-    const onChange = () => {
-      if (!document.fullscreenElement) (screen.orientation as ScreenOrientation & { unlock?: () => void }).unlock?.();
-    };
-    document.addEventListener("fullscreenchange", onChange);
-    return () => document.removeEventListener("fullscreenchange", onChange);
-  }, [canFullScreen]);
   return (
     <Overlay onClose={() => p.set("showTour", false)} wide>
       <div className="mb-2 flex items-center justify-between">
@@ -253,7 +228,7 @@ function TourModal() {
         </button>
       </div>
       {TOUR_URL ? (
-        <div ref={player} className="aspect-video w-full overflow-hidden rounded-xl" style={{ background: "#000" }}>
+        <div className="aspect-video w-full overflow-hidden rounded-xl" style={{ background: "#000" }}>
           <iframe
             src={TOUR_URL}
             title="Welcome tour"
@@ -267,11 +242,6 @@ function TourModal() {
         <div className="rounded-xl p-5 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
           The tour video is on its way. Poke around in the meantime: Plan is where your month lives, Today is where you win it.
         </div>
-      )}
-      {TOUR_URL && canFullScreen && (
-        <button onClick={() => goFullScreen(player.current)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.navy, color: "#fff" }}>
-          <Maximize2 size={14} /> Watch full screen
-        </button>
       )}
       <button onClick={p.markTour} className="mt-3 w-full rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.teal, color: C.ink }}>
         Mark the tour watched

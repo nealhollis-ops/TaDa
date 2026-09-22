@@ -112,12 +112,11 @@ export function QuoteCard({ q }: { q: { text: string; by: string | null } }) {
 export function Overlay({ children, onClose, z = 85, align = "center", wide = false }: { children: React.ReactNode; onClose?: () => void; z?: number; align?: "center" | "end"; wide?: boolean }) {
   return (
     <div
-      className={`fixed inset-0 flex ${align === "end" ? "items-end sm:items-center" : "items-center"} justify-center ${wide ? "p-0 sm:p-4" : "p-4"}`}
+      className={`fixed inset-0 flex ${align === "end" ? "items-end sm:items-center" : "items-center"} justify-center p-4`}
       style={{ background: "rgba(20,42,56,0.6)", zIndex: z }}
       onClick={onClose}
     >
-      {/* wide overlays go edge to edge on phones so a video gets the whole screen width */}
-      <div className={`w-full ${wide ? "max-w-2xl rounded-none p-3 sm:rounded-2xl sm:p-5" : "max-w-sm rounded-2xl p-5"}`} style={{ background: C.cream }} onClick={(e) => e.stopPropagation()}>
+      <div className={`w-full ${wide ? "max-w-2xl" : "max-w-sm"} rounded-2xl p-5`} style={{ background: C.cream }} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
