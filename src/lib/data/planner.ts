@@ -53,28 +53,9 @@ export async function saveMe(sb: SB, userId: string, patch: Partial<Pick<MyProfi
   if (error) throw error;
 }
 
-/** Square-crop to 256px JPEG in the browser, upload to Storage, return the public URL. */
-export async function uploadAvatar(sb: SB, userId: string, file: File): Promise<string> {
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("read failed"));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("bad image"));
-      img.onload = () => {
-        const c = document.createElement("canvas");
-        const S = 256;
-        c.width = S;
-        c.height = S;
-        const ctx = c.getContext("2d")!;
-        const side = Math.min(img.width, img.height);
-        ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
-        c.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/jpeg", 0.82);
-      };
-      img.src = String(reader.result);
-    };
-    reader.readAsDataURL(file);
-  });
+/** Upload an already-cropped square JPEG to Storage and return its public URL.
+ *  The cropping happens in AvatarCropper, so what the member framed is what lands here. */
+export async function uploadAvatar(sb: SB, userId: string, blob: Blob): Promise<string> {
   const path = `${userId}/avatar.jpg`;
   const { error } = await sb.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
   if (error) throw error;

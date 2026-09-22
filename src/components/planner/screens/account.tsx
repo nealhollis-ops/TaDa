@@ -7,6 +7,7 @@ import { InstallCard } from "@/components/pwa/install-card";
 import { NotificationsCard } from "@/components/pwa/notifications-card";
 import { usePlanner } from "../store";
 import { Avatar, C, Chip, inputCls, inputStyle } from "../ui";
+import { AvatarCropper } from "../avatar-cropper";
 import { BADGE_CATALOG, HELP, levelColor, levelIcon, levelOf, nextLevelAt } from "@/lib/planner/content";
 import { loadSeatRoster } from "@/lib/data/social";
 import type { SeatRow } from "@/lib/planner/types";
@@ -41,6 +42,7 @@ export function AccountScreen() {
   const [priv, setPriv] = useState(p.me.private);
   const [seeking, setSeeking] = useState(p.me.seeking);
   const [helpOpen, setHelpOpen] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [roster, setRoster] = useState<SeatRow[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -80,7 +82,7 @@ export function AccountScreen() {
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  if (f) void p.pickAvatar(f);
+                  if (f) setCropFile(f);
                   e.target.value = "";
                 }}
               />
@@ -93,6 +95,20 @@ export function AccountScreen() {
             <p className="mt-1 text-xs" style={{ color: C.fade }}>
               Shows next to your messages and posts.
             </p>
+            {cropFile && (
+              <AvatarCropper
+                file={cropFile}
+                onCancel={() => setCropFile(null)}
+                onError={(m) => {
+                  p.showToast(m);
+                  setCropFile(null);
+                }}
+                onDone={(blob) => {
+                  setCropFile(null);
+                  void p.pickAvatar(blob);
+                }}
+              />
+            )}
           </div>
         </div>
         <input className={`${inputCls} mb-2`} style={inputStyle} placeholder="Your name" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />

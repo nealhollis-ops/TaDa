@@ -144,7 +144,7 @@ export type PlannerActions = {
   toggleNotif: () => Promise<void>;
   toggleCommunityNotif: () => Promise<void>;
   saveAccount: (patch: Partial<Pick<MyProfile, "name" | "bio" | "link" | "hidden" | "private" | "seeking">>) => Promise<void>;
-  pickAvatar: (file: File) => Promise<void>;
+  pickAvatar: (blob: Blob) => Promise<void>;
   removeAvatar: () => Promise<void>;
   markTour: () => void;
   refreshShared: () => Promise<void>;
@@ -1427,9 +1427,9 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   );
 
   const pickAvatar = useCallback(
-    async (file: File) => {
+    async (blob: Blob) => {
       try {
-        const url = await P.uploadAvatar(sb, me.id, file);
+        const url = await P.uploadAvatar(sb, me.id, blob);
         await saveProfile({ avatarUrl: url });
         setMembers((m) => (m[me.id] ? { ...m, [me.id]: { ...m[me.id], avatarUrl: url } } : m));
       } catch (e) {
