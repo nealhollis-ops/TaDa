@@ -48,9 +48,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Image src="/brand/wordmark-light.png" alt="Tada!" width={51} height={32} priority />
         </Link>
         <div className="flex items-center gap-2.5">
-          {/* The year is the first thing to go on a 320px phone; the month still says where you are. */}
+          {/* Phones get the short month so the bar is the same width in September as in July; desktop has room for the full name. */}
           <div className="text-sm" style={{ color: C.goldSoft }}>
-            {p.month.name} <span className="max-[369px]:hidden">{p.month.year}</span>
+            <span className="sm:hidden">{p.month.short}</span>
+            <span className="hidden sm:inline">{p.month.name}</span> {p.month.year}
           </div>
           <button onClick={() => p.set("inboxOpen", true)} aria-label={p.unreadCount ? `${p.unreadCount} unread notifications` : "Notifications"} className="relative">
             <Bell size={20} style={{ color: C.cream }} />
