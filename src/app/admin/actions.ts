@@ -302,6 +302,7 @@ export async function setPinned(_prev: AdminResult, formData: FormData): Promise
   if (error) return { ok: false, message: error.message };
   await logAdmin(user.id, pinned ? "post.pin" : "post.unpin", id);
   revalidatePath("/admin/announcements");
+  revalidatePath("/admin/moderation");
   return { ok: true, message: pinned ? "Pinned." : "Unpinned." };
 }
 

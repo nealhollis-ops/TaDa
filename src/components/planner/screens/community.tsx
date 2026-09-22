@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Hand, Heart, HelpCircle, MessageCircle, Pencil, RefreshCw, Send, SmilePlus, Trash2, Trophy, X } from "lucide-react";
+import { Check, Hand, Heart, HelpCircle, MessageCircle, Pencil, Pin, PinOff, RefreshCw, Send, SmilePlus, Trash2, Trophy, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, C, Chip, QuoteCard, inputStyle, renderRich } from "../ui";
 import { ago } from "@/lib/planner/calendar";
@@ -139,6 +139,12 @@ export function CommunityScreen() {
                 {ago(post.createdAt)}
                 {post.edited ? " · edited" : ""}
               </span>
+              {/* Admins can pin any post to the top of its room, including one a member wrote. */}
+              {p.me.role === "admin" && (
+                <button onClick={() => void p.togglePin(post.id)} aria-label={post.pinned ? "Unpin this post" : "Pin this post to the top"} title={post.pinned ? "Unpin" : "Pin to the top"} className="ml-1">
+                  {post.pinned ? <PinOff size={13} style={{ color: C.fade }} /> : <Pin size={13} style={{ color: C.gold }} />}
+                </button>
+              )}
               {post.userId === p.me.id && !post.milestone && (
                 <span className="flex items-center gap-1">
                   <button onClick={() => setEditing({ kind: "post", postId: post.id, text: post.text })} aria-label="Edit post">

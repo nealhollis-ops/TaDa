@@ -342,6 +342,12 @@ export async function editPost(sb: SB, id: string, text: string) {
   if (error) throw error;
 }
 
+/** Admin only in practice: the posts update policy is what lets this through. */
+export async function setPostPinned(sb: SB, id: string, pinned: boolean) {
+  const { error } = await sb.from("posts").update({ pinned }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function editReply(sb: SB, id: string, text: string) {
   const { error } = await sb.from("replies").update({ text, edited_at: new Date().toISOString() }).eq("id", id);
   if (error) throw error;

@@ -90,7 +90,7 @@ export default async function ModerationPage() {
                 <span className="font-semibold text-navy">{nameOf(p.user_id)}</span> <span className="text-xs text-fade">{p.type} · {p.created_at.slice(0, 16).replace("T", " ")}{p.milestone ? " · milestone" : ""}{p.pinned ? " · pinned" : ""}</span>
                 <p className="mt-0.5 text-ink">{p.text}</p>
               </div>
-              <ModerationForms reportId={null} postId={p.id} replyId={null} compact />
+              <ModerationForms reportId={null} postId={p.id} replyId={null} pinned={!!p.pinned} compact />
             </div>
           ))}
         </div>

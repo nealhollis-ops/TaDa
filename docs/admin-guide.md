@@ -1,6 +1,6 @@
 # TaDa admin guide
 
-For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 20, 2026.
+For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 22, 2026.
 
 The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts whose profile role is `admin`. Members never see it, and the "Open the admin panel" button on Account only appears for admins.
 
@@ -41,14 +41,28 @@ The Faith Hub Unleashed flow. Paste a list of emails, pick a level, an optional 
 
 Open reports first, then recent posts. For each report: **Mark reviewed** or **Dismiss**. For any post or reply: **Remove**, which soft-deletes it (it vanishes for members but stays in the database). Reports about a member, rather than a post, link to that member's detail page where you can ban.
 
+Recent posts also carry **Pin to the top** / **Unpin**. This works on anyone's post, including a member's, so a good win or question can be promoted without you rewriting it. Pinning is also available without leaving the app: see Pinning, below.
+
 Members can also block each other without involving you. Blocks are private and permanent until the member undoes them.
 
 ### Announcements (`/admin/announcements`)
 
 Two tools:
 
-- **Post and pin**: writes a post as you into the room you pick (Encourage is the one everyone reads) and pins it to the top until you unpin it. Pinned posts are listed below with Unpin and Remove.
+- **Post and pin**: writes a post as you into the room you pick (Encourage is the one everyone reads) and pins it to the top until you unpin it. Pinned posts are listed below with Unpin and Remove. This is for announcements you are writing now; to pin a post that already exists, use the pin in the community or in Moderation.
 - **Push to everyone**: a phone or desktop notification to every member with device alerts on, plus a bell entry for every active member whether or not their alerts are on. Title, a message of up to 160 characters, and which screen opens when tapped. The result line tells you how many inboxes and devices it reached. Every send is written to the admin log with the text and counts. There is no undo, so read it twice.
+
+## Pinning a post
+
+A pinned post sorts to the top of its own room in the community, with a gold border and a "Pinned" chip. There is no limit on how many can be pinned, and a pin stays until someone unpins it.
+
+Three places do it, all the same flag on the same post:
+
+- **In the app.** On Community, admins see a small pin icon in the header of every post. Tap it to pin, tap the crossed-out pin to unpin. This is the quickest route and works on any post, including a member's. Members never see the icon.
+- **Admin → Moderation.** The Recent posts list has **Pin to the top** / **Unpin** on each of the last 30 posts.
+- **Admin → Announcements.** **Post and pin** writes a new post as you and pins it in one step; the "Pinned now" list below unpins.
+
+Every pin and unpin is written to the admin log as `post.pin` or `post.unpin`.
 
 ## Notifications, in one paragraph
 
@@ -89,7 +103,7 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 
 ## Where things live
 
-- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0017` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks.
+- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0018` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post.
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
 - Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.

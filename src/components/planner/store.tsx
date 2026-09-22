@@ -110,6 +110,7 @@ export type PlannerActions = {
   toggleReact: (postId: string, kind: ReactKind) => Promise<void>;
   toggleReplyReact: (postId: string, replyId: string, kind: ReactKind) => Promise<void>;
   editPost: (postId: string, text: string) => Promise<void>;
+  togglePin: (postId: string) => Promise<void>;
   editReply: (postId: string, replyId: string, text: string) => Promise<void>;
   deletePost: (postId: string) => Promise<void>;
   deleteReply: (postId: string, replyId: string) => Promise<void>;
@@ -1026,6 +1027,24 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [posts, me.id, sb, bumpEncourage, fail],
   );
 
+  /** Admins pin a post to the top of its room. Everyone else never sees the control, and RLS refuses them anyway. */
+  const togglePin = useCallback(
+    async (postId: string) => {
+      const post = posts.find((x) => x.id === postId);
+      if (!post || me.role !== "admin") return;
+      const next = !post.pinned;
+      setPosts((list) => list.map((x) => (x.id === postId ? { ...x, pinned: next } : x)));
+      try {
+        await S.setPostPinned(sb, postId, next);
+        showToast(next ? "Pinned to the top of the room." : "Unpinned.");
+      } catch (e) {
+        setPosts((list) => list.map((x) => (x.id === postId ? { ...x, pinned: !next } : x)));
+        fail(e, "That pin didn't stick. Try again.");
+      }
+    },
+    [posts, me.role, sb, showToast, fail],
+  );
+
   const editPostAction = useCallback(
     async (postId: string, text: string) => {
       const t = text.trim();
@@ -1475,7 +1494,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
-    sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
+    sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
