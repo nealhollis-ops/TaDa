@@ -228,7 +228,16 @@ function TourModal() {
         </button>
       </div>
       {TOUR_URL ? (
-        <iframe src={TOUR_URL} title="Welcome tour" className="w-full rounded-xl" style={{ height: 200, border: "none" }} allow="autoplay; fullscreen" />
+        <div className="aspect-video w-full overflow-hidden rounded-xl" style={{ background: "#000" }}>
+          <iframe
+            src={TOUR_URL}
+            title="Welcome tour"
+            className="h-full w-full"
+            style={{ border: "none" }}
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write"
+            allowFullScreen
+          />
+        </div>
       ) : (
         <div className="rounded-xl p-5 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
           The tour video is on its way. Poke around in the meantime: Plan is where your month lives, Today is where you win it.

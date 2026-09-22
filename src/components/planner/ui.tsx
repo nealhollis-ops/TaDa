@@ -109,14 +109,14 @@ export function QuoteCard({ q }: { q: { text: string; by: string | null } }) {
   );
 }
 
-export function Overlay({ children, onClose, z = 85, align = "center" }: { children: React.ReactNode; onClose?: () => void; z?: number; align?: "center" | "end" }) {
+export function Overlay({ children, onClose, z = 85, align = "center", wide = false }: { children: React.ReactNode; onClose?: () => void; z?: number; align?: "center" | "end"; wide?: boolean }) {
   return (
     <div
       className={`fixed inset-0 flex ${align === "end" ? "items-end sm:items-center" : "items-center"} justify-center p-4`}
       style={{ background: "rgba(20,42,56,0.6)", zIndex: z }}
       onClick={onClose}
     >
-      <div className="w-full max-w-sm rounded-2xl p-5" style={{ background: C.cream }} onClick={(e) => e.stopPropagation()}>
+      <div className={`w-full ${wide ? "max-w-2xl" : "max-w-sm"} rounded-2xl p-5`} style={{ background: C.cream }} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
