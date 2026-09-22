@@ -755,6 +755,38 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
 
   const removeLater = useCallback((id: string) => void persistLater(laterRef.current.filter((t) => t.id !== id)), [persistLater]);
 
+  /**
+   * Move one task between the month's list and the Later list. The row keeps its
+   * id and is only ever upserted: the list it leaves is updated in state alone,
+   * because routing that side through syncTasks would delete the row it is
+   * trying to move.
+   */
+  const moveBetweenLists = useCallback(
+    async (row: Task, toLater: boolean) => {
+      const prevTasks = tasksRef.current;
+      const prevLater = laterRef.current;
+      const nextTasks = toLater ? prevTasks.filter((t) => t.id !== row.id) : [...prevTasks, row];
+      const nextLater = toLater ? [...prevLater, row] : prevLater.filter((t) => t.id !== row.id);
+      tasksRef.current = nextTasks;
+      setTasks(nextTasks);
+      laterRef.current = nextLater;
+      setLater(nextLater);
+      try {
+        // Diff only the list the row joined, so the write is a plain upsert.
+        if (toLater) await P.syncTasks(sb, me.id, prevLater, nextLater);
+        else await P.syncTasks(sb, me.id, prevTasks, nextTasks);
+        await P.publishProgress(sb, me.id, month, nextTasks);
+      } catch (err) {
+        tasksRef.current = prevTasks;
+        setTasks(prevTasks);
+        laterRef.current = prevLater;
+        setLater(prevLater);
+        fail(err);
+      }
+    },
+    [sb, me.id, month, fail],
+  );
+
   const organize = useCallback(() => void persistTasks(organizeList(month, tasksRef.current)), [month, persistTasks]);
 
   const parseDump = useCallback(
@@ -857,22 +889,15 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         // Repeats are left alone out here: a later month gets a single dated row.
         const tm = e.date ? monthOfDate(e.date) : month;
         const row: Task = { ...e, title: e.title.trim(), month: tm.prefix, week: e.date ? weekOf(tm, e.date) : e.week, repeat: goesLater ? "none" : e.repeat, anchor: goesLater ? null : e.anchor };
-        if (wasLater && !goesLater) {
-          void persistLater(laterRef.current.filter((t) => t.id !== e.id));
-          void persistTasks([...tasksRef.current, row]);
-        } else if (!wasLater && goesLater) {
-          void persistTasks(tasksRef.current.filter((t) => t.id !== e.id));
-          void persistLater([...laterRef.current, row]);
-        } else {
-          void persistLater(laterRef.current.map((t) => (t.id === e.id ? row : t)));
-        }
+        if (wasLater !== goesLater) void moveBetweenLists(row, goesLater);
+        else void persistLater(laterRef.current.map((t) => (t.id === e.id ? row : t)));
         setEditing(null);
         return;
       }
       void persistTasks(applyEdit(month, tasksRef.current, e, currentWeek));
       setEditing(null);
     },
-    [month, currentWeek, persistTasks, persistLater],
+    [month, currentWeek, persistTasks, persistLater, moveBetweenLists],
   );
 
   const removeTask = useCallback(
