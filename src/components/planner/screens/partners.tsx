@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
-import { Avatar, BadgeStrip, Bar, C, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
-import { ago, dateLabel, pickableDates } from "@/lib/planner/calendar";
+import { Avatar, BadgeStrip, Bar, C, DayField, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
+import { ago, dateLabel, lastPickableDate } from "@/lib/planner/calendar";
 import { levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import type { Assignment, Team, TeamInvite } from "@/lib/planner/types";
 
@@ -656,17 +656,12 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function DaySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const p = usePlanner();
-  // Deadlines run from today into the months ahead; one already set stays listed while editing.
-  const keep = value === "none" ? null : value;
+  // A deadline already in the past stays put until the owner changes it.
+  const min = value !== "none" && value < p.today ? value : p.today;
   return (
-    <select className="min-w-0 flex-1 rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="none">No deadline</option>
-      {pickableDates(p.month, p.today, keep).map((d) => (
-        <option key={d.date} value={d.date}>
-          Due {d.label}
-        </option>
-      ))}
-    </select>
+    <div className="min-w-0 flex-1">
+      <DayField value={value === "none" ? null : value} onChange={(v) => onChange(v ?? "none")} min={min} max={lastPickableDate(p.month)} noneLabel="No deadline" ariaLabel="Deadline" />
+    </div>
   );
 }
 

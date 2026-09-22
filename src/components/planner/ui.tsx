@@ -123,5 +123,34 @@ export function Overlay({ children, onClose, z = 85, align = "center", wide = fa
   );
 }
 
+/**
+ * A real date field rather than a list of every day. The browser opens its own
+ * calendar, so a date months out is a couple of taps instead of a long scroll,
+ * and the value is already the YYYY-MM-DD the tasks table stores.
+ *
+ * An empty field means "no day chosen"; `noneLabel` says what that means here.
+ */
+export function DayField({ value, onChange, min, max, noneLabel, compact = false, ariaLabel }: { value: string | null; onChange: (v: string | null) => void; min: string; max: string; noneLabel: string; compact?: boolean; ariaLabel?: string }) {
+  return (
+    <div className={compact ? "flex min-w-0 items-center gap-1" : "min-w-0"}>
+      <input
+        type="date"
+        value={value ?? ""}
+        min={min}
+        max={max}
+        aria-label={ariaLabel ?? noneLabel}
+        onChange={(e) => onChange(e.target.value || null)}
+        className={compact ? "min-w-0 flex-1 rounded-lg border px-1.5 py-1 text-xs outline-none" : `${inputCls} py-2`}
+        style={{ ...inputStyle, color: value ? C.ink : C.fade }}
+      />
+      {value && (
+        <button onClick={() => onChange(null)} aria-label={noneLabel} title={noneLabel} className="shrink-0 px-1 text-xs" style={{ color: C.fade }}>
+          &#215;
+        </button>
+      )}
+    </div>
+  );
+}
+
 export const inputCls = "w-full rounded-xl border px-3 py-2.5 text-sm outline-none";
 export const inputStyle = { borderColor: C.line, background: "#fff", color: C.ink } as const;

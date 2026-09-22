@@ -68,8 +68,12 @@ export const pickableDays = (m: MonthInfo, today: string, keep: string | null = 
   return days;
 };
 
-/** How many months past the current one a day picker offers. */
-export const PICK_MONTHS_AHEAD = 1;
+/**
+ * How far ahead a day picker will go. The pickers are real date fields rather
+ * than long lists, so this is only a sanity rail on the calendar, not a scroll
+ * the member has to work through.
+ */
+export const PICK_MONTHS_AHEAD = 12;
 
 /** The month model for the month a date string belongs to. */
 export const monthOfDate = (ds: string) => monthInfo(new Date(parseInt(ds.slice(0, 4), 10), parseInt(ds.slice(5, 7), 10) - 1, 1));
@@ -80,33 +84,8 @@ export const monthPrefixAhead = (m: MonthInfo, n: number) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 };
 
-export type PickableDate = { date: string; label: string; rest: boolean; otherMonth: boolean };
-
-/**
- * Dates worth offering in a day picker: today onward through the end of the
- * month PICK_MONTHS_AHEAD later, so a task can be given a due date beyond this
- * month. `keep` is a date already on the task, which stays listed even when it
- * has gone by or sits further out.
- */
-export const pickableDates = (m: MonthInfo, today: string, keep: string | null = null, monthsAhead = PICK_MONTHS_AHEAD): PickableDate[] => {
-  const out: PickableDate[] = [];
-  for (let n = 0; n <= monthsAhead; n++) {
-    const mi = n === 0 ? m : monthInfo(new Date(m.year, m.month + n, 1));
-    for (let d = 1; d <= mi.days; d++) {
-      const date = dstr(mi, d);
-      if (date < today) continue;
-      out.push({ date, label: pickLabel(mi, date, n > 0), rest: weekdayOf(mi, d) === 0, otherMonth: n > 0 });
-    }
-  }
-  if (keep && !out.some((x) => x.date === keep)) {
-    const km = monthOfDate(keep);
-    out.unshift({ date: keep, label: pickLabel(km, keep, km.prefix !== m.prefix), rest: weekdayOf(km, dayOfMonth(keep)) === 0, otherMonth: km.prefix !== m.prefix });
-  }
-  return out;
-};
-
 /** "Mon 22" inside the current month, "Thu Oct 3" once it is a different one. */
-const pickLabel = (mi: MonthInfo, ds: string, withMonth: boolean) => {
+export const pickLabel = (mi: MonthInfo, ds: string, withMonth: boolean) => {
   const d = dayOfMonth(ds);
   const wd = WD[new Date(mi.year, mi.month, d).getDay()];
   return withMonth ? `${wd} ${mi.short} ${d}` : `${wd} ${d}`;
@@ -116,6 +95,18 @@ const pickLabel = (mi: MonthInfo, ds: string, withMonth: boolean) => {
 export const dateLabel = (ds: string, current: MonthInfo) => {
   const mi = monthOfDate(ds);
   return pickLabel(mi, ds, mi.prefix !== current.prefix);
+};
+
+/** The last date a picker will accept: the end of the month PICK_MONTHS_AHEAD out. */
+export const lastPickableDate = (m: MonthInfo, monthsAhead = PICK_MONTHS_AHEAD) => {
+  const mi = monthInfo(new Date(m.year, m.month + monthsAhead, 1));
+  return dstr(mi, mi.days);
+};
+
+/** Sunday is the built-in rest day, worth saying out loud when someone picks one. */
+export const isRestDay = (ds: string) => {
+  const mi = monthOfDate(ds);
+  return weekdayOf(mi, dayOfMonth(ds)) === 0;
 };
 
 export const todayStr = () => {

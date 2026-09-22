@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-react";
 import { usePlanner } from "../store";
-import { C, Chip, inputCls, inputStyle } from "../ui";
+import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
-import { dateLabel, monthLabel, ord, pickableDates, WDFULL } from "@/lib/planner/calendar";
+import { dateLabel, isRestDay, lastPickableDate, monthLabel, ord, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import type { Task } from "@/lib/planner/types";
@@ -89,20 +89,17 @@ export function PlanScreen() {
                 <span className="flex-1 truncate text-sm" style={{ color: C.ink }}>
                   {x.title}
                 </span>
-                <select
-                  className="rounded-lg border px-1.5 py-1 text-xs"
-                  style={{ ...inputStyle, color: x.date ? C.ink : C.fade, maxWidth: 112 }}
-                  value={x.date ?? "auto"}
-                  onChange={(e) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: e.target.value === "auto" ? null : e.target.value } : y)))}
-                  aria-label="Due day"
-                >
-                  <option value="auto">Auto ({m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`})</option>
-                  {pickableDates(m, p.today, x.date ?? null).map((d) => (
-                    <option key={d.date} value={d.date}>
-                      Due {d.label}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ maxWidth: 132 }}>
+                  <DayField
+                    value={x.date ?? null}
+                    onChange={(v) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: v } : y)))}
+                    min={p.today}
+                    max={lastPickableDate(m)}
+                    noneLabel={`Auto (${m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`})`}
+                    ariaLabel="Due day"
+                    compact
+                  />
+                </div>
                 <button onClick={() => setDumpPreview(dumpPreview.filter((_, j) => j !== i))} aria-label="Remove">
                   <X size={14} style={{ color: C.fade }} />
                 </button>
@@ -136,15 +133,14 @@ export function PlanScreen() {
             }}
           />
           <div className="mb-2 grid grid-cols-2 gap-2">
-            <select className={sel} style={inputStyle} value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })}>
-              <option value="auto">Pick my day for me</option>
-              {pickableDates(m, p.today).map((d) => (
-                <option key={d.date} value={d.date}>
-                  {d.label}
-                  {d.rest ? " (rest)" : ""}
-                </option>
-              ))}
-            </select>
+            <DayField
+              value={form.day === "auto" ? null : form.day}
+              onChange={(v) => setForm({ ...form, day: v ?? "auto" })}
+              min={p.today}
+              max={lastPickableDate(m)}
+              noneLabel="Pick my day for me"
+              ariaLabel="Day"
+            />
             <select className={sel} style={inputStyle} value={form.block} onChange={(e) => setForm({ ...form, block: e.target.value as Block })}>
               <option value="auto">Any time block</option>
               {BLOCK_META.map((b) => (
@@ -154,6 +150,14 @@ export function PlanScreen() {
               ))}
             </select>
           </div>
+          {/* The empty field means TaDa places it; a chosen day gets a nudge if it is the rest day. */}
+          <p className="mb-2 text-xs" style={{ color: C.fade }}>
+            {form.day === "auto"
+              ? "Leave the day empty and TaDa picks a light day in the week you choose."
+              : isRestDay(form.day)
+                ? `${dateLabel(form.day, m)} is a Sunday, the built-in rest day. Yours if you want it.`
+                : `Set for ${dateLabel(form.day, m)}.`}
+          </p>
           {form.day === "auto" && (
             <select className={`${sel} mb-2 w-full`} style={inputStyle} value={form.week} onChange={(e) => setForm({ ...form, week: e.target.value })}>
               {m.weeks.map((w) => (

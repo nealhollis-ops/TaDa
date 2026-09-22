@@ -6,9 +6,9 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
-import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
+import { Avatar, Bar, C, Chip, DayField, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
-import { ago, ord, pickableDates, WDFULL } from "@/lib/planner/calendar";
+import { ago, lastPickableDate, ord, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, computeBadges, levelColor, levelIcon, levelOf } from "@/lib/planner/content";
 import { loadProfileCard } from "@/lib/data/social";
 import type { Block, MemberCard, Repeat } from "@/lib/planner/types";
@@ -485,14 +485,14 @@ function EditSheet() {
       </div>
       <input className={`${inputCls} mb-3`} style={inputStyle} value={e.title} onChange={(ev) => upd({ title: ev.target.value })} />
       <div className="mb-3 grid grid-cols-2 gap-2">
-        <select className={sel} style={inputStyle} value={e.date ?? "auto"} onChange={(ev) => upd(ev.target.value === "auto" ? { date: null } : { date: ev.target.value })}>
-          <option value="auto">No day yet</option>
-          {pickableDates(m, p.today, e.date).map((d) => (
-            <option key={d.date} value={d.date}>
-              {d.label}
-            </option>
-          ))}
-        </select>
+        <DayField
+          value={e.date}
+          onChange={(v) => upd({ date: v })}
+          min={e.date && e.date < p.today ? e.date : p.today}
+          max={lastPickableDate(m)}
+          noneLabel="No day yet"
+          ariaLabel="Day"
+        />
         <select className={sel} style={inputStyle} value={e.block === "auto" ? "afternoon" : e.block} onChange={(ev) => upd({ block: ev.target.value as Block })}>
           {BLOCK_META.map((b) => (
             <option key={b.id} value={b.id}>
