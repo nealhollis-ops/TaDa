@@ -218,7 +218,7 @@ function OnboardingWidget() {
 function TourModal() {
   const p = usePlanner();
   return (
-    <Overlay onClose={() => p.set("showTour", false)}>
+    <Overlay onClose={() => p.set("showTour", false)} wide>
       <div className="mb-2 flex items-center justify-between">
         <span className="font-bold" style={{ color: C.navy }}>
           Welcome tour
