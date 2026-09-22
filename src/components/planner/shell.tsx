@@ -50,7 +50,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2.5">
           {/* The year is the first thing to go on a 320px phone; the month still says where you are. */}
           <div className="text-sm" style={{ color: C.goldSoft }}>
-            {p.month.name} <span className="max-[359px]:hidden">{p.month.year}</span>
+            {p.month.name} <span className="max-[369px]:hidden">{p.month.year}</span>
           </div>
           <button onClick={() => p.set("inboxOpen", true)} aria-label={p.unreadCount ? `${p.unreadCount} unread notifications` : "Notifications"} className="relative">
             <Bell size={20} style={{ color: C.cream }} />
