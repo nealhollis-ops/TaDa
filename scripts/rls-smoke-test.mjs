@@ -48,9 +48,31 @@ await admin.from("team_members").insert([{ team_id: team.data.id, user_id: B.id 
 const bossDm = await a.from("messages").insert({ from_user: A.id, to_user: Cc.id, text: "boss to member" }); out.boss_dm_member_ok = !bossDm.error;
 const upDm = await c.from("messages").insert({ from_user: Cc.id, to_user: A.id, text: "member to boss" }); out.member_dm_boss_ok = !upDm.error;
 const peerDm = await c.from("messages").insert({ from_user: Cc.id, to_user: B.id, text: "member to member" }); out.member_dm_member_blocked = !!peerDm.error;
+// pinning is admin-only: a member cannot pin their own post at insert or on update
+const ownPost = await a.from("posts").insert({ user_id: A.id, type: "win", text: "rls pin probe" }).select("id").single();
+out.member_post_ok = !ownPost.error;
+const pinOnInsert = await a.from("posts").insert({ user_id: A.id, type: "win", text: "rls pin probe 2", pinned: true });
+out.member_pin_on_insert_blocked = !!pinOnInsert.error;
+if (ownPost.data) {
+  const pinOnUpdate = await a.from("posts").update({ pinned: true }).eq("id", ownPost.data.id);
+  const after = await admin.from("posts").select("pinned").eq("id", ownPost.data.id).single();
+  out.member_pin_on_update_blocked = !!pinOnUpdate.error || after.data?.pinned === false;
+  // the author can still edit their own text
+  const edit = await a.from("posts").update({ text: "rls pin probe edited" }).eq("id", ownPost.data.id);
+  out.member_can_still_edit_own_post = !edit.error;
+  // an admin can pin the same post
+  await admin.from("profiles").update({ role: "admin" }).eq("id", B.id);
+  const bAdmin = await asUser("rls-test-b@example.com");
+  const adminPin = await bAdmin.from("posts").update({ pinned: true }).eq("id", ownPost.data.id);
+  const pinned = await admin.from("posts").select("pinned").eq("id", ownPost.data.id).single();
+  out.admin_can_pin_any_post = !adminPin.error && pinned.data?.pinned === true;
+  await admin.from("profiles").update({ role: "member" }).eq("id", B.id);
+}
+
 // stripe function must not be callable by users
 const st = await a.rpc("apply_stripe_entitlement", { p_user_id: A.id, p_plan: "boss", p_status: "active", p_stripe_customer_id: "x", p_stripe_sub_id: "y" }); out.stripe_fn_blocked_for_users = !!st.error;
 // cleanup
 await admin.auth.admin.deleteUser(A.id); await admin.auth.admin.deleteUser(B.id); await admin.auth.admin.deleteUser(Cc.id);
 const left = await admin.from("tasks").select("id"); out.cleanup_tasks_left = left.data?.length;
+const postsLeft = await admin.from("posts").select("id").like("text", "rls pin probe%"); out.cleanup_posts_left = postsLeft.data?.length;
 console.log(JSON.stringify(out, null, 2));
