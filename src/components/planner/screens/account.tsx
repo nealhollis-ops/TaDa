@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, Play } from "lucide-react";
 import { InstallCard } from "@/components/pwa/install-card";
 import { NotificationsCard } from "@/components/pwa/notifications-card";
 import { usePlanner } from "../store";
@@ -298,6 +298,11 @@ export function AccountScreen() {
                     {para}
                   </p>
                 ))}
+                {h.id === "start" && (
+                  <button onClick={() => p.set("showTour", true)} className="flex items-center gap-1.5 text-xs font-semibold underline" style={{ color: C.navy }}>
+                    <Play size={12} /> Watch the welcome tour
+                  </button>
+                )}
               </div>
             )}
           </div>

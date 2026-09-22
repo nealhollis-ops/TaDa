@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { HELP } from "@/lib/planner/content";
 
+const TOUR_URL = process.env.NEXT_PUBLIC_TOUR_URL ?? "";
+
 export const metadata = {
   title: "How TaDa works",
   description: "Everything about using TaDa: adding tasks, the brain dump, celebrations, streaks, partners, teams, the community, and your account.",
@@ -87,6 +89,13 @@ export default function HelpPage() {
         <section key={h.id} id={h.id} className="mt-8 scroll-mt-6">
           <h2 className="text-xl font-bold text-navy">{h.t}</h2>
           <Body body={h.b} />
+          {h.id === "start" && TOUR_URL && (
+            <p className="mt-3">
+              <a href={TOUR_URL} target="_blank" rel="noopener" className="font-semibold text-navy underline">
+                Watch the welcome tour
+              </a>
+            </p>
+          )}
         </section>
       ))}
 
