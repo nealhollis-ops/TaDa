@@ -74,6 +74,16 @@ export async function loadTasks(sb: SB, userId: string, month: string): Promise<
   return (data ?? []).map(toTask);
 }
 
+/**
+ * Tasks dated in a month after the one on screen. They are kept apart from the
+ * month's own list so organize, progress and streak maths stay month-scoped.
+ */
+export async function loadLaterTasks(sb: SB, userId: string, month: string): Promise<Task[]> {
+  const { data, error } = await sb.from("tasks").select("*").eq("user_id", userId).gt("month", month).order("date");
+  if (error) throw error;
+  return (data ?? []).map(toTask);
+}
+
 /** Last month's unfinished one-time tasks, the ones that carry into the new month. */
 export async function loadUnfinishedFrom(sb: SB, userId: string, month: string): Promise<Task[]> {
   const { data, error } = await sb.from("tasks").select("*").eq("user_id", userId).eq("month", month).eq("repeat", "none").eq("done", false);

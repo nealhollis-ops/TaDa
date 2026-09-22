@@ -8,7 +8,7 @@ import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogO
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
-import { ago, dayLabel, dstr, ord, pickableDays, WDFULL } from "@/lib/planner/calendar";
+import { ago, ord, pickableDates, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, computeBadges, levelColor, levelIcon, levelOf } from "@/lib/planner/content";
 import { loadProfileCard } from "@/lib/data/social";
 import type { Block, MemberCard, Repeat } from "@/lib/planner/types";
@@ -485,11 +485,11 @@ function EditSheet() {
       </div>
       <input className={`${inputCls} mb-3`} style={inputStyle} value={e.title} onChange={(ev) => upd({ title: ev.target.value })} />
       <div className="mb-3 grid grid-cols-2 gap-2">
-        <select className={sel} style={inputStyle} value={e.date ? parseInt(e.date.slice(8), 10) : "auto"} onChange={(ev) => upd(ev.target.value === "auto" ? { date: null } : { date: dstr(m, parseInt(ev.target.value, 10)) })}>
+        <select className={sel} style={inputStyle} value={e.date ?? "auto"} onChange={(ev) => upd(ev.target.value === "auto" ? { date: null } : { date: ev.target.value })}>
           <option value="auto">No day yet</option>
-          {pickableDays(m, p.today, e.date).map((d) => (
-            <option key={d} value={d}>
-              {dayLabel(m, dstr(m, d))}
+          {pickableDates(m, p.today, e.date).map((d) => (
+            <option key={d.date} value={d.date}>
+              {d.label}
             </option>
           ))}
         </select>

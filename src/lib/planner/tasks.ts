@@ -3,7 +3,7 @@
  * repeating, streak math, month rollover, and the calendar-bar operations.
  * No React, no Supabase. The screens call these and then persist the result.
  */
-import { anchorDayInWeek, dstr, monthInfo, todayStr, uid, validDate, weekOf, weekdayOf, type MonthInfo } from "./calendar";
+import { anchorDayInWeek, dayOfMonth, dstr, monthInfo, monthOfDate, todayStr, uid, validDate, weekOf, weekdayOf, type MonthInfo } from "./calendar";
 import type { Block, Repeat, Stats, Task } from "./types";
 
 const BLOCKS: Block[] = ["auto", "morning", "afternoon", "evening"];
@@ -28,7 +28,7 @@ const clampWeek = (m: MonthInfo, w: unknown, fallback: number) => Math.min(m.wee
 
 export type NewTaskForm = {
   title: string;
-  day: string; // "auto" or day number
+  day: string; // "auto" or a full YYYY-MM-DD date, which may sit in a later month
   week: string; // week number
   block: Block;
   big: boolean;
@@ -60,43 +60,48 @@ export function buildNewTasks(m: MonthInfo, form: NewTaskForm, currentWeek: numb
   const title = form.title.trim();
   if (!title) return [];
   const specific = form.day !== "auto";
-  const date = specific ? dstr(m, parseInt(form.day, 10)) : null;
+  const date = specific ? form.day : null;
   const anchor = form.anchor === "" ? null : parseInt(form.anchor, 10);
   const solidBlock: Block = form.block !== "auto" ? form.block : form.big ? "morning" : "afternoon";
   const block: Block = form.block !== "auto" ? form.block : specific ? solidBlock : "auto";
-  const tToday = new Date().getDate();
+  // A chosen date may sit in a later month; everything below is built against
+  // the month that date belongs to, so month and week are stamped correctly.
+  const tm = date ? monthOfDate(date) : m;
+  const sameMonth = tm.prefix === m.prefix;
+  const tToday = sameMonth ? new Date().getDate() : 1;
+  const fromWeek = sameMonth ? currentWeek : 1;
   const rootId = uid();
   const batch: Task[] = [];
 
   if (isDaily(form.repeat)) {
     // One copy per remaining day (weekdays only for Mon - Fri), starting today or on the chosen day.
-    const start = specific ? parseInt(form.day, 10) : tToday;
-    dailyDays(m, start, form.repeat === "weekdays").forEach((d) => {
-      batch.push(base(m, { id: batch.length ? uid() : rootId, rootId, title, big: form.big, date: dstr(m, d), block: solidBlock, week: weekOf(m, dstr(m, d)), repeat: form.repeat, anchor: null }));
+    const start = specific && date ? dayOfMonth(date) : tToday;
+    dailyDays(tm, start, form.repeat === "weekdays").forEach((d) => {
+      batch.push(base(tm, { id: batch.length ? uid() : rootId, rootId, title, big: form.big, date: dstr(tm, d), block: solidBlock, week: weekOf(tm, dstr(tm, d)), repeat: form.repeat, anchor: null }));
     });
     if (!batch.length) batch.push(base(m, { id: rootId, rootId, title, big: form.big, date: null, block: "auto", week: currentWeek, repeat: form.repeat, anchor: null }));
   } else if (form.repeat === "weekly" && anchor !== null) {
-    for (let w = currentWeek; w <= m.weekCount; w++) {
-      const d = anchorDayInWeek(m, w, anchor);
-      if (!d || (w === currentWeek && d < tToday)) continue;
-      batch.push(base(m, { id: batch.length ? uid() : rootId, rootId, title, big: form.big, date: dstr(m, d), block: solidBlock, week: w, repeat: "weekly", anchor }));
+    for (let w = fromWeek; w <= tm.weekCount; w++) {
+      const d = anchorDayInWeek(tm, w, anchor);
+      if (!d || (sameMonth && w === currentWeek && d < tToday)) continue;
+      batch.push(base(tm, { id: batch.length ? uid() : rootId, rootId, title, big: form.big, date: dstr(tm, d), block: solidBlock, week: w, repeat: "weekly", anchor }));
     }
     if (!batch.length) {
       batch.push(base(m, { id: rootId, rootId, title, big: form.big, date: null, block: "auto", week: currentWeek, repeat: "weekly", anchor }));
     }
   } else if (form.repeat === "monthly" && anchor !== null) {
-    const d = dstr(m, Math.min(anchor, m.days));
-    batch.push(base(m, { id: rootId, rootId, title, big: form.big, date: d, block: solidBlock, week: weekOf(m, d), repeat: "monthly", anchor }));
+    const d = dstr(tm, Math.min(anchor, tm.days));
+    batch.push(base(tm, { id: rootId, rootId, title, big: form.big, date: d, block: solidBlock, week: weekOf(tm, d), repeat: "monthly", anchor }));
   } else {
-    const first = base(m, {
+    const first = base(tm, {
       id: rootId, rootId, title, big: form.big, date, block,
-      week: specific && date ? weekOf(m, date) : parseInt(form.week, 10), repeat: form.repeat, anchor: null,
+      week: specific && date ? weekOf(tm, date) : parseInt(form.week, 10), repeat: form.repeat, anchor: null,
     });
     batch.push(first);
     if (form.repeat === "weekly") {
-      for (let w = currentWeek; w <= m.weekCount; w++) {
+      for (let w = fromWeek; w <= tm.weekCount; w++) {
         if (w === first.week) continue;
-        batch.push(base(m, { rootId, title, big: form.big, date: null, block: "auto", week: w, repeat: "weekly", anchor: null }));
+        batch.push(base(tm, { rootId, title, big: form.big, date: null, block: "auto", week: w, repeat: "weekly", anchor: null }));
       }
     }
   }

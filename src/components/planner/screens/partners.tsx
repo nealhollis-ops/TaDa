@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, Bar, C, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
-import { ago, dayLabel, dstr, pickableDays } from "@/lib/planner/calendar";
+import { ago, dateLabel, pickableDates } from "@/lib/planner/calendar";
 import { levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import type { Assignment, Team, TeamInvite } from "@/lib/planner/types";
 
@@ -574,7 +574,7 @@ function TeamCard({ t }: { t: Team }) {
                   <DaySelect value={assignDay} onChange={setAssignDay} />
                   <button
                     onClick={() => {
-                      void p.assignTask(t.id, assignTo, assignTitle, assignDay === "none" ? null : dstr(p.month, parseInt(assignDay, 10)));
+                      void p.assignTask(t.id, assignTo, assignTitle, assignDay === "none" ? null : assignDay);
                       setAssignTitle("");
                     }}
                     className="rounded-xl px-3 text-xs font-semibold"
@@ -595,7 +595,7 @@ function TeamCard({ t }: { t: Team }) {
                         <div className="truncate text-xs font-medium" style={{ color: C.ink }}>
                           {a.title}
                         </div>
-                        <div style={{ fontSize: 10, color: C.fade }}>{a.date ? `Due ${dayLabel(p.month, a.date)}` : "No deadline"}</div>
+                        <div style={{ fontSize: 10, color: C.fade }}>{a.date ? `Due ${dateLabel(a.date, p.month)}` : "No deadline"}</div>
                       </div>
                       <select className="rounded-xl border px-2 py-1 text-xs" style={inputStyle} value="" onChange={(e) => void p.reassignTask(a.id, e.target.value)}>
                         <option value="">Reassign to...</option>
@@ -656,24 +656,23 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function DaySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const p = usePlanner();
-  // Deadlines run from today; a deadline already set in the past stays listed while editing.
-  const keep = value === "none" ? null : dstr(p.month, parseInt(value, 10));
+  // Deadlines run from today into the months ahead; one already set stays listed while editing.
+  const keep = value === "none" ? null : value;
   return (
     <select className="min-w-0 flex-1 rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={value} onChange={(e) => onChange(e.target.value)}>
       <option value="none">No deadline</option>
-      {pickableDays(p.month, p.today, keep).map((d) => (
-        <option key={d} value={d}>
-          Due {dayLabel(p.month, dstr(p.month, d))}
+      {pickableDates(p.month, p.today, keep).map((d) => (
+        <option key={d.date} value={d.date}>
+          Due {d.label}
         </option>
       ))}
     </select>
   );
 }
 
-/** A date string back to its day-of-month for the deadline picker, or "none". */
+/** The deadline picker works in full dates so a due date can sit in a later month. */
 function dayValue(date: string | null): string {
-  if (!date) return "none";
-  return String(parseInt(date.slice(-2), 10));
+  return date ?? "none";
 }
 
 /**
@@ -765,7 +764,7 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
   const p = usePlanner();
   const late = !a.done && !!a.date && a.date < p.today;
   const canToggle = owner || a.toUser === p.me.id;
-  const when = a.done ? (a.doneAt ? `Done ${dayLabel(p.month, a.doneAt.slice(0, 10))}` : "Done") : a.date ? (late ? `Overdue, was ${dayLabel(p.month, a.date)}` : `Due ${dayLabel(p.month, a.date)}`) : "No deadline";
+  const when = a.done ? (a.doneAt ? `Done ${dateLabel(a.doneAt.slice(0, 10), p.month)}` : "Done") : a.date ? (late ? `Overdue, was ${dateLabel(a.date, p.month)}` : `Due ${dateLabel(a.date, p.month)}`) : "No deadline";
   return (
     <div className="mb-1.5 rounded-xl px-3 py-2" style={{ background: C.cream, opacity: a.done ? 0.65 : 1 }}>
       <div className="flex items-center gap-2">
@@ -814,7 +813,7 @@ function AssignmentEditor({ a, t, onDone }: { a: Assignment; t: Team; onDone: ()
   const [toUser, setToUser] = useState(a.toUser ?? "");
   const [day, setDay] = useState(dayValue(a.date));
   const save = async () => {
-    await p.editAssignment(a.id, { title, toUser, date: day === "none" ? null : dstr(p.month, parseInt(day, 10)) });
+    await p.editAssignment(a.id, { title, toUser, date: day === "none" ? null : day });
     onDone();
   };
   return (

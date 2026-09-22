@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Mic, Plus, Sparkles, Star, Wand2, X } from "lucide-react";
+import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-react";
 import { usePlanner } from "../store";
-import { C, inputCls, inputStyle } from "../ui";
+import { C, Chip, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
-import { dayLabel, dstr, ord, pickableDays, WDFULL, weekdayOf } from "@/lib/planner/calendar";
-import { BLOCK_META } from "@/lib/planner/content";
+import { dateLabel, monthLabel, ord, pickableDates, WDFULL } from "@/lib/planner/calendar";
+import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
+import type { Task } from "@/lib/planner/types";
 import type { Block, Repeat } from "@/lib/planner/types";
 
 type DumpItem = { title: string; week: number; big: boolean; date?: string | null };
@@ -91,14 +92,14 @@ export function PlanScreen() {
                 <select
                   className="rounded-lg border px-1.5 py-1 text-xs"
                   style={{ ...inputStyle, color: x.date ? C.ink : C.fade, maxWidth: 112 }}
-                  value={x.date ? String(parseInt(x.date.slice(-2), 10)) : "auto"}
-                  onChange={(e) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: e.target.value === "auto" ? null : dstr(m, parseInt(e.target.value, 10)) } : y)))}
+                  value={x.date ?? "auto"}
+                  onChange={(e) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: e.target.value === "auto" ? null : e.target.value } : y)))}
                   aria-label="Due day"
                 >
                   <option value="auto">Auto ({m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`})</option>
-                  {pickableDays(m, p.today, x.date ?? null).map((d) => (
-                    <option key={d} value={d}>
-                      Due {dayLabel(m, dstr(m, d))}
+                  {pickableDates(m, p.today, x.date ?? null).map((d) => (
+                    <option key={d.date} value={d.date}>
+                      Due {d.label}
                     </option>
                   ))}
                 </select>
@@ -137,10 +138,10 @@ export function PlanScreen() {
           <div className="mb-2 grid grid-cols-2 gap-2">
             <select className={sel} style={inputStyle} value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })}>
               <option value="auto">Pick my day for me</option>
-              {pickableDays(m, p.today).map((d) => (
-                <option key={d} value={d}>
-                  {dayLabel(m, dstr(m, d))}
-                  {weekdayOf(m, d) === 0 ? " (rest)" : ""}
+              {pickableDates(m, p.today).map((d) => (
+                <option key={d.date} value={d.date}>
+                  {d.label}
+                  {d.rest ? " (rest)" : ""}
                 </option>
               ))}
             </select>
@@ -251,6 +252,80 @@ export function PlanScreen() {
           Nothing completed yet this month. Check something off on Today and it lands here.
         </div>
       )}
+
+      {/* Anything dated past this month waits here until its month comes around. */}
+      {tab === "active" && p.later.length > 0 && <LaterGroup />}
+    </div>
+  );
+}
+
+function LaterGroup() {
+  const p = usePlanner();
+  const months = Array.from(new Set(p.later.map((t) => t.month))).sort();
+  return (
+    <div className="mt-6">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-bold" style={{ color: C.navy }}>
+          Later
+        </span>
+        <span className="text-xs" style={{ color: C.fade }}>
+          {p.later.length} waiting
+        </span>
+      </div>
+      <p className="mb-2 text-xs" style={{ color: C.fade }}>
+        Dated past this month. Each one moves into its own month when that month starts.
+      </p>
+      {months.map((mp) => (
+        <div key={mp} className="mb-3">
+          <div className="mb-1 text-xs font-semibold" style={{ color: C.navy2 }}>
+            {monthLabel(mp)}
+          </div>
+          {collapseRepeats(p.later.filter((t) => t.month === mp)).map(({ t, count }) => (
+            <LaterRow key={t.id} t={t} count={count} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** A repeat fans out into one row per day; out here it reads as a single line with a count. */
+function collapseRepeats(list: Task[]): { t: Task; count: number }[] {
+  const byRoot = new Map<string, Task[]>();
+  for (const t of [...list].sort((a, b) => (a.date || "9").localeCompare(b.date || "9"))) {
+    const key = t.repeat === "none" ? t.id : t.rootId || t.id;
+    byRoot.set(key, [...(byRoot.get(key) ?? []), t]);
+  }
+  return [...byRoot.values()].map((rows) => ({ t: rows[0], count: rows.length }));
+}
+
+function LaterRow({ t, count }: { t: Task; count: number }) {
+  const p = usePlanner();
+  return (
+    <div className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3" style={{ background: "#fff" }}>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium" style={{ color: C.ink }}>
+          {t.big && <Star size={13} className="mr-1 inline" style={{ color: C.gold, fill: C.gold }} />}
+          {t.title}
+        </div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          <Chip color={C.goldDeep} bg={C.goldSoft}>{t.date ? dateLabel(t.date, p.month) : "Day TBD"}</Chip>
+          <Chip color={blockMeta(t.block)?.text ?? C.fade} bg={blockMeta(t.block)?.tint ?? C.mist}>
+            {t.block === "auto" ? "Time TBD" : blockLabel(t.block)}
+          </Chip>
+          {count > 1 && (
+            <Chip color={C.goldDeep} bg={C.goldSoft}>
+              {count} days
+            </Chip>
+          )}
+        </div>
+      </div>
+      <button onClick={() => p.set("editing", t)} aria-label="Edit task">
+        <Pencil size={16} style={{ color: C.fade }} />
+      </button>
+      <button onClick={() => p.removeLater(t.id)} aria-label="Remove task">
+        <Trash2 size={16} style={{ color: C.fade }} />
+      </button>
     </div>
   );
 }

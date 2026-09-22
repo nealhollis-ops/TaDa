@@ -8,7 +8,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { dayOfYear, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
+import { dayOfYear, monthOfDate, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
@@ -56,6 +56,8 @@ export type PlannerState = {
   bigMsg: boolean;
   ceremony: Ceremony | null;
   editing: Task | null;
+  /** Tasks dated in a month still to come. Kept apart so month maths never sees them. */
+  later: Task[];
   viewProfile: string | null;
   confirmRemove: ConfirmRemove | null;
   showTour: boolean;
@@ -103,6 +105,7 @@ export type PlannerActions = {
   runCommand: (text?: string) => Promise<void>;
   startListening: () => void;
   saveEdit: (e: Task) => void;
+  removeLater: (id: string) => void;
   removeTask: (id: string) => void;
   sendMsg: (text: string) => Promise<void>;
   addPost: (type: PostType, text: string) => Promise<void>;
@@ -198,6 +201,8 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [inboxOpen, setInboxOpen] = useState(false);
   const [ceremony, setCeremony] = useState<Ceremony | null>(null);
   const [editing, setEditing] = useState<Task | null>(null);
+  const [later, setLater] = useState<Task[]>([]);
+  const laterRef = useRef<Task[]>([]);
   const [viewProfile, setViewProfile] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<ConfirmRemove | null>(null);
   const [showTour, setShowTour] = useState(false);
@@ -417,8 +422,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     (async () => {
       try {
         const prev = previousMonthPrefix(month);
-        const [cur, st, prevRep, prevOpen] = await Promise.all([P.loadTasks(sb, me.id, month.prefix), P.loadStats(sb, me.id), P.loadRepeatersFrom(sb, me.id, prev), P.loadUnfinishedFrom(sb, me.id, prev)]);
+        const [cur, st, prevRep, prevOpen, ahead] = await Promise.all([P.loadTasks(sb, me.id, month.prefix), P.loadStats(sb, me.id), P.loadRepeatersFrom(sb, me.id, prev), P.loadUnfinishedFrom(sb, me.id, prev), P.loadLaterTasks(sb, me.id, month.prefix)]);
         if (cancelled) return;
+        laterRef.current = ahead;
+        setLater(ahead);
         let list = cur;
         const spawned = spawnRepeaters(month, prevRep, cur);
         if (spawned.length) list = organizeList(month, [...cur, ...spawned]);
@@ -710,15 +717,43 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [month, persistTasks, celebrate],
   );
 
+  /** Same diff-and-write as persistTasks, for the tasks that sit in later months. */
+  const persistLater = useCallback(
+    async (next: Task[]) => {
+      const prev = laterRef.current;
+      laterRef.current = next;
+      setLater(next);
+      try {
+        await P.syncTasks(sb, me.id, prev, next);
+      } catch (e) {
+        laterRef.current = prev;
+        setLater(prev);
+        fail(e);
+      }
+    },
+    [sb, me.id, fail],
+  );
+
   const addTask = useCallback(
     (form: NewTaskForm) => {
       const batch = buildNewTasks(month, form, currentWeek);
       if (!batch.length) return;
-      const list = tasksRef.current;
-      void persistTasks(batch.length > 1 ? organizeList(month, [...list, ...batch]) : [...list, ...batch]);
+      // A date in a later month builds rows stamped for that month; they go to the Later list.
+      const here = batch.filter((t) => t.month === month.prefix);
+      const ahead = batch.filter((t) => t.month !== month.prefix);
+      if (here.length) {
+        const list = tasksRef.current;
+        void persistTasks(here.length > 1 ? organizeList(month, [...list, ...here]) : [...list, ...here]);
+      }
+      if (ahead.length) {
+        void persistLater([...laterRef.current, ...ahead]);
+        showToast(ahead.length === 1 ? `Saved for ${ahead[0].date ? ahead[0].date.slice(5) : "later"}. It is under Later on Plan.` : `${ahead.length} saved for later. They are under Later on Plan.`);
+      }
     },
-    [month, currentWeek, persistTasks],
+    [month, currentWeek, persistTasks, persistLater, showToast],
   );
+
+  const removeLater = useCallback((id: string) => void persistLater(laterRef.current.filter((t) => t.id !== id)), [persistLater]);
 
   const organize = useCallback(() => void persistTasks(organizeList(month, tasksRef.current)), [month, persistTasks]);
 
@@ -816,10 +851,28 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const saveEdit = useCallback(
     (e: Task) => {
       if (!e.title.trim()) return;
+      const wasLater = laterRef.current.some((t) => t.id === e.id);
+      const goesLater = !!e.date && !e.date.startsWith(month.prefix);
+      if (wasLater || goesLater) {
+        // Repeats are left alone out here: a later month gets a single dated row.
+        const tm = e.date ? monthOfDate(e.date) : month;
+        const row: Task = { ...e, title: e.title.trim(), month: tm.prefix, week: e.date ? weekOf(tm, e.date) : e.week, repeat: goesLater ? "none" : e.repeat, anchor: goesLater ? null : e.anchor };
+        if (wasLater && !goesLater) {
+          void persistLater(laterRef.current.filter((t) => t.id !== e.id));
+          void persistTasks([...tasksRef.current, row]);
+        } else if (!wasLater && goesLater) {
+          void persistTasks(tasksRef.current.filter((t) => t.id !== e.id));
+          void persistLater([...laterRef.current, row]);
+        } else {
+          void persistLater(laterRef.current.map((t) => (t.id === e.id ? row : t)));
+        }
+        setEditing(null);
+        return;
+      }
       void persistTasks(applyEdit(month, tasksRef.current, e, currentWeek));
       setEditing(null);
     },
-    [month, currentWeek, persistTasks],
+    [month, currentWeek, persistTasks, persistLater],
   );
 
   const removeTask = useCallback(
@@ -1490,10 +1543,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
 
   const value: PlannerState & PlannerActions = {
     sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, posts, blocked, seekers,
-    burst, bigMsg, ceremony, editing, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast, inbox, inboxOpen, unreadCount,
+    burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
-    toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeTask,
+    toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
