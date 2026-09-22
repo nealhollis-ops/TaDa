@@ -91,10 +91,20 @@ export const pickLabel = (mi: MonthInfo, ds: string, withMonth: boolean) => {
   return withMonth ? `${wd} ${mi.short} ${d}` : `${wd} ${d}`;
 };
 
-/** A date's label wherever it sits, for showing a task's day outside the current month. */
+/**
+ * A date's label wherever it sits: "Fri 25" in the month on screen, "Sat Oct 3"
+ * beyond it, and "Mon Mar 15, 2027" once the year differs too.
+ */
 export const dateLabel = (ds: string, current: MonthInfo) => {
   const mi = monthOfDate(ds);
-  return pickLabel(mi, ds, mi.prefix !== current.prefix);
+  const base = pickLabel(mi, ds, mi.prefix !== current.prefix);
+  return mi.year === current.year ? base : `${base}, ${mi.year}`;
+};
+
+/** "October" this year, "March 2027" once the year differs from the month on screen. */
+export const monthLabelIn = (prefix: string, current: MonthInfo) => {
+  const y = parseInt(prefix.slice(0, 4), 10);
+  return y === current.year ? monthLabel(prefix) : `${monthLabel(prefix)} ${y}`;
 };
 
 /** The last date a picker will accept: the end of the month PICK_MONTHS_AHEAD out. */

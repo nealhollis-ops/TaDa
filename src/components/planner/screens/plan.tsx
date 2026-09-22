@@ -5,7 +5,7 @@ import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-reac
 import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
-import { dateLabel, isRestDay, lastPickableDate, monthLabel, ord, WDFULL } from "@/lib/planner/calendar";
+import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import type { Task } from "@/lib/planner/types";
@@ -282,7 +282,7 @@ function LaterGroup() {
       {months.map((mp) => (
         <div key={mp} className="mb-3">
           <div className="mb-1 text-xs font-semibold" style={{ color: C.navy2 }}>
-            {monthLabel(mp)}
+            {monthLabelIn(mp, p.month)}
           </div>
           {collapseRepeats(p.later.filter((t) => t.month === mp)).map(({ t, count }) => (
             <LaterRow key={t.id} t={t} count={count} />
