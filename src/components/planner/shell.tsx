@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, UserCircle, Users, Volume2, VolumeX, X } from "lucide-react";
+import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { Avatar, Bar, C, Chip, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
@@ -43,11 +43,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen" style={{ background: C.cream }}>
-      <div className="sticky top-0 z-40 flex items-center justify-between px-5 py-4 shadow" style={{ background: C.navy }}>
+      <div className="sticky top-0 z-40 flex items-center justify-between px-4 py-4 shadow" style={{ background: C.navy }}>
         <Link href="/today" aria-label="Tada! home" className="flex items-center">
           <Image src="/brand/wordmark-light.png" alt="Tada!" width={51} height={32} priority />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="text-sm" style={{ color: C.goldSoft }}>
             {p.month.name} {p.month.year}
           </div>
@@ -62,8 +62,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <button onClick={p.toggleMute} aria-label="Sound">
             {p.me.muted ? <VolumeX size={20} style={{ color: C.goldSoft, opacity: 0.6 }} /> : <Volume2 size={20} style={{ color: C.cream }} />}
           </button>
-          <Link href="/account" aria-label="Account">
-            <UserCircle size={24} style={{ color: view === "account" ? C.gold : C.cream }} />
+          {/* Streak follows Today's rule: it only shows once there is a run worth celebrating. */}
+          {p.stats.streak >= 2 && (
+            <span className="text-xs font-bold" style={{ color: C.gold }} title={`${p.stats.streak} day streak`} aria-label={`${p.stats.streak} day streak`}>
+              &#128293;{p.stats.streak}
+            </span>
+          )}
+          <Link href="/account" aria-label="Account" className="flex rounded-full" style={{ boxShadow: view === "account" ? `0 0 0 2px ${C.gold}` : "0 0 0 1px rgba(245,245,245,0.4)" }}>
+            <Avatar src={p.me.avatarUrl} name={p.me.name} size={28} />
           </Link>
           <form action="/auth/signout" method="post" className="flex">
             <button type="submit" aria-label="Log out" title="Log out">
