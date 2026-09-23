@@ -14,6 +14,22 @@ function urlBase64ToUint8Array(base64String: string) {
 export const pushSupported = () => typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 
 /**
+ * Does this device actually hold a push subscription? The account switch says
+ * what the member wants; this says whether this phone or browser will really
+ * ring. They come apart easily: turn the switch on anywhere and every other
+ * device reads "on" while never having registered.
+ */
+export async function deviceRegistered(): Promise<boolean> {
+  if (!pushSupported()) return false;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    return !!(await reg.pushManager.getSubscription());
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Ask for permission (if not yet decided) and register this device for push.
  * Safe to call repeatedly; it re-saves the subscription so the server stays current.
  */

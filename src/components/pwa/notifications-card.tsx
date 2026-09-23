@@ -1,9 +1,10 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { Bell } from "lucide-react";
 import { C } from "@/components/planner/ui";
 import { isIOSDevice, isStandalone } from "@/lib/pwa/install";
+import { deviceRegistered } from "@/lib/data/push";
 
 const noop = () => () => {};
 
@@ -20,11 +21,29 @@ function deviceState(): DeviceState {
 }
 
 /** The Notifications switch on Account, with a plain list of what it sends and where this device stands. */
-export function NotificationsCard({ on, onToggle, communityOn, onToggleCommunity }: { on: boolean; onToggle: () => void; communityOn: boolean; onToggleCommunity: () => void }) {
+export function NotificationsCard({ on, onToggle, communityOn, onToggleCommunity, onEnableDevice }: { on: boolean; onToggle: () => void; communityOn: boolean; onToggleCommunity: () => void; onEnableDevice: () => Promise<"granted" | "denied" | "unsupported"> }) {
   const state = useSyncExternalStore(noop, deviceState, () => "ask" as DeviceState);
+  // Permission granted is not the same as registered: this device can be missing
+  // a subscription even when the account switch has been on for weeks.
+  const [registered, setRegistered] = useState<boolean | null>(null);
+  const [asking, setAsking] = useState(false);
+  const check = useCallback(() => void deviceRegistered().then(setRegistered), []);
+  useEffect(() => check(), [check, on]);
+
+  const ask = async () => {
+    setAsking(true);
+    await onEnableDevice();
+    check();
+    setAsking(false);
+  };
+
+  // Only claim this device is set up when it truly holds a subscription.
+  const ready = state === "ready" && registered === true;
+  const needsDevice = on && registered === false && (state === "ask" || state === "ready");
+
   const status = !on
     ? { text: "Off. Nothing is sent to any of your devices.", color: C.fade }
-    : state === "ready"
+    : ready
       ? { text: "On, and this device is set up to receive them.", color: C.teal }
       : state === "blocked"
         ? { text: "On, but this browser has blocked notifications. Allow them in the browser\u2019s site settings to get alerts here.", color: C.coral }
@@ -32,7 +51,9 @@ export function NotificationsCard({ on, onToggle, communityOn, onToggleCommunity
           ? { text: "On. iPhones only deliver notifications once TaDa is installed to the home screen. See Install TaDa below.", color: C.goldDeep }
           : state === "unsupported"
             ? { text: "On, but this browser cannot receive notifications. Your other devices still will.", color: C.fade }
-            : { text: "On. This device will ask for permission the first time it needs it.", color: C.fade };
+            : needsDevice
+              ? { text: "On for your account, but this device is not set up yet, so nothing will ring here.", color: C.goldDeep }
+              : { text: "On. Checking this device...", color: C.fade };
 
   return (
     <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>
@@ -67,6 +88,17 @@ export function NotificationsCard({ on, onToggle, communityOn, onToggleCommunity
       <p className="mt-2 text-xs font-medium" style={{ color: status.color }}>
         {status.text}
       </p>
+      {needsDevice && (
+        <button
+          type="button"
+          onClick={() => void ask()}
+          disabled={asking}
+          className="mt-2 w-full rounded-xl py-2 text-xs font-semibold"
+          style={{ background: C.navy, color: C.cream, opacity: asking ? 0.6 : 1 }}
+        >
+          {asking ? "Setting up..." : "Turn on for this device"}
+        </button>
+      )}
       <div className="mt-3 flex items-center justify-between border-t pt-3" style={{ borderColor: C.line }}>
         <div className="pr-3">
           <div className="text-xs font-semibold" style={{ color: C.ink }}>

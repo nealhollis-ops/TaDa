@@ -151,6 +151,8 @@ export type PlannerActions = {
   reportUser: (id: string, reason: string) => Promise<void>;
   toggleMute: () => void;
   toggleNotif: () => Promise<void>;
+  /** Register this phone or browser for push, asking permission if it has not been asked. */
+  enableThisDevice: () => Promise<"granted" | "denied" | "unsupported">;
   toggleCommunityNotif: () => Promise<void>;
   saveAccount: (patch: Partial<Pick<MyProfile, "name" | "bio" | "link" | "hidden" | "private" | "seeking">>) => Promise<void>;
   pickAvatar: (blob: Blob) => Promise<void>;
@@ -1548,16 +1550,31 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     void saveProfile({ muted: next });
   }, [me.muted, saveProfile]);
 
+  /**
+   * Register the device in front of us. The account switch can be on while this
+   * phone has never subscribed, which is how a member ends up believing alerts
+   * are running and never hearing one.
+   */
+  const enableThisDevice = useCallback(async () => {
+    const r = await enablePush();
+    if (r === "granted") showToast("This device is set up. Alerts will come through here.");
+    if (r === "denied") showToast("Your browser blocked notifications. Allow them in its settings to get alerts here.");
+    if (r === "unsupported") showToast("This browser cannot receive notifications. Install TaDa to your home screen and try again.");
+    return r;
+  }, [showToast]);
+
   const toggleNotif = useCallback(async () => {
     const next = !me.notifOn;
     await saveProfile({ notifOn: next });
-    if (next) {
-      const r = await enablePush();
-      if (r === "denied") showToast("Your browser blocked notifications. Allow them in its settings to get alerts.");
-      if (r === "unsupported") showToast("Install TaDa to your home screen to get notifications on this device.");
-    } else {
+    if (!next) {
       await disablePush();
+      return;
     }
+    const r = await enablePush();
+    // The account is on either way: a member may switch it on from a device that
+    // cannot receive, for the sake of the ones that can. We just say so plainly.
+    if (r === "denied") showToast("Alerts are on, but this browser has blocked them. Allow notifications in its settings to hear them here.");
+    if (r === "unsupported") showToast("Alerts are on, but this device cannot receive them. Install TaDa to your home screen to get them here.");
   }, [me.notifOn, saveProfile, showToast]);
 
   const toggleCommunityNotif = useCallback(async () => {
@@ -1625,7 +1642,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
-    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
+    blockUser, unblockUser, reportUser, toggleMute, toggleNotif, enableThisDevice, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
