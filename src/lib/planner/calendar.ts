@@ -84,6 +84,30 @@ export const monthPrefixAhead = (m: MonthInfo, n: number) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 };
 
+export type PickableDate = { date: string; label: string; rest: boolean; otherMonth: boolean };
+
+/**
+ * Every day still worth offering as a plain list, today onward. The date fields
+ * cover long horizons; this is for the compact pickers that want to show the
+ * choice inline, and it defaults to the month on screen.
+ */
+export const pickableDates = (m: MonthInfo, today: string, keep: string | null = null, monthsAhead = 0): PickableDate[] => {
+  const out: PickableDate[] = [];
+  for (let n = 0; n <= monthsAhead; n++) {
+    const mi = n === 0 ? m : monthInfo(new Date(m.year, m.month + n, 1));
+    for (let d = 1; d <= mi.days; d++) {
+      const date = dstr(mi, d);
+      if (date < today) continue;
+      out.push({ date, label: pickLabel(mi, date, n > 0), rest: weekdayOf(mi, d) === 0, otherMonth: n > 0 });
+    }
+  }
+  if (keep && !out.some((x) => x.date === keep)) {
+    const km = monthOfDate(keep);
+    out.unshift({ date: keep, label: pickLabel(km, keep, km.prefix !== m.prefix), rest: weekdayOf(km, dayOfMonth(keep)) === 0, otherMonth: km.prefix !== m.prefix });
+  }
+  return out;
+};
+
 /** "Mon 22" inside the current month, "Thu Oct 3" once it is a different one. */
 export const pickLabel = (mi: MonthInfo, ds: string, withMonth: boolean) => {
   const d = dayOfMonth(ds);

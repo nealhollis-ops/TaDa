@@ -5,13 +5,12 @@ import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-reac
 import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
-import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, WDFULL } from "@/lib/planner/calendar";
+import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, pickableDates, WD, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
-import type { Task } from "@/lib/planner/types";
+import type { DumpItem, Task } from "@/lib/planner/types";
 import type { Block, Repeat } from "@/lib/planner/types";
 
-type DumpItem = { title: string; week: number; big: boolean; date?: string | null };
 
 export function PlanScreen() {
   const p = usePlanner();
@@ -79,27 +78,41 @@ export function PlanScreen() {
         {dumpPreview.length > 0 && (
           <div className="mt-3 rounded-xl p-3" style={{ background: "#fff" }}>
             <div className="mb-2 text-xs font-semibold" style={{ color: C.navy }}>
-              Found {dumpPreview.length} tasks. Tap the star for a big win, pick a day or leave it on Auto, or remove anything wrong.
+              Found {dumpPreview.length} tasks. Tap the star for a big win, pick a day or leave it on Auto, or remove anything wrong. Repeats and times of day come from your own words.
             </div>
             {dumpPreview.map((x, i) => (
               <div key={i} className="flex items-center gap-2 py-1.5" style={{ borderBottom: `1px solid ${C.line}` }}>
                 <button onClick={() => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, big: !y.big } : y)))} aria-label="Big win">
                   <Star size={15} style={{ color: C.gold, fill: x.big ? C.gold : "none" }} />
                 </button>
-                <span className="flex-1 truncate text-sm" style={{ color: C.ink }}>
-                  {x.title}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm" style={{ color: C.ink }}>
+                    {x.title}
+                  </span>
+                  {(x.block || (x.repeat && x.repeat !== "none")) && (
+                    <span className="mt-0.5 flex flex-wrap gap-1">
+                      {x.repeat && x.repeat !== "none" && <Chip color={C.goldDeep} bg={C.goldSoft}>{repeatLabel(x)}</Chip>}
+                      {x.block && <Chip color={blockMeta(x.block)?.text ?? C.fade} bg={blockMeta(x.block)?.tint ?? C.mist}>{blockLabel(x.block)}</Chip>}
+                    </span>
+                  )}
                 </span>
-                <div style={{ maxWidth: 132 }}>
-                  <DayField
-                    value={x.date ?? null}
-                    onChange={(v) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: v } : y)))}
-                    min={p.today}
-                    max={lastPickableDate(m)}
-                    noneLabel={`Auto (${m.weeks[x.week - 1] ? m.weeks[x.week - 1].short : `Wk ${x.week}`})`}
-                    ariaLabel="Due day"
-                    compact
-                  />
-                </div>
+                {/* A plain list here, not a date field: the row has to show at a glance
+                    which week Auto is sending the task to. */}
+                <select
+                  className="rounded-lg border px-1.5 py-1 text-xs"
+                  style={{ ...inputStyle, color: x.date ? C.ink : C.fade, maxWidth: 124 }}
+                  value={x.date ?? "auto"}
+                  onChange={(e) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: e.target.value === "auto" ? null : e.target.value } : y)))}
+                  aria-label="Due day"
+                  disabled={!!x.repeat && x.repeat !== "none"}
+                >
+                  <option value="auto">Auto ({m.weeks[x.week - 1] ? m.weeks[x.week - 1].label : `Wk ${x.week}`})</option>
+                  {pickableDates(m, p.today, x.date ?? null).map((d) => (
+                    <option key={d.date} value={d.date}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
                 <button onClick={() => setDumpPreview(dumpPreview.filter((_, j) => j !== i))} aria-label="Remove">
                   <X size={14} style={{ color: C.fade }} />
                 </button>
@@ -261,6 +274,14 @@ export function PlanScreen() {
       {tab === "active" && p.later.length > 0 && <LaterGroup />}
     </div>
   );
+}
+
+/** "Daily", "Mon - Fri", "Every Fri", "Monthly" - what the dump heard in their words. */
+function repeatLabel(x: DumpItem) {
+  if (x.repeat === "daily") return "Daily";
+  if (x.repeat === "weekdays") return "Mon - Fri";
+  if (x.repeat === "monthly") return "Monthly";
+  return x.weekday != null ? `Every ${WD[x.weekday]}` : "Weekly";
 }
 
 function LaterGroup() {

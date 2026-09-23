@@ -8,11 +8,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { dateLabel, dayOfYear, monthOfDate, todayStr, weekOf, previousMonthPrefix, uid, type MonthInfo } from "@/lib/planner/calendar";
+import { dateLabel, dayOfMonth, dayOfYear, monthOfDate, todayStr, weekOf, previousMonthPrefix, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
-import { DEF_STATS, type Assignment, type Badge, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
+import { DEF_STATS, type Assignment, type Badge, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
 import { enablePush, disablePush } from "@/lib/data/push";
@@ -101,7 +101,7 @@ export type PlannerActions = {
   addTask: (form: NewTaskForm) => void;
   organize: () => void;
   parseDump: (text: string) => Promise<{ title: string; week: number; big: boolean }[]>;
-  addDumped: (items: { title: string; week: number; big: boolean; date?: string | null }[]) => void;
+  addDumped: (items: DumpItem[]) => void;
   runCommand: (text?: string) => Promise<void>;
   startListening: () => void;
   saveEdit: (e: Task) => void;
@@ -814,10 +814,26 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   );
 
   const addDumped = useCallback(
-    (items: { title: string; week: number; big: boolean; date?: string | null }[]) => {
+    (items: DumpItem[]) => {
       if (!items.length) return;
-      // A day the member picked sticks; Organize only places tasks that have no date.
-      const fresh: Task[] = items.map((x) => ({ id: uid(), rootId: null, title: x.title, big: x.big, month: month.prefix, week: taskWeek(month, { date: x.date ?? null, week: x.week }), date: x.date ?? null, block: x.date ? (x.big ? "morning" : "afternoon") : "auto", repeat: "none", anchor: null, done: false, doneAt: null, sort: Date.now(), carriedFrom: null }));
+      // Same builder the Add task form uses, so a repeat fans out into its days
+      // and a stated time of day sticks. Anything with no day is left for Organize.
+      const fresh = items.flatMap((x) =>
+        buildNewTasks(
+          month,
+          {
+            title: x.title,
+            day: x.date ?? "auto",
+            week: String(x.week),
+            block: x.block ?? "auto",
+            big: x.big,
+            repeat: x.repeat ?? "none",
+            anchor: x.repeat === "weekly" && x.weekday != null ? String(x.weekday) : x.repeat === "monthly" && x.date ? String(dayOfMonth(x.date)) : "",
+          },
+          taskWeek(month, { date: x.date ?? null, week: x.week }),
+        ),
+      );
+      if (!fresh.length) return;
       void persistTasks(organizeList(month, [...tasksRef.current, ...fresh]));
     },
     [month, persistTasks],

@@ -47,6 +47,17 @@ export const DEF_STATS: Stats = {
   encourages: 0,
 };
 
+/** One line the brain dump understood, before it becomes tasks. */
+export type DumpItem = {
+  title: string;
+  week: number;
+  big: boolean;
+  date?: string | null;
+  block?: Block | null;
+  repeat?: Repeat;
+  weekday?: number | null;
+};
+
 export type Badge = { id: string; e: string; name: string };
 
 /** What every signed-in member can see about another member. */

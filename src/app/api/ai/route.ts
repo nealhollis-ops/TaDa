@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
-import { monthInfo, todayStr, weekOf, pad } from "@/lib/planner/calendar";
+import { dstr, monthInfo, todayStr, validDate, weekOf, pad, WDFULL } from "@/lib/planner/calendar";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -12,7 +12,7 @@ const MODEL = "claude-opus-5";
 
 /**
  * POST /api/ai
- *  { kind: "dump", text }                 -> { items: [{title, week, big}] }
+ *  { kind: "dump", text }                 -> { items: [{title, week, big, date, block, repeat, weekday}] }
  *  { kind: "command", text, tasks }       -> { ops: [...], say }
  * Runs as the signed-in member; the Anthropic key never leaves the server.
  * Each member gets DAILY_CAP calls a day (bump_ai_usage in Postgres).
@@ -43,11 +43,19 @@ export async function POST(request: Request) {
   let prompt: string;
   if (kind === "dump") {
     prompt =
-      `Someone poured out everything they need to get done this month. Today is ${m.name} ${new Date().getDate()}. ` +
+      `Someone poured out everything they need to get done this month. Today is ${today}, a ${WDFULL[new Date().getDay()]}. ` +
       `The month's weeks run Monday through Sunday: ${weekList}. We're in week ${currentWeek}. ` +
-      `Split their words into separate tasks. Respond with ONLY a JSON array, no other text and no code fences. ` +
-      `Each item: {"title": short task in their own words, "week": a number from ${currentWeek} to ${m.weekCount}, "big": true only if it sounds like a major project}. ` +
-      `If their words hint at timing, honor it. Otherwise spread the tasks evenly across the remaining weeks. Their words: ${text}`;
+      `Split their words into separate tasks. Respond with ONLY a JSON array, no other text and no code fences. Each item: ` +
+      `{"title": short task in their own words, "week": a number from ${currentWeek} to ${m.weekCount}, "big": true only if it sounds like a major project, ` +
+      `"date": "YYYY-MM-DD" only when they name one particular day, else null, ` +
+      `"block": "morning" | "afternoon" | "evening" when they say when in the day, else null, ` +
+      `"repeat": "none" | "daily" | "weekdays" | "weekly" | "monthly", ` +
+      `"weekday": 0 for Sunday through 6 for Saturday when repeat is "weekly", else null}. ` +
+      `Read their timing words: "every day" is daily; "every weekday" or "Monday to Friday" is weekdays; ` +
+      `"on Fridays" or "every Friday" is weekly with weekday 5; "monthly" or "every month" is monthly; ` +
+      `"this Friday" or "on the 14th" is a single date, not a repeat. ` +
+      `"every morning" means repeat daily and block morning. Anything with no timing words gets repeat "none", date null, block null. ` +
+      `Dates must land between ${today} and ${dstr(m, m.days)}. Spread the tasks with no stated timing evenly across the remaining weeks. Their words: ${text}`;
   } else {
     const tasks = Array.isArray(body?.tasks) ? body!.tasks!.slice(0, 400) : [];
     const tNow = new Date();
@@ -84,13 +92,25 @@ export async function POST(request: Request) {
 
     if (kind === "dump") {
       const arr = Array.isArray(parsed) ? parsed : [];
+      const BLOCKS = ["morning", "afternoon", "evening"];
+      const REPEATS = ["none", "daily", "weekdays", "weekly", "monthly"];
       const items = arr
         .filter((x) => x && typeof x.title === "string" && x.title.trim())
-        .map((x) => ({
-          title: String(x.title).trim().slice(0, 120),
-          week: Math.min(m.weekCount, Math.max(1, parseInt(String(x.week), 10) || currentWeek)),
-          big: !!x.big,
-        }));
+        .map((x) => {
+          // A date only counts if it is a real day of this month and not already gone.
+          const date = validDate(m, x.date);
+          const repeat = REPEATS.includes(String(x.repeat)) ? String(x.repeat) : "none";
+          const wd = parseInt(String(x.weekday), 10);
+          return {
+            title: String(x.title).trim().slice(0, 120),
+            week: Math.min(m.weekCount, Math.max(1, parseInt(String(x.week), 10) || currentWeek)),
+            big: !!x.big,
+            date: date && date >= today ? date : null,
+            block: BLOCKS.includes(String(x.block)) ? String(x.block) : null,
+            repeat,
+            weekday: repeat === "weekly" && wd >= 0 && wd <= 6 ? wd : null,
+          };
+        });
       return NextResponse.json({ items });
     }
     const ops = Array.isArray(parsed?.ops) ? parsed.ops : [];
