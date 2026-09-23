@@ -62,6 +62,12 @@ npm run test:rls
   the tab routes under `src/app/(app)/` render the screens, and `src/lib/planner/` holds the pure rules
   (calendar weeks, repeats, Organize, streaks with the Saturday/Sunday rules, calendar-bar ops, month rollover).
 - The brain dump and the calendar bar call `POST /api/ai` (Anthropic key stays on the server; 30 calls per member per day).
+  The dump reply is pinned to a JSON schema, so every item carries a day, a time block and a repeat, and
+  `addDumped` runs them through `buildNewTasks` like any other task.
+- The store holds one month. A task dated in a later month is stamped for that month and kept in a separate
+  `later` list, shown under Later on Plan, so Organize, progress and streak maths stay month-scoped.
+- A repeat lays down one row per day, tied together by `rootId`. An edit reaches `"one"` or `"series"`
+  (`applyEdit`); a day edited on its own carries `exception` and later series edits skip it.
 - Live updates come from Supabase Realtime; push notifications go through `/api/notify` and the service worker.
   Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` in Vercel or pushes are silently skipped.
 - Team invitations go out by email from `/api/invites/send`; the link lands on `/invite/<token>`.

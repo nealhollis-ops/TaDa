@@ -1,6 +1,6 @@
 # TaDa admin guide
 
-For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 22, 2026.
+For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 23, 2026.
 
 The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts whose profile role is `admin`. Members never see it, and the "Open the admin panel" button on Account only appears for admins.
 
@@ -103,7 +103,7 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 
 ## Where things live
 
-- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0018` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post.
+- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0019` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post, `0019` marks a day of a repeat that was edited on its own.
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
 - Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.

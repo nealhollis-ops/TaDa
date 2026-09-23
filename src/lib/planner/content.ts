@@ -141,7 +141,8 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Removed it by accident? Open app.gettada.me in your browser, sign in, and install it again from Account. Your tasks are safe either way; they live in your account, not on the phone.",
   ]},
   { id: "addtasks", t: "Adding tasks", b: [
-    "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or let the app choose one for you inside the week you select. Day lists only offer today onward, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
+    "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or leave the day empty and let the app choose one for you inside the week you select. The day box opens your phone's own calendar and runs from today to a year out, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
+    "Give a task a day in a later month and it waits under Later, at the foot of Plan, grouped by month and showing the year once it isn't this one. Open it there to change it or remove it. When that month comes around it joins the month like any other task.",
     "The month below the buttons has two tabs. Active shows what is still to do, week by week. Completed shows what you have already checked off, so finished work moves out of the way but is never lost. The counts on the tabs are for the whole month.",
     "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip, and tasks with no day yet show Day TBD.",
     "A gray chip like From September means the task was left unfinished last month and carried into this one with no day set. Tap Organize to place it, tap the pencil to choose a day, or remove it if it no longer matters. See When the month turns for the full story.",
@@ -149,7 +150,8 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   ]},
   { id: "dump", t: "The brain dump", b: [
     "The black card at the top of Plan called Pour it all out takes everything at once. Type the whole jumble, or tap the mic on your phone keyboard and just talk.",
-    "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row has a day picker set to Auto; leave it and the app chooses a light day in that week, or pick the exact day yourself and it stays put. Only today and later are offered. Then Add them to my month places everything on your calendar.",
+    "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row has a day set to Auto with the week it is headed for; leave it and the app chooses a light day in that week, or pick the exact day yourself and it stays put. Then Add them to my month places everything on your calendar.",
+    "Say when things happen and it listens. Every weekday do a morning run becomes a Mon - Fri repeat in the morning; on Fridays do the team check-in becomes a weekly one pinned to Friday; pay the invoices Friday evening lands on that Friday in the evening. What it heard shows as a small badge on the row before you add anything, and the timing words are left out of the task name.",
   ]},
   { id: "organize", t: "The Organize button", b: [
     "Organize places every unscheduled task on your lightest open day, spreading the load across the week. Sundays are left open on purpose.",
@@ -162,7 +164,9 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
   ]},
   { id: "repeat", t: "Repeating tasks", b: [
     "When adding or editing a task, choose Daily, Daily (Mon - Fri), Every week, or Every month. Daily puts a copy on every remaining day of the month, Mon - Fri skips the weekend, and Every week drops a copy into each remaining week. Every month brings the task back when the calendar flips, without you doing anything.",
-    "Editing one copy of a daily task updates every unfinished copy. Switch it back to One time and remove any leftovers you don't want.",
+    "Open any copy and the sheet asks how far the change should reach: Just this one, or The whole series. Just this one is the default. Use it to move a single Friday run to the afternoon and leave the rest of the week alone; that day then goes its own way, so later changes to the series don't undo it.",
+    "The whole series carries the name, the time of day, the big-win star and the pattern across every day still to come. Days you already finished are never rewritten, and days you set on their own are left as you set them.",
+    "The same choice decides what the trash can removes: just that day, or the whole run. Finished days stay in your record either way. Switch a task back to One time to stop it repeating.",
     "Pin a repeat to a day, like Every Monday or the 1st of every month, and the copies land on that exact day, with the pattern shown on a small badge on the task.",
   ]},
   { id: "monthflip", t: "When the month turns", b: [
