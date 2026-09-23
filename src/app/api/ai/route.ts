@@ -55,6 +55,8 @@ export async function POST(request: Request) {
       `"on Fridays" or "every Friday" is weekly with weekday 5; "monthly" or "every month" is monthly; ` +
       `"this Friday" or "on the 14th" is a single date, not a repeat. ` +
       `"every morning" means repeat daily and block morning. Anything with no timing words gets repeat "none", date null, block null. ` +
+      `Keep the timing words out of the title, since the repeat and the block already carry them: ` +
+      `"every weekday do a morning run" has the title "Morning run", and "team check-in on Fridays" has the title "Team check-in". ` +
       `Dates must land between ${today} and ${dstr(m, m.days)}. Spread the tasks with no stated timing evenly across the remaining weeks. Their words: ${text}`;
   } else {
     const tasks = Array.isArray(body?.tasks) ? body!.tasks!.slice(0, 400) : [];
