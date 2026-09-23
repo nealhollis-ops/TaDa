@@ -11,6 +11,37 @@ const DAILY_CAP = 30;
 const MODEL = "claude-opus-5";
 
 /**
+ * The shape the dump must come back in. Every field is required, so a repeat or
+ * a time of day can never be quietly dropped; "" and "none" and -1 stand in for
+ * "not stated" so no field is nullable.
+ */
+const DUMP_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["items"],
+  properties: {
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "week", "big", "date", "block", "repeat", "weekday"],
+        properties: {
+          title: { type: "string" },
+          week: { type: "integer" },
+          big: { type: "boolean" },
+          date: { type: "string", description: "YYYY-MM-DD, or an empty string when no single day was named" },
+          block: { type: "string", enum: ["none", "morning", "afternoon", "evening"] },
+          repeat: { type: "string", enum: ["none", "daily", "weekdays", "weekly", "monthly"] },
+          weekday: { type: "integer", description: "0 Sunday to 6 Saturday when repeat is weekly, otherwise -1" },
+        },
+      },
+    },
+  },
+} as const;
+
+
+/**
  * POST /api/ai
  *  { kind: "dump", text }                 -> { items: [{title, week, big, date, block, repeat, weekday}] }
  *  { kind: "command", text, tasks }       -> { ops: [...], say }
@@ -45,16 +76,15 @@ export async function POST(request: Request) {
     prompt =
       `Someone poured out everything they need to get done this month. Today is ${today}, a ${WDFULL[new Date().getDay()]}. ` +
       `The month's weeks run Monday through Sunday: ${weekList}. We're in week ${currentWeek}. ` +
-      `Split their words into separate tasks. Respond with ONLY a JSON array, no other text and no code fences. Each item: ` +
-      `{"title": short task in their own words, "week": a number from ${currentWeek} to ${m.weekCount}, "big": true only if it sounds like a major project, ` +
-      `"date": "YYYY-MM-DD" only when they name one particular day, else null, ` +
-      `"block": "morning" | "afternoon" | "evening" when they say when in the day, else null, ` +
-      `"repeat": "none" | "daily" | "weekdays" | "weekly" | "monthly", ` +
-      `"weekday": 0 for Sunday through 6 for Saturday when repeat is "weekly", else null}. ` +
+      `Split their words into separate tasks, one item each. ` +
+      `"week" is a number from ${currentWeek} to ${m.weekCount}. "big" is true only if it sounds like a major project. ` +
+      `"date" is a day only when they name one particular day, otherwise an empty string. ` +
+      `"block" is the time of day they said, otherwise "none". ` +
+      `"weekday" is 0 for Sunday through 6 for Saturday when repeat is "weekly", otherwise -1. ` +
       `Read their timing words: "every day" is daily; "every weekday" or "Monday to Friday" is weekdays; ` +
       `"on Fridays" or "every Friday" is weekly with weekday 5; "monthly" or "every month" is monthly; ` +
       `"this Friday" or "on the 14th" is a single date, not a repeat. ` +
-      `"every morning" means repeat daily and block morning. Anything with no timing words gets repeat "none", date null, block null. ` +
+      `"every morning" means repeat daily and block morning. Anything with no timing words gets repeat "none", an empty date and block "none". ` +
       `Keep the timing words out of the title, since the repeat and the block already carry them: ` +
       `"every weekday do a morning run" has the title "Morning run", and "team check-in on Fridays" has the title "Team check-in". ` +
       `Dates must land between ${today} and ${dstr(m, m.days)}. Spread the tasks with no stated timing evenly across the remaining weeks. Their words: ${text}`;
@@ -77,7 +107,8 @@ export async function POST(request: Request) {
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 2000,
-      output_config: { effort: "low" },
+      // The dump has the most to get right, so it gets the schema and a step more effort.
+      output_config: kind === "dump" ? { effort: "medium" as const, format: { type: "json_schema" as const, schema: DUMP_SCHEMA as unknown as Record<string, unknown> } } : { effort: "low" as const },
       messages: [{ role: "user", content: prompt }],
     });
     if (response.stop_reason === "refusal") {
@@ -88,19 +119,19 @@ export async function POST(request: Request) {
       .join("\n")
       .replace(/```json|```/g, "")
       .trim();
-    const start = raw.indexOf(kind === "dump" ? "[" : "{");
-    const end = raw.lastIndexOf(kind === "dump" ? "]" : "}");
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
     const parsed = JSON.parse(start >= 0 && end > start ? raw.slice(start, end + 1) : raw);
 
     if (kind === "dump") {
-      const arr = Array.isArray(parsed) ? parsed : [];
+      const arr: Record<string, unknown>[] = Array.isArray(parsed?.items) ? parsed.items : Array.isArray(parsed) ? parsed : [];
       const BLOCKS = ["morning", "afternoon", "evening"];
       const REPEATS = ["none", "daily", "weekdays", "weekly", "monthly"];
       const items = arr
         .filter((x) => x && typeof x.title === "string" && x.title.trim())
         .map((x) => {
           // A date only counts if it is a real day of this month and not already gone.
-          const date = validDate(m, x.date);
+          const date = validDate(m, typeof x.date === "string" && x.date ? x.date : null);
           const repeat = REPEATS.includes(String(x.repeat)) ? String(x.repeat) : "none";
           const wd = parseInt(String(x.weekday), 10);
           return {
@@ -109,6 +140,7 @@ export async function POST(request: Request) {
             big: !!x.big,
             date: date && date >= today ? date : null,
             block: BLOCKS.includes(String(x.block)) ? String(x.block) : null,
+            // "none" and -1 are the schema's way of saying nothing was stated.
             repeat,
             weekday: repeat === "weekly" && wd >= 0 && wd <= 6 ? wd : null,
           };
