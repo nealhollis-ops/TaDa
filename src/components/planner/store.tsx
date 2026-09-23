@@ -12,7 +12,7 @@ import { dateLabel, dayOfMonth, dayOfYear, monthOfDate, todayStr, weekOf, previo
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, seriesKey, spawnRepeaters, taskWeek, type EditScope, type NewTaskForm } from "@/lib/planner/tasks";
-import { DEF_STATS, type Assignment, type Badge, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
+import { DEF_STATS, type Assignment, type AssignmentNote, type Badge, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
 import { enablePush, disablePush } from "@/lib/data/push";
@@ -48,6 +48,8 @@ export type PlannerState = {
   outgoingInvites: TeamInvite[];
   teamMsgs: TeamMessage[];
   assignments: Assignment[];
+  /** Notes kept on assigned work, boss mode only. */
+  assignmentNotes: AssignmentNote[];
   posts: Post[];
   blocked: string[];
   seekers: Member[];
@@ -133,6 +135,9 @@ export type PlannerActions = {
   toggleAssigned: (a: Assignment) => Promise<void>;
   removeAssigned: (id: string) => Promise<void>;
   editAssignment: (id: string, patch: { title: string; toUser: string; date: string | null }) => Promise<void>;
+  /** Add a note to a piece of assigned work and tell the other side about it. */
+  addAssignmentNote: (a: Assignment, text: string) => Promise<void>;
+  notesFor: (assignmentId: string) => AssignmentNote[];
   /** Direct messages with anyone: partners here, boss-team contacts on the Boss Mode tab. */
   threadWith: (userId: string) => Message[];
   sendDirect: (toUser: string, text: string, opts?: { boss?: boolean }) => Promise<void>;
@@ -191,6 +196,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [teamMsgs, setTeamMsgs] = useState<TeamMessage[]>([]);
   const [teamReads, setTeamReads] = useState<Record<string, string>>({});
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignmentNotes, setAssignmentNotes] = useState<AssignmentNote[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
   const [seekers, setSeekers] = useState<Member[]>([]);
@@ -363,19 +369,21 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const refreshShared = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [reqs, pairs, msgs, tms, invs, asg, ps, blk, seek] = await Promise.all([
+      const [reqs, pairs, msgs, tms, invs, asg, notes, ps, blk, seek] = await Promise.all([
         S.loadRequests(sb, me.id),
         S.loadPartnerships(sb, me.id),
         S.loadMessages(sb, me.id),
         S.loadTeams(sb),
         S.loadMyInvites(sb),
         S.loadAssignments(sb),
+        S.loadAssignmentNotes(sb).catch(() => [] as AssignmentNote[]),
         S.loadPosts(sb),
         S.loadBlocks(sb, me.id),
         S.loadSeekers(sb),
       ]);
       const [tmsgs, outInv, reads] = await Promise.all([S.loadTeamMessages(sb, tms.map((t) => t.id)), S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id)), S.loadTeamReads(sb, me.id).catch(() => ({}))]);
       setTeamReads(reads);
+      setAssignmentNotes(notes);
       setRequests(reqs);
       setPartnerships(pairs);
       setMessages(msgs);
@@ -565,6 +573,9 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
           setAssignments(a);
           void ensureMembers(a.flatMap((x) => [x.fromUser, x.toUser ?? ""]));
         });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "assignment_notes" }, () => {
+        void S.loadAssignmentNotes(sb).then(setAssignmentNotes).catch(() => {});
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "team_messages" }, (payload) => {
         const r = payload.new as Record<string, string>;
@@ -1421,6 +1432,26 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [sb, me.id, fail],
   );
 
+  const notesFor = useCallback((assignmentId: string) => assignmentNotes.filter((n) => n.assignmentId === assignmentId), [assignmentNotes]);
+
+  const addAssignmentNote = useCallback(
+    async (a: Assignment, text: string) => {
+      const body = text.trim();
+      if (!body) return;
+      try {
+        const note = await S.addAssignmentNote(sb, me.id, a.id, body);
+        setAssignmentNotes((list) => [...list, note]);
+        // The note goes to the other side of the assignment: the boss hears from
+        // the member, the member hears from the boss. Nobody pings themselves.
+        const other = me.id === a.fromUser ? a.toUser : a.fromUser;
+        if (other && other !== me.id) S.notify("assignment_note", other, { name: me.name, snippet: body, task: a.title, boss: me.id === a.toUser ? "1" : "" });
+      } catch (e) {
+        fail(e, "That note didn't save. Try again.");
+      }
+    },
+    [sb, me.id, me.name, fail],
+  );
+
   const toggleAssigned = useCallback(
     async (a: Assignment) => {
       const turningOn = !a.done;
@@ -1586,14 +1617,14 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   }, [sb, me.id]);
 
   const value: PlannerState & PlannerActions = {
-    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, posts, blocked, seekers,
+    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, assignmentNotes, posts, blocked, seekers,
     burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
     toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 

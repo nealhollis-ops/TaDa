@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
+import { AssignmentNotes } from "../assignment-notes";
 import { Avatar, BadgeStrip, Bar, C, DayField, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
 import { ago, dateLabel, lastPickableDate } from "@/lib/planner/calendar";
 import { levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
@@ -775,6 +776,7 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
             <span>·</span>
             <span>{when}</span>
           </div>
+          <AssignmentNotes a={a} compact />
         </div>
         {owner && (
           <>

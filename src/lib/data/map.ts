@@ -1,5 +1,5 @@
 /* Row <-> app object mapping. Keeps snake_case at the database edge only. */
-import type { Assignment, Member, Message, PartnerRequest, Partnership, Post, Progress, Reply, Stats, Task, Team, TeamMessage } from "@/lib/planner/types";
+import type { Assignment, AssignmentNote, Member, Message, PartnerRequest, Partnership, Post, Progress, Reply, Stats, Task, Team, TeamMessage } from "@/lib/planner/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>;
@@ -96,6 +96,7 @@ export const toAssignment = (r: Row): Assignment => ({
   id: r.id, teamId: r.team_id, fromUser: r.from_user, toUser: r.to_user ?? null, title: r.title, date: r.date ?? null,
   done: !!r.done, doneAt: r.done_at ?? null, createdAt: r.created_at,
 });
+export const toAssignmentNote = (r: Row): AssignmentNote => ({ id: r.id, assignmentId: r.assignment_id, userId: r.user_id, text: r.text, createdAt: r.created_at });
 export const toReply = (r: Row, reactions: Record<string, string[]> = {}): Reply => ({ id: r.id, postId: r.post_id, userId: r.user_id, text: r.text, createdAt: r.created_at, edited: !!r.edited_at, reactions });
 export const toPost = (r: Row, replies: Reply[], reactions: Record<string, string[]>): Post => ({
   id: r.id, userId: r.user_id, type: r.type, text: r.text, milestone: !!r.milestone, pinned: !!r.pinned, createdAt: r.created_at, edited: !!r.edited_at, replies, reactions,

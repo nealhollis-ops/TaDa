@@ -66,7 +66,7 @@ Every pin and unpin is written to the admin log as `post.pin` or `post.unpin`.
 
 ## Notifications, in one paragraph
 
-Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
+Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, notes added to assigned work (each one tells the other side), past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
 
 ## Billing, what you can and cannot do here
 
@@ -103,7 +103,7 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 
 ## Where things live
 
-- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0019` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post, `0019` marks a day of a repeat that was edited on its own.
+- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0019` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post, `0019` marks a day of a repeat that was edited on its own, `0020` notes on boss assignments.
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
 - Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.

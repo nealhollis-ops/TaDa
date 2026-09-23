@@ -6,8 +6,8 @@
  * these helpers just shape the queries.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Assignment, Member, MemberCard, Message, PartnerRequest, Partnership, Post, PostType, Progress, ReactKind, SeatRow, Stats, Team, TeamInvite, TeamMessage } from "@/lib/planner/types";
-import { MEMBER_COLS, toAssignment, toMember, toMessage, toPartnership, toPost, toProgress, toReply, toRequest, toStats, toTeam, toTeamMessage } from "./map";
+import type { Assignment, AssignmentNote, Member, MemberCard, Message, PartnerRequest, Partnership, Post, PostType, Progress, ReactKind, SeatRow, Stats, Team, TeamInvite, TeamMessage } from "@/lib/planner/types";
+import { MEMBER_COLS, toAssignment, toAssignmentNote, toMember, toMessage, toPartnership, toPost, toProgress, toReply, toRequest, toStats, toTeam, toTeamMessage } from "./map";
 
 type SB = SupabaseClient;
 
@@ -253,6 +253,19 @@ export async function loadAssignments(sb: SB): Promise<Assignment[]> {
   return (data ?? []).map(toAssignment);
 }
 
+/** Notes on every assignment this member can see; RLS decides which those are. */
+export async function loadAssignmentNotes(sb: SB): Promise<AssignmentNote[]> {
+  const { data, error } = await sb.from("assignment_notes").select("*").order("created_at");
+  if (error) throw error;
+  return (data ?? []).map(toAssignmentNote);
+}
+
+export async function addAssignmentNote(sb: SB, me: string, assignmentId: string, text: string): Promise<AssignmentNote> {
+  const { data, error } = await sb.from("assignment_notes").insert({ assignment_id: assignmentId, user_id: me, text: text.slice(0, 1000) }).select("*").single();
+  if (error) throw error;
+  return toAssignmentNote(data);
+}
+
 export async function createAssignment(sb: SB, me: string, teamId: string, toUser: string, title: string, date: string | null): Promise<Assignment> {
   const { data, error } = await sb.from("assignments").insert({ team_id: teamId, from_user: me, to_user: toUser, title: title.slice(0, 120), date }).select("*").single();
   if (error) throw error;
@@ -387,6 +400,6 @@ export async function reportMember(sb: SB, me: string, target: { userId?: string
 
 // ---------------------------------------------------------------- push --
 /** Fire-and-forget: ask the server to push a notification to another member. */
-export function notify(kind: "message" | "partner_request" | "team_invite" | "assignment" | "badge" | "level" | "reply" | "mention", toUser: string, extra: Record<string, string> = {}) {
+export function notify(kind: "message" | "partner_request" | "team_invite" | "assignment" | "assignment_note" | "badge" | "level" | "reply" | "mention", toUser: string, extra: Record<string, string> = {}) {
   fetch("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, toUser, ...extra }) }).catch(() => {});
 }

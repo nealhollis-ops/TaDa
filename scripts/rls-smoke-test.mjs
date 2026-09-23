@@ -69,6 +69,23 @@ if (ownPost.data) {
   await admin.from("profiles").update({ role: "member" }).eq("id", B.id);
 }
 
+// assignment notes: only the member the work went to and the boss can read or write them
+{
+  const asg = await admin.from("assignments").insert({ team_id: team.data.id, from_user: A.id, to_user: Cc.id, title: "rls note probe" }).select("id").single();
+  const bossNote = await a.from("assignment_notes").insert({ assignment_id: asg.data.id, user_id: A.id, text: "boss note" });
+  out.boss_note_ok = !bossNote.error;
+  const memberNote = await c.from("assignment_notes").insert({ assignment_id: asg.data.id, user_id: Cc.id, text: "member note" });
+  out.assignee_note_ok = !memberNote.error;
+  // B is on the same team but the work is not theirs
+  const nosy = await b.from("assignment_notes").select("text").eq("assignment_id", asg.data.id);
+  out.teammate_sees_notes = nosy.data?.length ?? nosy.error?.message;
+  const forged = await b.from("assignment_notes").insert({ assignment_id: asg.data.id, user_id: Cc.id, text: "forged" });
+  out.teammate_note_blocked = !!forged.error;
+  const bothSee = await c.from("assignment_notes").select("text").eq("assignment_id", asg.data.id);
+  out.assignee_reads_both = bothSee.data?.length;
+  await admin.from("assignments").delete().eq("id", asg.data.id);
+}
+
 // stripe function must not be callable by users
 const st = await a.rpc("apply_stripe_entitlement", { p_user_id: A.id, p_plan: "boss", p_status: "active", p_stripe_customer_id: "x", p_stripe_sub_id: "y" }); out.stripe_fn_blocked_for_users = !!st.error;
 // cleanup

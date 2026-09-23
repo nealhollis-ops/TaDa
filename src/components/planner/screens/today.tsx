@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { CheckCircle2, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
+import { AssignmentNotes } from "../assignment-notes";
 import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
 import { dayLabel } from "@/lib/planner/calendar";
@@ -105,6 +106,7 @@ export function TodayScreen() {
                     </Chip>
                     <Chip>{late ? "Overdue" : "Due today"}</Chip>
                   </div>
+                  <AssignmentNotes a={a} />
                 </div>
               </div>
             );

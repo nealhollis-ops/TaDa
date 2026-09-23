@@ -20,6 +20,14 @@ const COPY: Record<string, { self: boolean; community?: boolean; make: (x: Extra
   partner_request: { self: false, make: () => ({ title: "TaDa", body: "Someone asked to be your accountability partner.", url: "/partners" }) },
   team_invite: { self: false, make: () => ({ title: "TaDa", body: "You've been invited to a team.", url: "/partners" }) },
   assignment: { self: false, make: () => ({ title: "TaDa", body: "New work was assigned to you.", url: "/today" }) },
+  assignment_note: {
+    self: false,
+    make: (x) => ({
+      title: `${clean(x.name, 40) || "Someone"} added a note`,
+      body: `${clean(x.task, 60) ? clean(x.task, 60) + ": " : ""}${clean(x.snippet, 120)}`,
+      url: x.boss ? "/partners?tab=boss" : "/today",
+    }),
+  },
   reply: {
     self: false,
     community: true,

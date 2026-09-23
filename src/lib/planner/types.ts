@@ -60,6 +60,9 @@ export type DumpItem = {
   weekday?: number | null;
 };
 
+/** A line of conversation kept on a piece of assigned work, boss mode only. */
+export type AssignmentNote = { id: string; assignmentId: string; userId: string; text: string; createdAt: string };
+
 export type Badge = { id: string; e: string; name: string };
 
 /** What every signed-in member can see about another member. */
