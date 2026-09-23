@@ -10,12 +10,13 @@ import type { Task } from "@/lib/planner/types";
 export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
   const p = usePlanner();
   return (
-    <div className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: t.done ? 0.65 : 1 }}>
+    <div className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: t.done ? 0.65 : 1 }}>
       <button onClick={() => p.toggleTask(t)} className="shrink-0" aria-label={t.done ? "Mark not done" : "Mark done"}>
         {t.done ? <CheckCircle2 size={24} style={{ color: C.teal }} /> : <Circle size={24} style={{ color: C.fade }} />}
       </button>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium" style={{ color: C.ink, textDecoration: t.done ? "line-through" : "none" }}>
+        {/* Titles wrap rather than cut off: there is nowhere else to read the rest. */}
+        <div className="text-sm font-medium" style={{ color: C.ink, textDecoration: t.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
           {t.big && <Star size={13} className="mr-1 inline" style={{ color: C.gold, fill: C.gold }} />}
           {t.title}
         </div>

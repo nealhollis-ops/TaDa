@@ -91,12 +91,12 @@ export function TodayScreen() {
             const late = !a.done && !!a.date && a.date < p.today;
             const team = p.teams.find((t) => t.id === a.teamId);
             return (
-              <div key={a.id} className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: a.done ? 0.65 : 1 }}>
+              <div key={a.id} className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: a.done ? 0.65 : 1 }}>
                 <button onClick={() => void p.toggleAssigned(a)} className="shrink-0" aria-label="Toggle assigned task">
                   {a.done ? <CheckCircle2 size={24} style={{ color: C.teal }} /> : <Circle size={24} style={{ color: late ? C.coral : C.fade }} />}
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none" }}>
+                  <div className="text-sm font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
                     {a.title}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1.5">

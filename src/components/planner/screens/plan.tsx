@@ -86,7 +86,7 @@ export function PlanScreen() {
                   <Star size={15} style={{ color: C.gold, fill: x.big ? C.gold : "none" }} />
                 </button>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm" style={{ color: C.ink }}>
+                  <span className="block text-sm" style={{ color: C.ink, overflowWrap: "anywhere" }}>
                     {x.title}
                   </span>
                   {(x.block || (x.repeat && x.repeat !== "none")) && (
@@ -327,9 +327,9 @@ function collapseRepeats(list: Task[]): { t: Task; count: number }[] {
 function LaterRow({ t, count }: { t: Task; count: number }) {
   const p = usePlanner();
   return (
-    <div className="mb-2 flex items-center gap-3 rounded-xl px-3 py-3" style={{ background: "#fff" }}>
+    <div className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff" }}>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium" style={{ color: C.ink }}>
+        <div className="text-sm font-medium" style={{ color: C.ink, overflowWrap: "anywhere" }}>
           {t.big && <Star size={13} className="mr-1 inline" style={{ color: C.gold, fill: C.gold }} />}
           {t.title}
         </div>

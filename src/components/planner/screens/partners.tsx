@@ -592,7 +592,7 @@ function TeamCard({ t }: { t: Team }) {
                   {tank.map((a) => (
                     <div key={a.id} className="mb-1.5 flex items-center gap-2">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-xs font-medium" style={{ color: C.ink }}>
+                        <div className="text-xs font-medium" style={{ color: C.ink, overflowWrap: "anywhere" }}>
                           {a.title}
                         </div>
                         <div style={{ fontSize: 10, color: C.fade }}>{a.date ? `Due ${dateLabel(a.date, p.month)}` : "No deadline"}</div>
@@ -762,12 +762,12 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
   const when = a.done ? (a.doneAt ? `Done ${dateLabel(a.doneAt.slice(0, 10), p.month)}` : "Done") : a.date ? (late ? `Overdue, was ${dateLabel(a.date, p.month)}` : `Due ${dateLabel(a.date, p.month)}`) : "No deadline";
   return (
     <div className="mb-1.5 rounded-xl px-3 py-2" style={{ background: C.cream, opacity: a.done ? 0.65 : 1 }}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-start gap-2">
         <button onClick={() => canToggle && void p.toggleAssigned(a)} className="shrink-0" aria-label="Toggle">
           {a.done ? <CheckCircle2 size={18} style={{ color: C.teal }} /> : <Circle size={18} style={{ color: late ? C.coral : C.fade }} />}
         </button>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none" }}>
+          <div className="text-xs font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
             {a.title}
           </div>
           <div className="mt-0.5 flex gap-1" style={{ fontSize: 10, color: late ? C.coral : C.fade }}>
