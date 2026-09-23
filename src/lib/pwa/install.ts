@@ -17,6 +17,13 @@ const notify = () => listeners.forEach((fn) => fn());
 export function startInstallCapture() {
   if (listening || typeof window === "undefined") return;
   listening = true;
+  // The inline script in the root layout listens from the first moment of the
+  // page; adopt anything it already caught.
+  const early = (window as Window & { __tadaInstallOffer?: BeforeInstallPromptEvent | null }).__tadaInstallOffer;
+  if (early) {
+    deferred = early;
+    notify();
+  }
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferred = e as BeforeInstallPromptEvent;
@@ -24,6 +31,7 @@ export function startInstallCapture() {
   });
   window.addEventListener("appinstalled", () => {
     deferred = null;
+    (window as Window & { __tadaInstallOffer?: BeforeInstallPromptEvent | null }).__tadaInstallOffer = null;
     notify();
   });
 }
@@ -42,7 +50,9 @@ export async function runInstall() {
   if (!offer) return "unavailable" as const;
   await offer.prompt();
   const { outcome } = await offer.userChoice;
+  // An offer can only be used once, whatever they chose.
   deferred = null;
+  (window as Window & { __tadaInstallOffer?: BeforeInstallPromptEvent | null }).__tadaInstallOffer = null;
   notify();
   return outcome;
 }
