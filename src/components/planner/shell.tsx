@@ -10,6 +10,7 @@ import { Avatar, Bar, C, Chip, DayField, Overlay, inputCls, inputStyle } from ".
 import { Celebrate } from "./celebrate";
 import { ago, lastPickableDate, ord, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, computeBadges, levelColor, levelIcon, levelOf } from "@/lib/planner/content";
+import { inSeries, seriesOf, type EditScope } from "@/lib/planner/tasks";
 import { loadProfileCard } from "@/lib/data/social";
 import type { Block, MemberCard, Repeat } from "@/lib/planner/types";
 
@@ -473,6 +474,11 @@ function EditSheet() {
   const m = p.month;
   const upd = (patch: Partial<typeof e>) => p.set("editing", { ...e, ...patch });
   const sel = "w-full rounded-xl border px-2 py-2.5 text-sm";
+  // A repeat lays down one task per day. Editing one of them should not quietly
+  // rewrite the rest, so when this task has company the member picks the reach.
+  const series = inSeries(p.tasks, e);
+  const [scope, setScope] = useState<EditScope>("one");
+  const reach = series ? scope : "series";
   return (
     <Overlay z={80} align="end">
       <div className="mb-3 flex items-center justify-between">
@@ -483,6 +489,27 @@ function EditSheet() {
           <X size={18} style={{ color: C.fade }} />
         </button>
       </div>
+      {series && (
+        <div className="mb-3">
+          <div className="mb-1 flex gap-1 rounded-xl p-1" style={{ background: C.mist }}>
+            {(["one", "series"] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => setScope(k)}
+                className="flex-1 rounded-lg py-1.5 text-xs font-semibold"
+                style={{ background: scope === k ? "#fff" : "transparent", color: scope === k ? C.navy : C.fade }}
+              >
+                {k === "one" ? "Just this one" : "The whole series"}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs" style={{ color: C.fade }}>
+            {scope === "one"
+              ? "This day only. It stops following the rest, so a later change to the series leaves it as you set it."
+              : `Every day still to come in this run${seriesOf(p.tasks, e).some((t) => t.exception && t.id !== e.id) ? ", apart from any you have already set on their own" : ""}. Finished days are left alone.`}
+          </p>
+        </div>
+      )}
       <input className={`${inputCls} mb-3`} style={inputStyle} value={e.title} onChange={(ev) => upd({ title: ev.target.value })} />
       <div className="mb-3 grid grid-cols-2 gap-2">
         <DayField
@@ -542,11 +569,11 @@ function EditSheet() {
         Big win
       </label>
       <div className="flex gap-2">
-        <button onClick={() => p.removeTask(e.id)} className="rounded-xl px-4 py-2.5" style={{ background: C.mist }} aria-label="Delete task">
+        <button onClick={() => p.removeTask(e.id, reach)} className="rounded-xl px-4 py-2.5" style={{ background: C.mist }} aria-label={series && scope === "series" ? "Delete the whole series" : "Delete task"} title={series && scope === "series" ? "Delete the whole series" : "Delete task"}>
           <Trash2 size={16} style={{ color: C.coral }} />
         </button>
-        <button onClick={() => p.saveEdit(e)} className="flex-1 rounded-xl py-2.5 font-semibold" style={{ background: C.navy, color: C.cream }}>
-          Save
+        <button onClick={() => p.saveEdit(e, reach)} className="flex-1 rounded-xl py-2.5 font-semibold" style={{ background: C.navy, color: C.cream }}>
+          {series && scope === "series" ? "Save the series" : "Save"}
         </button>
       </div>
     </Overlay>

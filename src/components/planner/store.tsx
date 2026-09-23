@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { dateLabel, dayOfMonth, dayOfYear, monthOfDate, todayStr, weekOf, previousMonthPrefix, type MonthInfo } from "@/lib/planner/calendar";
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
-import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, spawnRepeaters, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
+import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, seriesKey, spawnRepeaters, taskWeek, type EditScope, type NewTaskForm } from "@/lib/planner/tasks";
 import { DEF_STATS, type Assignment, type Badge, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
@@ -104,9 +104,9 @@ export type PlannerActions = {
   addDumped: (items: DumpItem[]) => void;
   runCommand: (text?: string) => Promise<void>;
   startListening: () => void;
-  saveEdit: (e: Task) => void;
+  saveEdit: (e: Task, scope?: EditScope) => void;
   removeLater: (id: string) => void;
-  removeTask: (id: string) => void;
+  removeTask: (id: string, scope?: EditScope) => void;
   sendMsg: (text: string) => Promise<void>;
   addPost: (type: PostType, text: string) => Promise<void>;
   addReply: (postId: string, text: string) => Promise<void>;
@@ -897,7 +897,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   }, [listening, runCommand]);
 
   const saveEdit = useCallback(
-    (e: Task) => {
+    (e: Task, scope: EditScope = "series") => {
       if (!e.title.trim()) return;
       const wasLater = laterRef.current.some((t) => t.id === e.id);
       const goesLater = !!e.date && !e.date.startsWith(month.prefix);
@@ -910,15 +910,18 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         setEditing(null);
         return;
       }
-      void persistTasks(applyEdit(month, tasksRef.current, e, currentWeek));
+      void persistTasks(applyEdit(month, tasksRef.current, e, currentWeek, scope));
       setEditing(null);
     },
     [month, currentWeek, persistTasks, persistLater, moveBetweenLists],
   );
 
   const removeTask = useCallback(
-    (id: string) => {
-      void persistTasks(tasksRef.current.filter((t) => t.id !== id));
+    (id: string, scope: EditScope = "one") => {
+      const target = tasksRef.current.find((t) => t.id === id);
+      // Removing a series takes the days still to come; finished ones stay in the record.
+      const gone = target && scope === "series" ? new Set(tasksRef.current.filter((t) => seriesKey(t) === seriesKey(target) && !t.done).map((t) => t.id)) : new Set([id]);
+      void persistTasks(tasksRef.current.filter((t) => !gone.has(t.id)));
       setEditing(null);
     },
     [persistTasks],

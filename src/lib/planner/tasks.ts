@@ -11,6 +11,18 @@ const isBlock = (b: unknown): b is Block => typeof b === "string" && BLOCKS.incl
 
 export const taskWeek = (m: MonthInfo, t: Pick<Task, "date" | "week">) => (t.date ? weekOf(m, t.date) : t.week);
 
+/** What ties the copies of a repeating task together. */
+export const seriesKey = (t: Pick<Task, "id" | "rootId">) => t.rootId || t.id;
+
+/** Every copy of a repeating task, the one in hand included. */
+export const seriesOf = (list: Task[], t: Pick<Task, "id" | "rootId">) => list.filter((x) => seriesKey(x) === seriesKey(t));
+
+/** Is this task one day of a run of days, rather than a task on its own? */
+export const inSeries = (list: Task[], t: Pick<Task, "id" | "rootId">) => seriesOf(list, t).length > 1;
+
+/** Which copies an edit reaches: never a finished day, never one already edited on its own. */
+export type EditScope = "one" | "series";
+
 /** Calendar days for a daily repeat from `fromDay` to month end (weekdays only when asked). */
 export const dailyDays = (m: MonthInfo, fromDay: number, weekdaysOnly: boolean) => {
   const out: number[] = [];
@@ -53,6 +65,7 @@ const base = (m: MonthInfo, partial: Partial<Task> & { title: string }): Task =>
   doneAt: null,
   sort: partial.sort ?? Date.now(),
   carriedFrom: partial.carriedFrom ?? null,
+  exception: partial.exception ?? false,
 });
 
 /** Turn the Add task form into the rows to insert (repeats fan out into copies). */
@@ -198,7 +211,13 @@ export function creditPerfectWeek(m: MonthInfo, list: Task[], t: Task, stats: St
 }
 
 /** Apply the Edit task sheet, including repeat fan-out. */
-export function applyEdit(m: MonthInfo, tasks: Task[], e: Task, currentWeek: number): Task[] {
+export function applyEdit(m: MonthInfo, tasks: Task[], e: Task, currentWeek: number, scope: EditScope = "series"): Task[] {
+  // Editing one day of a run leaves the rest alone and marks this day an
+  // exception, so a later series edit does not undo the member's choice.
+  if (scope === "one") {
+    const week = e.date ? weekOf(m, e.date) : e.week;
+    return tasks.map((t) => (t.id === e.id ? { ...e, title: e.title.trim(), week, exception: inSeries(tasks, e) ? true : t.exception } : t));
+  }
   const rootId = e.rootId || e.id;
   const title = e.title.trim();
   const anchor = e.anchor === undefined ? null : e.anchor;
@@ -208,7 +227,7 @@ export function applyEdit(m: MonthInfo, tasks: Task[], e: Task, currentWeek: num
 
   if (isDaily(e.repeat)) {
     // Edits ripple to every unfinished copy; missing days from today onward are filled in.
-    next = next.map((t) => ((t.rootId || t.id) === rootId && !t.done ? { ...t, title, big: !!e.big, repeat: e.repeat, anchor: null, block: t.id === e.id ? e.block : t.block } : t));
+    next = next.map((t) => (seriesKey(t) === rootId && !t.done && !(t.exception && t.id !== e.id) ? { ...t, title, big: !!e.big, repeat: e.repeat, anchor: null, block: e.block } : t));
     const have = new Set(next.filter((t) => (t.rootId || t.id) === rootId).map((t) => t.date));
     dailyDays(m, tToday, e.repeat === "weekdays").forEach((d) => {
       const ds = dstr(m, d);
@@ -216,7 +235,7 @@ export function applyEdit(m: MonthInfo, tasks: Task[], e: Task, currentWeek: num
     });
   } else if (e.repeat === "weekly" && anchor !== null) {
     next = next.map((t) => {
-      if ((t.rootId || t.id) !== rootId || t.done) return t;
+      if (seriesKey(t) !== rootId || t.done || (t.exception && t.id !== e.id)) return t;
       const w = taskWeek(m, t);
       const d = anchorDayInWeek(m, w, anchor);
       return d

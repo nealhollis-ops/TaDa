@@ -21,6 +21,7 @@ export const toTask = (r: Row): Task => ({
   doneAt: r.done_at ?? null,
   sort: r.sort ?? 0,
   carriedFrom: r.carried_from ?? null,
+  exception: !!r.exception,
 });
 
 export const fromTask = (userId: string, t: Task) => ({
@@ -39,6 +40,7 @@ export const fromTask = (userId: string, t: Task) => ({
   done_at: t.doneAt,
   sort: t.sort,
   carried_from: t.carriedFrom,
+  exception: t.exception,
 });
 
 export const toStats = (r: Row | null): Stats | null =>

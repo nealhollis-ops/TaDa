@@ -19,6 +19,8 @@ export type Task = {
   doneAt: string | null;
   sort: number;
   carriedFrom: string | null;
+  /** True once this day was edited on its own; series edits skip it. */
+  exception: boolean;
 };
 
 export type Stats = {
