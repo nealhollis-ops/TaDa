@@ -125,8 +125,13 @@ export function PlanScreen() {
         <button onClick={() => p.set("showAdd", !p.showAdd)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff" }}>
           <Plus size={18} /> Add task
         </button>
-        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.gold, color: C.ink }}>
-          <Sparkles size={18} /> Organize
+        <button
+          onClick={() => void p.organize()}
+          disabled={p.organizing}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold"
+          style={{ background: C.gold, color: C.ink, opacity: p.organizing ? 0.7 : 1 }}
+        >
+          <Sparkles size={18} className={p.organizing ? "animate-pulse" : ""} /> {p.organizing ? "Organizing..." : "Organize"}
         </button>
       </div>
       <p className="mb-4 text-xs" style={{ color: C.fade }}>

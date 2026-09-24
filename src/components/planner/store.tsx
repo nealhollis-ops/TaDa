@@ -101,7 +101,9 @@ export type PlannerActions = {
   inMyBossGroup: (id: string) => boolean;
   toggleTask: (t: Task) => void;
   addTask: (form: NewTaskForm) => void;
-  organize: () => void;
+  organize: () => Promise<void>;
+  /** True while Organize is placing tasks, so the button can say so. */
+  organizing: boolean;
   parseDump: (text: string) => Promise<{ title: string; week: number; big: boolean }[]>;
   addDumped: (items: DumpItem[]) => void;
   runCommand: (text?: string) => Promise<void>;
@@ -800,7 +802,27 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [sb, me.id, month, fail],
   );
 
-  const organize = useCallback(() => void persistTasks(organizeList(month, tasksRef.current)), [month, persistTasks]);
+  const [organizing, setOrganizing] = useState(false);
+
+  /**
+   * Place every task that has no day yet. Pressing a button that quietly
+   * rearranges your month and seeing nothing happen is unnerving, so this says
+   * what it did - including when there was nothing to do.
+   */
+  const organize = useCallback(async () => {
+    const waiting = tasksRef.current.filter((t) => !t.date && !t.done).length;
+    if (!waiting) {
+      showToast("Everything already has a day. Nothing to organize.");
+      return;
+    }
+    setOrganizing(true);
+    try {
+      await persistTasks(organizeList(month, tasksRef.current));
+      showToast(waiting === 1 ? "One task placed on your calendar." : `${waiting} tasks placed across your month.`);
+    } finally {
+      setOrganizing(false);
+    }
+  }, [month, persistTasks, showToast]);
 
   const parseDump = useCallback(
     async (text: string) => {
@@ -1635,7 +1657,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
-    toggleTask, addTask, organize, parseDump, addDumped, runCommand, startListening, saveEdit, removeLater, removeTask,
+    toggleTask, addTask, organize, organizing, parseDump, addDumped, runCommand, startListening, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
