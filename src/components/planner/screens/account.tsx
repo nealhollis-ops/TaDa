@@ -8,6 +8,7 @@ import { NotificationsCard } from "@/components/pwa/notifications-card";
 import { usePlanner } from "../store";
 import { Avatar, C, Chip, inputCls, inputStyle } from "../ui";
 import { AvatarCropper } from "../avatar-cropper";
+import { ShareCard } from "../share-card";
 import { BADGE_CATALOG, HELP, levelColor, levelIcon, levelOf, nextLevelAt } from "@/lib/planner/content";
 import { loadSeatRoster } from "@/lib/data/social";
 import type { SeatRow } from "@/lib/planner/types";
@@ -286,6 +287,7 @@ export function AccountScreen() {
         </div>
       )}
 
+      <ShareCard />
       <InstallCard />
 
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>

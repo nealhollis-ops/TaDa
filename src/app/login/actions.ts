@@ -9,6 +9,9 @@ export type AuthState = { error?: string; message?: string; mode?: AuthMode } | 
 
 const clean = (v: FormDataEntryValue | null) => String(v ?? "").trim();
 const cleanEmail = (v: FormDataEntryValue | null) => clean(v).toLowerCase();
+/** The ?from= slug of whoever shared the app, shaped like a slug and nothing else. */
+const safeFrom = (v: FormDataEntryValue | null) => clean(v).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 24) || null;
+
 const safeNext = (v: FormDataEntryValue | null) => {
   const n = clean(v);
   return n.startsWith("/") && !n.startsWith("//") ? n : "/today";
@@ -37,6 +40,7 @@ export async function authAction(_prev: AuthState, formData: FormData): Promise<
   const password = String(formData.get("password") ?? "");
   const name = clean(formData.get("name")).slice(0, 40);
   const next = safeNext(formData.get("next"));
+  const from = safeFrom(formData.get("from"));
 
   if (!email || !email.includes("@")) return { mode, error: "Enter a valid email address." };
 
@@ -56,7 +60,7 @@ export async function authAction(_prev: AuthState, formData: FormData): Promise<
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: callback, data: { name } },
+      options: { emailRedirectTo: callback, data: { name, ...(from ? { referred_from: from } : {}) } },
     });
     if (error) return { mode, error: friendly(error.message) };
     // When email confirmation is off, Supabase returns a live session right away.
@@ -67,7 +71,8 @@ export async function authAction(_prev: AuthState, formData: FormData): Promise<
   if (mode === "magic") {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: callback, shouldCreateUser: true },
+      // A magic link can create the account too, so it carries the slug as well.
+      options: { emailRedirectTo: callback, shouldCreateUser: true, data: from ? { referred_from: from } : undefined },
     });
     if (error) return { mode, error: friendly(error.message) };
     return { mode, message: "Magic link sent. Open the email on this device and tap the link." };

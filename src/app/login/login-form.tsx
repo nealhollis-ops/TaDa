@@ -13,11 +13,13 @@ const input =
 
 export function LoginForm({
   next,
+  from,
   initialError,
   initialMode,
   initialEmail,
 }: {
   next?: string;
+  from?: string;
   initialError?: string;
   initialMode?: string;
   initialEmail?: string;
@@ -54,6 +56,8 @@ export function LoginForm({
       <form action={formAction} className="flex flex-col gap-3">
         <input type="hidden" name="mode" value={mode} />
         <input type="hidden" name="next" value={next ?? "/today"} />
+        {/* Who shared the app, carried from the link they sent. */}
+        {from && <input type="hidden" name="from" value={from} />}
 
         {mode === "signup" && (
           <input name="name" placeholder="Your first name" autoComplete="given-name" maxLength={40} className={input} />
