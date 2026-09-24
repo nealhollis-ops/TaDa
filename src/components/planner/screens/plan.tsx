@@ -26,7 +26,16 @@ export function PlanScreen() {
   // opens the form and then lands on this screen.
   const addRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (p.showAdd) addRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!p.showAdd) return;
+    // scrollIntoView does nothing on this page - the document height is pinned
+    // by the h-full root - so scroll the window itself, on the next frame so the
+    // form has been laid out. The 72px clears the sticky header.
+    const frame = requestAnimationFrame(() => {
+      const el = addRef.current;
+      if (!el) return;
+      window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72), behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [p.showAdd]);
   const activeCount = p.tasks.filter((t) => !t.done).length;
   const completedCount = p.tasks.length - activeCount;
@@ -148,7 +157,7 @@ export function PlanScreen() {
         <b style={{ color: C.ink }}>Organize</b> takes every task that still has no day on it and spreads them across your month for you. Each one lands in the week it already belongs to, on whichever day of that week has the least on it, so nothing piles up on one day. Sundays are left open on purpose, and a task with a day you chose is never moved. Nothing is added or removed, and you can still change any day afterwards.
       </p>
       {p.showAdd && (
-        <div ref={addRef} className="mb-5 rounded-2xl p-4" style={{ background: "#fff", scrollMarginTop: 80 }}>
+        <div ref={addRef} className="mb-5 rounded-2xl p-4" style={{ background: "#fff" }}>
           <input
             className={`${inputCls} mb-2`}
             style={inputStyle}
