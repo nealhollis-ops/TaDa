@@ -129,7 +129,7 @@ export const levelIcon = (lv: number) => (lv >= 10 ? "🌋" : lv >= 7 ? "🏔️
 export const HELP: { id: string; t: string; b: string[] }[] = [
   { id: "start", t: "Getting started", b: [
     "Sign in and you're in. Today greets you by name, shows the day's power line, and lists what's on for the morning, afternoon, and evening.",
-    "Across the top right, left to right: the month, the bell for notifications, the speaker to mute sounds, your streak once you have one going, your photo for your Account, and the door to log out.",
+    "Across the top right, left to right: the month, the bell for notifications, the speaker to mute sounds, your streak once you have one going, and your photo, which opens your Account. Log out lives at the foot of Account.",
     "The app runs on the current calendar month. Weeks go Monday through Sunday, and Sunday is the built in rest day.",
     "A getting started checklist floats at the bottom right until you finish it: watch the tour, add a task, check one off, say hi in the community, and reach out for a partner. Finish all five and the confetti flies.",
     "Missed the welcome tour, or want to see it again? Use the Watch the welcome tour link at the end of this section. It is a short video walk through the whole app.",
@@ -253,7 +253,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Want the community quieter? The From the community switch under Notifications turns off replies and mentions only, both on your device and under the bell, while everything else still comes through.",
   ]},
   { id: "logout", t: "Logging out and switching accounts", b: [
-    "Tap the door icon at the top right of any screen, or the Log out button in Account. You'll land on the sign-in page. On a shared computer, log out when you're done.",
+    "Open Account, from your photo at the top right, and tap Log out at the foot of the screen. You'll land on the sign-in page. On a shared computer, log out when you're done.",
     "To sign in on a new device, open app.gettada.me and use the same email. A magic link or your password gets you in; set or change a password from the link at the bottom of Account.",
   ]},
   { id: "faq", t: "Common questions", b: [
