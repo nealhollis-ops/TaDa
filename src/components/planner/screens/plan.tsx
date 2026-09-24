@@ -5,6 +5,7 @@ import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-reac
 import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
+import { useDictation } from "../use-dictation";
 import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, pickableDates, WD, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
@@ -20,6 +21,7 @@ export function PlanScreen() {
   const [dumpBusy, setDumpBusy] = useState(false);
   const [dumpPreview, setDumpPreview] = useState<DumpItem[]>([]);
   const [tab, setTab] = useState<"active" | "completed">("active");
+  const { listening: dumpListening, toggle: dumpMic } = useDictation(setDumpText, () => p.showToast("Talking isn’t supported in this browser. Use the mic on your phone keyboard instead."));
   // The form opens below the fold on a phone, and below the dump card now that
   // the buttons sit under it. Bring it to the member rather than making them
   // hunt for it. Also covers arriving from the getting-started checklist, which
@@ -69,16 +71,28 @@ export function PlanScreen() {
           </span>
         </div>
         <p className="mb-3 text-xs" style={{ color: C.goldSoft }}>
-          Type everything on your plate in one big jumble, or tap the mic on your phone keyboard and just talk. It gets split into tasks and placed on your calendar for you.
+          Type everything on your plate in one big jumble, or tap the mic and just talk. It gets split into tasks and placed on your calendar for you.
         </p>
-        <textarea
-          className="w-full resize-none rounded-xl px-3 py-2.5 text-sm outline-none"
-          rows={4}
-          style={{ background: "#fff", color: C.ink }}
-          placeholder="Finish the workbook, record two videos, call about the printer, get the emails written..."
-          value={dumpText}
-          onChange={(e) => setDumpText(e.target.value)}
-        />
+        <div className="relative">
+          <textarea
+            className="w-full resize-none rounded-xl px-3 py-2.5 pr-12 text-sm outline-none"
+            rows={4}
+            style={{ background: "#fff", color: C.ink, borderColor: dumpListening ? C.coral : undefined }}
+            placeholder={dumpListening ? "Listening, keep talking..." : "Finish the workbook, record two videos, call about the printer, get the emails written..."}
+            value={dumpText}
+            onChange={(e) => setDumpText(e.target.value)}
+          />
+          {/* The words land in the box and stay there; nothing is sorted until Make it into tasks. */}
+          <button
+            onClick={dumpMic}
+            className="absolute right-2 top-2 rounded-lg p-2"
+            style={{ background: dumpListening ? C.coral : C.mist }}
+            aria-label={dumpListening ? "Stop listening" : "Talk instead of typing"}
+            title={dumpListening ? "Stop listening" : "Talk instead of typing"}
+          >
+            <Mic size={16} style={{ color: dumpListening ? "#fff" : C.navy }} className={dumpListening ? "animate-pulse" : ""} />
+          </button>
+        </div>
         <button onClick={() => void parse()} disabled={dumpBusy} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-semibold" style={{ background: C.gold, color: C.ink, opacity: dumpBusy ? 0.7 : 1 }}>
           <Wand2 size={16} /> {dumpBusy ? "Sorting it out..." : "Make it into tasks"}
         </button>
@@ -158,7 +172,7 @@ export function PlanScreen() {
       <p className="mb-4 text-xs" style={{ color: C.fade }}>
         <b style={{ color: C.ink }}>Add task</b> opens a short form: what needs doing, which day and time of day, and whether it repeats. Pick a day yourself or leave it to TaDa.
         <br />
-        <b style={{ color: C.ink }}>Organize</b> takes every task that still has no day on it and spreads them across your month for you. Each one lands in the week it already belongs to, on whichever day of that week has the least on it, so nothing piles up on one day. Sundays are left open on purpose, and a task with a day you chose is never moved. Nothing is added or removed, and you can still change any day afterwards.
+        <b style={{ color: C.ink }}>Organize</b> gives every task without a day one: the quietest day of the week it already sits in. Sundays stay open, and days you picked yourself are left alone.
       </p>
       {p.showAdd && (
         <div ref={addRef} className="mb-5 rounded-2xl p-4" style={{ background: "#fff" }}>

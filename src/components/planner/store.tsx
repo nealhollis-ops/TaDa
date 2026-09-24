@@ -71,7 +71,6 @@ export type PlannerState = {
   cmdText: string;
   cmdBusy: boolean;
   cmdSay: string;
-  listening: boolean;
   toast: Toast | null;
   inbox: Notice[];
   inboxOpen: boolean;
@@ -107,7 +106,6 @@ export type PlannerActions = {
   parseDump: (text: string) => Promise<{ title: string; week: number; big: boolean }[]>;
   addDumped: (items: DumpItem[]) => void;
   runCommand: (text?: string) => Promise<void>;
-  startListening: () => void;
   saveEdit: (e: Task, scope?: EditScope) => void;
   removeLater: (id: string) => void;
   removeTask: (id: string, scope?: EditScope) => void;
@@ -224,7 +222,6 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [cmdText, setCmdText] = useState("");
   const [cmdBusy, setCmdBusy] = useState(false);
   const [cmdSay, setCmdSay] = useState("");
-  const [listening, setListening] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
   // Mirrors of the latest state for callbacks that run outside the render cycle.
@@ -237,7 +234,6 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     membersRef.current = members;
   }, [tasks, stats, members]);
   const celebRef = useRef(0);
-  const recogRef = useRef<SpeechRecognition | null>(null);
 
   // If the browser's sign-in changes underneath this tab (another tab signed in
   // as someone else, or signed out), every write here would fail the privacy
@@ -900,33 +896,6 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [cmdText, cmdBusy, month, currentWeek, persistTasks],
   );
 
-  const startListening = useCallback(() => {
-    const w = window as Window & { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition };
-    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!SR) {
-      setCmdSay("Voice listening isn't supported in this browser. Use the mic on your phone keyboard instead.");
-      return;
-    }
-    if (listening && recogRef.current) {
-      recogRef.current.stop();
-      return;
-    }
-    const r = new SR();
-    recogRef.current = r;
-    r.lang = "en-US";
-    r.interimResults = true;
-    r.onresult = (ev: SpeechRecognitionEvent) => {
-      let txt = "";
-      for (let i = 0; i < ev.results.length; i++) txt += ev.results[i][0].transcript;
-      setCmdText(txt);
-    };
-    // Stopping speaking only fills the box. Nothing is sent until the member
-    // taps send, so they can read it back and fix anything misheard first.
-    r.onend = () => setListening(false);
-    r.onerror = () => setListening(false);
-    setListening(true);
-    r.start();
-  }, [listening]);
 
   const saveEdit = useCallback(
     (e: Task, scope: EditScope = "series") => {
@@ -1654,10 +1623,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
 
   const value: PlannerState & PlannerActions = {
     sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, assignmentNotes, posts, blocked, seekers,
-    burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, listening, toast, inbox, inboxOpen, unreadCount,
+    burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
-    toggleTask, addTask, organize, organizing, parseDump, addDumped, runCommand, startListening, saveEdit, removeLater, removeTask,
+    toggleTask, addTask, organize, organizing, parseDump, addDumped, runCommand, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
     createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,

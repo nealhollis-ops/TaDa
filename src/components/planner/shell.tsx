@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { BarChart3, Bell, CalendarDays, CheckCircle2, Circle, ExternalLink, LogOut, MessageCircle, Mic, RefreshCw, Send, Sun, Trash2, Users, Volume2, VolumeX, X } from "lucide-react";
 import { usePlanner } from "./store";
+import { useDictation } from "./use-dictation";
 import { Avatar, Bar, C, Chip, DayField, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
 import { ago, lastPickableDate, ord, WDFULL } from "@/lib/planner/calendar";
@@ -83,7 +84,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="mx-auto max-w-md pb-24">
-        {["today", "plan", "timeline"].includes(view) && <CommandBar />}
+        {/* Plan opens with the brain dump; the talking bar belongs on the screens you read. */}
+        {["today", "timeline"].includes(view) && <CommandBar />}
         {children}
       </div>
 
@@ -146,16 +148,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
 function CommandBar() {
   const p = usePlanner();
+  const { listening, toggle } = useDictation(
+    (text) => p.set("cmdText", text),
+    () => p.set("cmdSay", "Voice listening isn't supported in this browser. Use the mic on your phone keyboard instead."),
+  );
   return (
     <div className="px-5 pt-4">
       <div className="flex gap-2">
-        <button onClick={p.startListening} className="rounded-xl px-3" style={{ background: p.listening ? C.coral : C.navy }} aria-label="Talk to the calendar">
-          <Mic size={18} style={{ color: "#fff" }} className={p.listening ? "animate-pulse" : ""} />
+        <button onClick={toggle} className="rounded-xl px-3" style={{ background: listening ? C.coral : C.navy }} aria-label="Talk to the calendar">
+          <Mic size={18} style={{ color: "#fff" }} className={listening ? "animate-pulse" : ""} />
         </button>
         <input
           className="flex-1 rounded-xl border px-3 py-2.5 text-sm outline-none"
-          style={{ borderColor: p.listening ? C.coral : C.line, background: "#fff", color: C.ink }}
-          placeholder={p.listening ? "Listening..." : "Tap the mic and say the change..."}
+          style={{ borderColor: listening ? C.coral : C.line, background: "#fff", color: C.ink }}
+          placeholder={listening ? "Listening, then tap send..." : "Tap the mic and say the change..."}
           value={p.cmdText}
           onChange={(e) => p.set("cmdText", e.target.value)}
           onKeyDown={(e) => {
