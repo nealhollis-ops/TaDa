@@ -44,36 +44,39 @@ export function AnnouncementForms({ pinned, banners }: { pinned: Pinned[]; banne
             {savingBanner ? "Saving..." : "Put it up"}
           </button>
         </div>
-        <Notice state={bannerState ?? endState} />
-
-        {banners.length > 0 && (
-          <div className="mt-4 border-t border-line pt-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-fade">Banners ({banners.length})</h3>
-            <ul className="mt-2 space-y-2">
-              {banners.map((b) => {
-                const live = new Date(b.startsAt) <= now && new Date(b.endsAt) > now;
-                const over = new Date(b.endsAt) <= now;
-                return (
-                  <li key={b.id} className="flex flex-wrap items-start gap-2 rounded-xl border border-line p-2 text-sm">
-                    <span className="min-w-0 flex-1">
-                      <span className="text-ink">{b.text}</span>
-                      <span className="mt-0.5 block text-xs text-fade">
-                        {live ? "Up now" : over ? "Finished" : "Scheduled"} &middot; {when(b.startsAt)} to {when(b.endsAt)}
-                      </span>
-                    </span>
-                    <form action={endAction}>
-                      <input type="hidden" name="id" value={b.id} />
-                      <button type="submit" disabled={ending} className="rounded-xl bg-mist px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-60">
-                        {over ? "Remove" : "Take down"}
-                      </button>
-                    </form>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+        <Notice state={bannerState} />
       </form>
+
+      {/* Outside the form above on purpose: a form cannot contain another one,
+          and nesting these made Take down submit the save form instead. */}
+      {banners.length > 0 && (
+        <div className="mt-3 rounded-2xl border border-line bg-white p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-fade">Banners ({banners.length})</h3>
+          <ul className="mt-2 space-y-2">
+            {banners.map((b) => {
+              const live = new Date(b.startsAt) <= now && new Date(b.endsAt) > now;
+              const over = new Date(b.endsAt) <= now;
+              return (
+                <li key={b.id} className="flex flex-wrap items-start gap-2 rounded-xl border border-line p-2 text-sm">
+                  <span className="min-w-0 flex-1">
+                    <span className="text-ink">{b.text}</span>
+                    <span className="mt-0.5 block text-xs text-fade">
+                      {live ? "Up now" : over ? "Finished" : "Scheduled"} &middot; {when(b.startsAt)} to {when(b.endsAt)}
+                    </span>
+                  </span>
+                  <form action={endAction}>
+                    <input type="hidden" name="id" value={b.id} />
+                    <button type="submit" disabled={ending} className="rounded-xl bg-mist px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-60">
+                      {over ? "Remove" : "Take down"}
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+          <Notice state={endState} />
+        </div>
+      )}
 
       <form action={postAction} className="mt-6 rounded-2xl border border-line bg-white p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-fade">Post and pin in the community</h2>
