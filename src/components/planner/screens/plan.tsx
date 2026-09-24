@@ -27,13 +27,15 @@ export function PlanScreen() {
   const addRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!p.showAdd) return;
-    // scrollIntoView does nothing on this page - the document height is pinned
-    // by the h-full root - so scroll the window itself, on the next frame so the
-    // form has been laid out. The 72px clears the sticky header.
+    // Two things do not work here: scrollIntoView is inert because the h-full
+    // root pins the document height, and a smooth scroll is swallowed by the
+    // browser re-anchoring the page as the form is inserted. An instant scroll
+    // on the next frame, once the form has been laid out, lands every time.
+    // The 72px clears the sticky header.
     const frame = requestAnimationFrame(() => {
       const el = addRef.current;
       if (!el) return;
-      window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72), behavior: "smooth" });
+      window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72));
     });
     return () => cancelAnimationFrame(frame);
   }, [p.showAdd]);
