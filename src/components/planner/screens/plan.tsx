@@ -30,14 +30,16 @@ export function PlanScreen() {
     // Two things do not work here: scrollIntoView is inert because the h-full
     // root pins the document height, and a smooth scroll is swallowed by the
     // browser re-anchoring the page as the form is inserted. An instant scroll
-    // on the next frame, once the form has been laid out, lands every time.
-    // The 72px clears the sticky header.
-    const frame = requestAnimationFrame(() => {
+    // lands every time.
+    // A timeout rather than requestAnimationFrame: rAF never fires while the tab
+    // is hidden, which would leave the form off screen for someone who opened it
+    // and looked away. The 72px clears the sticky header.
+    const t = setTimeout(() => {
       const el = addRef.current;
       if (!el) return;
       window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72));
-    });
-    return () => cancelAnimationFrame(frame);
+    }, 0);
+    return () => clearTimeout(t);
   }, [p.showAdd]);
   const activeCount = p.tasks.filter((t) => !t.done).length;
   const completedCount = p.tasks.length - activeCount;
