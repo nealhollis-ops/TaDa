@@ -23,7 +23,10 @@ export function TodayScreen() {
   const todayDone = todays.filter((t) => t.done).length;
   const wt = p.tasks.filter((t) => taskWeek(p.month, t) === p.currentWeek);
   const thisWeek = { total: wt.length, done: wt.filter((t) => t.done).length };
-  const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today);
+  // Same rule as the day itself: what still needs doing sits above what is
+  // already finished. Assigned work piles up faster than personal tasks, and a
+  // long tail of ticked-off items should never bury the few still open.
+  const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today).sort((x, y) => Number(x.done) - Number(y.done));
 
   const firstName = (p.me.name || "").trim().split(/\s+/)[0] || "";
 
