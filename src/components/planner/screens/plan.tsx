@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
@@ -20,6 +20,14 @@ export function PlanScreen() {
   const [dumpBusy, setDumpBusy] = useState(false);
   const [dumpPreview, setDumpPreview] = useState<DumpItem[]>([]);
   const [tab, setTab] = useState<"active" | "completed">("active");
+  // The form opens below the fold on a phone, and below the dump card now that
+  // the buttons sit under it. Bring it to the member rather than making them
+  // hunt for it. Also covers arriving from the getting-started checklist, which
+  // opens the form and then lands on this screen.
+  const addRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (p.showAdd) addRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [p.showAdd]);
   const activeCount = p.tasks.filter((t) => !t.done).length;
   const completedCount = p.tasks.length - activeCount;
   const sel = "rounded-xl border px-2 py-2.5 text-sm";
@@ -140,7 +148,7 @@ export function PlanScreen() {
         <b style={{ color: C.ink }}>Organize</b> takes every task that still has no day on it and spreads them across your month for you. Each one lands in the week it already belongs to, on whichever day of that week has the least on it, so nothing piles up on one day. Sundays are left open on purpose, and a task with a day you chose is never moved. Nothing is added or removed, and you can still change any day afterwards.
       </p>
       {p.showAdd && (
-        <div className="mb-5 rounded-2xl p-4" style={{ background: "#fff" }}>
+        <div ref={addRef} className="mb-5 rounded-2xl p-4" style={{ background: "#fff", scrollMarginTop: 80 }}>
           <input
             className={`${inputCls} mb-2`}
             style={inputStyle}
