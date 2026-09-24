@@ -7,7 +7,7 @@ import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Sign in" };
 
-type Search = Promise<{ next?: string; error?: string; mode?: string; email?: string }>;
+type Search = Promise<{ next?: string; error?: string; mode?: string; email?: string; from?: string }>;
 
 export default async function LoginPage({ searchParams }: { searchParams: Search }) {
   const supabase = await createClient();
@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
   } = await supabase.auth.getUser();
   if (user) redirect("/today");
 
-  const { next, error, mode, email } = await searchParams;
+  const { next, error, mode, email, from } = await searchParams;
   const linkError = error === "link" ? "That link has expired or was already used. Request a fresh one below." : undefined;
 
   return (
@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
         <p className="max-w-xs text-fade">Plan your day, check it off, and hear the TaDa.</p>
       </div>
 
-      <LoginForm next={next} initialError={linkError} initialMode={mode} initialEmail={email} />
+      <LoginForm next={next} initialError={linkError} initialMode={mode} initialEmail={email} from={from} />
 
       <InstallPrompt />
 
