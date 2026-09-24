@@ -893,21 +893,18 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     recogRef.current = r;
     r.lang = "en-US";
     r.interimResults = true;
-    let finalText = "";
     r.onresult = (ev: SpeechRecognitionEvent) => {
       let txt = "";
       for (let i = 0; i < ev.results.length; i++) txt += ev.results[i][0].transcript;
       setCmdText(txt);
-      if (ev.results[ev.results.length - 1].isFinal) finalText = txt;
     };
-    r.onend = () => {
-      setListening(false);
-      if (finalText.trim()) void runCommand(finalText);
-    };
+    // Stopping speaking only fills the box. Nothing is sent until the member
+    // taps send, so they can read it back and fix anything misheard first.
+    r.onend = () => setListening(false);
     r.onerror = () => setListening(false);
     setListening(true);
     r.start();
-  }, [listening, runCommand]);
+  }, [listening]);
 
   const saveEdit = useCallback(
     (e: Task, scope: EditScope = "series") => {

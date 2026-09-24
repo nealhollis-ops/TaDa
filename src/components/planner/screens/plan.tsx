@@ -40,20 +40,6 @@ export function PlanScreen() {
 
   return (
     <div className="px-5 py-5">
-      <div className="mb-3 flex gap-2">
-        <button onClick={() => p.set("showAdd", !p.showAdd)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff" }}>
-          <Plus size={18} /> Add task
-        </button>
-        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.gold, color: C.ink }}>
-          <Sparkles size={18} /> Organize
-        </button>
-      </div>
-      <p className="mb-4 text-xs" style={{ color: C.fade }}>
-        <b style={{ color: C.ink }}>Add task</b> opens a short form: what needs doing, which day and time of day, and whether it repeats. Pick a day yourself or leave it to TaDa.
-        <br />
-        <b style={{ color: C.ink }}>Organize</b> places every unscheduled task on your lightest open day. Sundays are left open on purpose.
-      </p>
-
       <div className="mb-5 rounded-2xl p-4" style={{ background: C.navy }}>
         <div className="mb-2 flex items-center gap-2">
           <Mic size={16} style={{ color: C.gold }} />
@@ -133,6 +119,21 @@ export function PlanScreen() {
         )}
       </div>
 
+      {/* Add task and Organize sit under the dump, where someone lands after
+          pouring everything out and wants to place what is left. */}
+      <div className="mb-3 flex gap-2">
+        <button onClick={() => p.set("showAdd", !p.showAdd)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff" }}>
+          <Plus size={18} /> Add task
+        </button>
+        <button onClick={p.organize} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.gold, color: C.ink }}>
+          <Sparkles size={18} /> Organize
+        </button>
+      </div>
+      <p className="mb-4 text-xs" style={{ color: C.fade }}>
+        <b style={{ color: C.ink }}>Add task</b> opens a short form: what needs doing, which day and time of day, and whether it repeats. Pick a day yourself or leave it to TaDa.
+        <br />
+        <b style={{ color: C.ink }}>Organize</b> takes every task that still has no day on it and spreads them across your month for you. Each one lands in the week it already belongs to, on whichever day of that week has the least on it, so nothing piles up on one day. Sundays are left open on purpose, and a task with a day you chose is never moved. Nothing is added or removed, and you can still change any day afterwards.
+      </p>
       {p.showAdd && (
         <div className="mb-5 rounded-2xl p-4" style={{ background: "#fff" }}>
           <input
