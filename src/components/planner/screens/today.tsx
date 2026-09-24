@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { CheckCircle2, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { Banner } from "../banner";
@@ -10,12 +11,39 @@ import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
 import { dayLabel } from "@/lib/planner/calendar";
 import { taskWeek } from "@/lib/planner/tasks";
+import type { Assignment } from "@/lib/planner/types";
 
 const BLOCKS = [
   { id: "morning", label: "Morning", Icon: Sun, color: "#F8B018", text: "#7A5200" },
   { id: "afternoon", label: "Afternoon", Icon: CloudSun, color: "#12B76A", text: "#0B6B3A" },
   { id: "evening", label: "Evening", Icon: Moon, color: "#E30022", text: "#B00018" },
 ];
+
+/** One piece of assigned work, the same whether it is open or already done. */
+function AssignedRow({ a }: { a: Assignment }) {
+  const p = usePlanner();
+  const late = !a.done && !!a.date && a.date < p.today;
+  const team = p.teams.find((t) => t.id === a.teamId);
+  return (
+    <div className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: a.done ? 0.65 : 1 }}>
+      <button onClick={() => void p.toggleAssigned(a)} className="shrink-0" aria-label="Toggle assigned task">
+        {a.done ? <CheckCircle2 size={24} style={{ color: C.teal }} /> : <Circle size={24} style={{ color: late ? C.coral : C.fade }} />}
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
+          {a.title}
+        </div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          <Chip color={C.coral} bg="#FDE2E2">
+            {team ? team.name : "Team"}
+          </Chip>
+          <Chip>{late ? "Overdue" : "Due today"}</Chip>
+        </div>
+        <AssignmentNotes a={a} />
+      </div>
+    </div>
+  );
+}
 
 export function TodayScreen() {
   const p = usePlanner();
@@ -26,7 +54,10 @@ export function TodayScreen() {
   // Same rule as the day itself: what still needs doing sits above what is
   // already finished. Assigned work piles up faster than personal tasks, and a
   // long tail of ticked-off items should never bury the few still open.
-  const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today).sort((x, y) => Number(x.done) - Number(y.done));
+  const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today);
+  const dueOpen = due.filter((a) => !a.done);
+  const dueDone = due.filter((a) => a.done);
+  const [showDone, setShowDone] = useState(false);
 
   const firstName = (p.me.name || "").trim().split(/\s+/)[0] || "";
 
@@ -117,29 +148,36 @@ export function TodayScreen() {
               Assigned to you
             </span>
           </div>
-          {due.map((a) => {
-            const late = !a.done && !!a.date && a.date < p.today;
-            const team = p.teams.find((t) => t.id === a.teamId);
-            return (
-              <div key={a.id} className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: a.done ? 0.65 : 1 }}>
-                <button onClick={() => void p.toggleAssigned(a)} className="shrink-0" aria-label="Toggle assigned task">
-                  {a.done ? <CheckCircle2 size={24} style={{ color: C.teal }} /> : <Circle size={24} style={{ color: late ? C.coral : C.fade }} />}
-                </button>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
-                    {a.title}
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    <Chip color={C.coral} bg="#FDE2E2">
-                      {team ? team.name : "Team"}
-                    </Chip>
-                    <Chip>{late ? "Overdue" : "Due today"}</Chip>
-                  </div>
-                  <AssignmentNotes a={a} />
+          {dueOpen.map((a) => (
+            <AssignedRow key={a.id} a={a} />
+          ))}
+          {dueOpen.length === 0 && (
+            <div className="mb-2 rounded-xl px-3 py-3 text-sm" style={{ background: "#fff", color: C.fade }}>
+              Everything assigned to you is done. Nice.
+            </div>
+          )}
+          {/* Assigned work is never cleared out, so months of finished items
+              would bury the few that still need doing. They stay one tap away. */}
+          {dueDone.length > 0 && (
+            <>
+              <button
+                onClick={() => setShowDone(!showDone)}
+                className="flex w-full items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold"
+                style={{ background: "#fff", color: C.fade }}
+                aria-expanded={showDone}
+              >
+                {showDone ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {dueDone.length} done
+              </button>
+              {showDone && (
+                <div className="mt-2">
+                  {dueDone.map((a) => (
+                    <AssignedRow key={a.id} a={a} />
+                  ))}
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </>
+          )}
         </div>
       )}
       <div className="mt-2 rounded-2xl p-4" style={{ background: "#fff" }}>
