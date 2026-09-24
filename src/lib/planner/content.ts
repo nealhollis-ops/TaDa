@@ -141,7 +141,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Removed it by accident? Open app.gettada.me in your browser, sign in, and install it again from Account. Your tasks are safe either way; they live in your account, not on the phone.",
   ]},
   { id: "addtasks", t: "Adding tasks", b: [
-    "Go to Plan and tap Add task. Type what needs doing, then either pick an exact day or leave the day empty and let the app choose one for you inside the week you select. The day box opens your phone's own calendar and runs from today to a year out, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
+    "Go to Plan and tap Add task, which sits under Pour it all out. The form opens and scrolls itself into view. Type what needs doing, then either pick an exact day or leave the day empty and let the app choose one for you inside the week you select. The day box opens your phone's own calendar and runs from today to a year out, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
     "Give a task a day in a later month and it waits under Later, at the foot of Plan, grouped by month and showing the year once it isn't this one. Open it there to change it or remove it. When that month comes around it joins the month like any other task.",
     "The month below the buttons has two tabs. Active shows what is still to do, week by week. Completed shows what you have already checked off, so finished work moves out of the way but is never lost. The counts on the tabs are for the whole month.",
     "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip, and tasks with no day yet show Day TBD.",
@@ -149,17 +149,19 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Check Big win for your major tasks. Big wins get a celebration twice the size, and the app schedules them in mornings when it does the placing.",
   ]},
   { id: "dump", t: "The brain dump", b: [
-    "The black card at the top of Plan called Pour it all out takes everything at once. Type the whole jumble, or tap the mic on your phone keyboard and just talk.",
+    "Pour it all out is the first thing on Plan and takes everything at once. Type the whole jumble, or tap the mic in the corner of the box and just talk; your words land in the box and stay there until you tap Make it into tasks.",
     "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row has a day set to Auto with the week it is headed for; leave it and the app chooses a light day in that week, or pick the exact day yourself and it stays put. Then Add them to my month places everything on your calendar.",
     "Say when things happen and it listens. Every weekday do a morning run becomes a Mon - Fri repeat in the morning; on Fridays do the team check-in becomes a weekly one pinned to Friday; pay the invoices Friday evening lands on that Friday in the evening. What it heard shows as a small badge on the row before you add anything, and the timing words are left out of the task name.",
   ]},
   { id: "organize", t: "The Organize button", b: [
-    "Organize places every unscheduled task on your lightest open day, spreading the load across the week. Sundays are left open on purpose.",
-    "Tasks you gave an exact day, and repeating tasks pinned to a day, stay right where you put them.",
+    "Organize gives every task without a day one: the quietest day of the week it already sits in, so nothing piles up. Sundays stay open on purpose.",
+    "Tasks you gave an exact day, and repeating tasks pinned to a day, stay right where you put them. Nothing is added or removed, and you can change any day afterwards.",
+    "It tells you what it did, and says so when every task already has a day and there was nothing to place.",
   ]},
   { id: "voice", t: "Talking to the calendar", b: [
-    "The bar under the header on Today, Plan, and Timeline is your voice control. Tap the round mic button, say the change, and stop talking. It runs the request on its own.",
-    "Try things like: move the workbook to Thursday. Take the printer call off Tuesday. Mark the emails done. Add a dentist visit on the 22nd. You can also type into the bar and tap the arrow.",
+    "The bar under the header on Today and Timeline is your voice control. Tap the round mic button and say the change. Your words appear in the bar and wait there, so you can read them back and fix anything misheard before anything happens to your month.",
+    "Tap the arrow to send it. Nothing moves until you do. You can also just type into the bar.",
+    "Try things like: move the workbook to Thursday. Take the printer call off Tuesday. Mark the emails done. Add a dentist visit on the 22nd.",
     "When it isn't sure what you meant, it asks a question in the yellow note instead of guessing, and nothing moves until it understands you.",
   ]},
   { id: "repeat", t: "Repeating tasks", b: [
