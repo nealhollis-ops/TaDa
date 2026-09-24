@@ -170,6 +170,19 @@ export const anchorDayInWeek = (m: MonthInfo, w: number, wd: number) => {
   return wk.days.find((x) => weekdayOf(m, x) === wd) ?? null;
 };
 
+/**
+ * A real date the app will accept from the talking calendar: anywhere from the
+ * first of the month on screen out to the picker's horizon, so a member can say
+ * "April next year" and have it land there instead of being refused.
+ */
+export const validDateSpan = (m: MonthInfo, d: unknown, monthsAhead = PICK_MONTHS_AHEAD): string | null => {
+  if (typeof d !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return null;
+  const mi = monthOfDate(d);
+  const day = dayOfMonth(d);
+  if (day < 1 || day > mi.days) return null;
+  return d >= dstr(m, 1) && d <= lastPickableDate(m, monthsAhead) ? d : null;
+};
+
 /** Is this date string inside the given month and a real day? */
 export const validDate = (m: MonthInfo, d: unknown): string | null => {
   if (typeof d !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return null;

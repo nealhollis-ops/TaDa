@@ -169,9 +169,10 @@ export function PlanScreen() {
           <Sparkles size={18} className={p.organizing ? "animate-pulse" : ""} /> {p.organizing ? "Organizing..." : "Organize"}
         </button>
       </div>
-      <p className="mb-4 text-xs" style={{ color: C.fade }}>
+      <p className="mb-2 text-xs" style={{ color: C.fade }}>
         <b style={{ color: C.ink }}>Add task</b> opens a short form: what needs doing, which day and time of day, and whether it repeats. Pick a day yourself or leave it to TaDa.
-        <br />
+      </p>
+      <p className="mb-4 text-xs" style={{ color: C.fade }}>
         <b style={{ color: C.ink }}>Organize</b> gives every task without a day one: the quietest day of the week it already sits in. Sundays stay open, and days you picked yourself are left alone.
       </p>
       {p.showAdd && (

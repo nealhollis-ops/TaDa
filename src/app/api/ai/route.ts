@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
-import { dstr, monthInfo, todayStr, validDate, weekOf, pad, WDFULL } from "@/lib/planner/calendar";
+import { dstr, lastPickableDate, monthInfo, todayStr, validDate, weekOf, pad, WDFULL } from "@/lib/planner/calendar";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -100,7 +100,10 @@ export async function POST(request: Request) {
       `Allowed ops: {"op":"move","id":"...","date":"YYYY-MM-DD"} puts a task on a day (or use "date":null with "week":N to leave it unscheduled in that week), optional "block":"morning"|"afternoon"|"evening". ` +
       `{"op":"remove","id":"..."}. {"op":"add","title":"...","date":"YYYY-MM-DD" or "week":N,"block":...,"big":true,"repeat":"none"|"daily"|"weekdays"|"weekly"|"monthly"} (daily = every day, weekdays = Mon-Fri). ` +
       `{"op":"edit","id":"...","title","big","block","repeat"}. {"op":"complete","id":"..."} and {"op":"uncomplete","id":"..."}. ` +
-      `Match tasks loosely by meaning. All dates must fall inside this month. If nothing matches or the request is unclear, use "ops":[] and put a short question in "say".`;
+      `Match tasks loosely by meaning. ` +
+      `Dates may run from ${dstr(m, 1)} to ${lastPickableDate(m)}, so a day in a later month is fine: "the first week of April" or "next March" becomes a real date in that month, and the task waits under Later on Plan until its month comes around. ` +
+      `A task given a date beyond this month does not repeat. ` +
+      `If nothing matches or the request is unclear, use "ops":[] and put a short question in "say".`;
   }
 
   try {

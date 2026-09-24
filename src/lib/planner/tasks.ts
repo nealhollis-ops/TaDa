@@ -3,7 +3,7 @@
  * repeating, streak math, month rollover, and the calendar-bar operations.
  * No React, no Supabase. The screens call these and then persist the result.
  */
-import { anchorDayInWeek, dayOfMonth, dstr, monthInfo, monthOfDate, todayStr, uid, validDate, weekOf, weekdayOf, type MonthInfo } from "./calendar";
+import { anchorDayInWeek, dayOfMonth, dstr, monthInfo, monthOfDate, todayStr, uid, validDateSpan, weekOf, weekdayOf, type MonthInfo } from "./calendar";
 import type { Block, Repeat, Stats, Task } from "./types";
 
 const BLOCKS: Block[] = ["auto", "morning", "afternoon", "evening"];
@@ -276,15 +276,19 @@ export function applyOps(m: MonthInfo, tasks: Task[], ops: unknown[], currentWee
     if (!raw || typeof raw !== "object") return;
     const o = raw as Record<string, unknown>;
     if (o.op === "add" && typeof o.title === "string" && o.title.trim()) {
-      const d = validDate(m, o.date);
+      const d = validDateSpan(m, o.date);
+      // A date in a later month is stamped for that month, the same as the
+      // Add task form does, so it waits under Later until its month arrives.
+      const tm = d ? monthOfDate(d) : m;
+      const ahead = tm.prefix !== m.prefix;
       next.push(
-        base(m, {
+        base(tm, {
           title: o.title.slice(0, 120),
           big: !!o.big,
           date: d,
           block: isBlock(o.block) ? o.block : "auto",
-          week: d ? weekOf(m, d) : clampWeek(m, o.week, currentWeek),
-          repeat: o.repeat === "weekly" || o.repeat === "monthly" || o.repeat === "daily" || o.repeat === "weekdays" ? o.repeat : "none",
+          week: d ? weekOf(tm, d) : clampWeek(m, o.week, currentWeek),
+          repeat: !ahead && (o.repeat === "weekly" || o.repeat === "monthly" || o.repeat === "daily" || o.repeat === "weekdays") ? o.repeat : "none",
         }),
       );
       return;
@@ -298,8 +302,19 @@ export function applyOps(m: MonthInfo, tasks: Task[], ops: unknown[], currentWee
     next = next.map((t) => {
       if (t.id !== id) return t;
       if (o.op === "move") {
-        const d = o.date === null ? null : validDate(m, o.date);
-        return { ...t, date: d, week: d ? weekOf(m, d) : clampWeek(m, o.week ?? t.week, t.week), block: isBlock(o.block) ? o.block : t.block };
+        const d = o.date === null ? null : validDateSpan(m, o.date);
+        const tm = d ? monthOfDate(d) : m;
+        const ahead = tm.prefix !== m.prefix;
+        return {
+          ...t,
+          date: d,
+          month: tm.prefix,
+          week: d ? weekOf(tm, d) : clampWeek(m, o.week ?? t.week, t.week),
+          block: isBlock(o.block) ? o.block : t.block,
+          // A run of days does not follow a task out to another month.
+          repeat: ahead ? "none" : t.repeat,
+          anchor: ahead ? null : t.anchor,
+        };
       }
       if (o.op === "edit") {
         return {

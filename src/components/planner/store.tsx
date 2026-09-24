@@ -870,6 +870,31 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [month, persistTasks],
   );
 
+  /**
+   * Run the ops from the talking calendar over both lists at once. A task can be
+   * moved into a later month or out of one, so the two are diffed together: that
+   * way a move is an update rather than a delete here and an insert there.
+   */
+  const applyCommandOps = useCallback(
+    async (ops: unknown[]) => {
+      const prev = [...tasksRef.current, ...laterRef.current];
+      const next = applyOps(month, prev, ops, currentWeek);
+      const here = next.filter((t) => t.month === month.prefix);
+      const ahead = next.filter((t) => t.month !== month.prefix);
+      tasksRef.current = here;
+      setTasks(here);
+      laterRef.current = ahead;
+      setLater(ahead);
+      try {
+        await P.syncTasks(sb, me.id, prev, next);
+        await P.publishProgress(sb, me.id, month, here);
+      } catch (e) {
+        fail(e);
+      }
+    },
+    [month, currentWeek, sb, me.id, fail],
+  );
+
   const runCommand = useCallback(
     async (spoken?: string) => {
       const text = (typeof spoken === "string" ? spoken : cmdText).trim();
@@ -877,14 +902,14 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       setCmdBusy(true);
       setCmdSay("");
       try {
-        const brief = tasksRef.current.map((t) => ({ id: t.id, title: t.title, date: t.date, week: taskWeek(month, t), block: t.block, done: t.done, big: !!t.big, repeat: t.repeat || "none" }));
+        const brief = [...tasksRef.current, ...laterRef.current].map((t) => ({ id: t.id, title: t.title, date: t.date, month: t.month, week: taskWeek(month, t), block: t.block, done: t.done, big: !!t.big, repeat: t.repeat || "none" }));
         const res = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "command", text, tasks: brief }) });
         const data = await res.json();
         if (!res.ok) {
           setCmdSay(data.error || "That one didn't go through. Say it a little differently and I'll get it.");
         } else {
           const ops = Array.isArray(data.ops) ? data.ops : [];
-          if (ops.length) void persistTasks(applyOps(month, tasksRef.current, ops, currentWeek));
+          if (ops.length) await applyCommandOps(ops);
           setCmdSay(data.say || (ops.length ? "Done." : "I couldn't match that to anything on the calendar."));
           if (ops.length) setCmdText("");
         }
@@ -893,7 +918,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       }
       setCmdBusy(false);
     },
-    [cmdText, cmdBusy, month, currentWeek, persistTasks],
+    [cmdText, cmdBusy, month, applyCommandOps],
   );
 
 
