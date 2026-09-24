@@ -71,8 +71,10 @@ export function TodayScreen() {
             Nothing scheduled today. Enjoy the margin, or head to Plan and add something.
           </div>
         )}
+        {/* What is left comes first, in its time blocks. Finished work drops to
+            one group at the foot, so the top of the day is always what remains. */}
         {BLOCKS.map(({ id, label, Icon, color, text }) => {
-          const bt = todays.filter((t) => (t.block === "auto" ? "afternoon" : t.block) === id);
+          const bt = todays.filter((t) => !t.done && (t.block === "auto" ? "afternoon" : t.block) === id);
           if (!bt.length) return null;
           return (
             <div key={id} className="mb-4">
@@ -88,6 +90,21 @@ export function TodayScreen() {
             </div>
           );
         })}
+        {todayDone > 0 && (
+          <div className="mb-4">
+            <div className="mb-2 flex items-center gap-2">
+              <CheckCircle2 size={16} style={{ color: C.teal }} />
+              <span className="text-xs font-semibold" style={{ color: C.teal }}>
+                Done today
+              </span>
+            </div>
+            {todays
+              .filter((t) => t.done)
+              .map((t) => (
+                <TaskRow key={t.id} t={t} showDay={false} />
+              ))}
+          </div>
+        )}
       </div>
       {due.length > 0 && (
         <div className="mb-4">
