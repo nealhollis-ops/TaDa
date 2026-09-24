@@ -6,7 +6,6 @@ import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
 import { useDictation } from "../use-dictation";
-import { Banner } from "../banner";
 import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, pickableDates, WD, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
@@ -64,7 +63,6 @@ export function PlanScreen() {
 
   return (
     <div className="px-5 py-5">
-      <Banner />
       <div className="mb-5 rounded-2xl p-4" style={{ background: C.navy }}>
         <div className="mb-2 flex items-center gap-2">
           <Mic size={16} style={{ color: C.gold }} />

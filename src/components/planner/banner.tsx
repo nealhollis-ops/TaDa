@@ -14,9 +14,9 @@ export function Banner() {
   const p = usePlanner();
   if (!p.banner) return null;
   return (
-    <div className="mb-4 flex gap-2 rounded-2xl p-3" style={{ background: C.goldSoft, border: `1px solid ${C.gold}` }}>
-      <Megaphone size={16} className="mt-0.5 shrink-0" style={{ color: C.goldDeep }} />
-      <p className="text-xs leading-relaxed" style={{ color: C.ink, overflowWrap: "anywhere" }}>
+    <div className="mb-4 flex gap-2 rounded-2xl p-3" style={{ background: C.coral }}>
+      <Megaphone size={16} className="mt-0.5 shrink-0" style={{ color: "#fff" }} />
+      <p className="text-xs leading-relaxed" style={{ color: "#fff", overflowWrap: "anywhere" }}>
         {p.banner.text}
       </p>
     </div>

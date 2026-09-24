@@ -84,8 +84,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="mx-auto max-w-md pb-24">
-        {/* Plan opens with the brain dump; the talking bar belongs on the screens you read. */}
-        {["today", "timeline"].includes(view) && <CommandBar />}
+        {/* Today places the bar itself, below the welcome and the quote; Timeline takes it at the top. */}
+        {view === "timeline" && <CommandBar />}
         {children}
       </div>
 
@@ -146,7 +146,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CommandBar() {
+export function CommandBar() {
   const p = usePlanner();
   const { listening, toggle } = useDictation(
     (text) => p.set("cmdText", text),
