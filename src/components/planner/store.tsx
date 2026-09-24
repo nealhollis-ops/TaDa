@@ -12,7 +12,7 @@ import { dateLabel, dayOfMonth, dayOfYear, monthOfDate, todayStr, weekOf, previo
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, seriesKey, spawnRepeaters, taskWeek, type EditScope, type NewTaskForm } from "@/lib/planner/tasks";
-import { DEF_STATS, type Assignment, type AssignmentNote, type Badge, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
+import { DEF_STATS, type Assignment, type AssignmentNote, type Badge, type Banner, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
 import { enablePush, disablePush } from "@/lib/data/push";
@@ -48,6 +48,8 @@ export type PlannerState = {
   outgoingInvites: TeamInvite[];
   teamMsgs: TeamMessage[];
   assignments: Assignment[];
+  /** The notice the founders have up right now, if any. */
+  banner: Banner | null;
   /** Notes kept on assigned work, boss mode only. */
   assignmentNotes: AssignmentNote[];
   posts: Post[];
@@ -199,6 +201,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [teamReads, setTeamReads] = useState<Record<string, string>>({});
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState<AssignmentNote[]>([]);
+  const [banner, setBanner] = useState<Banner | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
   const [seekers, setSeekers] = useState<Member[]>([]);
@@ -369,7 +372,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const refreshShared = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [reqs, pairs, msgs, tms, invs, asg, notes, ps, blk, seek] = await Promise.all([
+      const [reqs, pairs, msgs, tms, invs, asg, notes, bnr, ps, blk, seek] = await Promise.all([
         S.loadRequests(sb, me.id),
         S.loadPartnerships(sb, me.id),
         S.loadMessages(sb, me.id),
@@ -377,6 +380,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         S.loadMyInvites(sb),
         S.loadAssignments(sb),
         S.loadAssignmentNotes(sb).catch(() => [] as AssignmentNote[]),
+        S.loadBanner(sb).catch(() => null),
         S.loadPosts(sb),
         S.loadBlocks(sb, me.id),
         S.loadSeekers(sb),
@@ -384,6 +388,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       const [tmsgs, outInv, reads] = await Promise.all([S.loadTeamMessages(sb, tms.map((t) => t.id)), S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id)), S.loadTeamReads(sb, me.id).catch(() => ({}))]);
       setTeamReads(reads);
       setAssignmentNotes(notes);
+      setBanner(bnr);
       setRequests(reqs);
       setPartnerships(pairs);
       setMessages(msgs);
@@ -573,6 +578,9 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
           setAssignments(a);
           void ensureMembers(a.flatMap((x) => [x.fromUser, x.toUser ?? ""]));
         });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "banners" }, () => {
+        void S.loadBanner(sb).then(setBanner).catch(() => {});
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "assignment_notes" }, () => {
         void S.loadAssignmentNotes(sb).then(setAssignmentNotes).catch(() => {});
@@ -1647,7 +1655,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   }, [sb, me.id]);
 
   const value: PlannerState & PlannerActions = {
-    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, assignmentNotes, posts, blocked, seekers,
+    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, assignmentNotes, banner, posts, blocked, seekers,
     burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,

@@ -86,6 +86,21 @@ if (ownPost.data) {
   await admin.from("assignments").delete().eq("id", asg.data.id);
 }
 
+// banners: members read only the one that is live right now; only admins write
+{
+  const iso = (mins) => new Date(Date.now() + mins * 60000).toISOString();
+  await admin.from("banners").insert([
+    { text: "rls banner live", starts_at: iso(-60), ends_at: iso(60) },
+    { text: "rls banner future", starts_at: iso(60), ends_at: iso(120) },
+    { text: "rls banner past", starts_at: iso(-120), ends_at: iso(-60) },
+  ]);
+  const seen = await a.from("banners").select("text");
+  out.member_sees_banners = (seen.data ?? []).map((x) => x.text).sort();
+  const forged = await a.from("banners").insert({ text: "rls banner forged", starts_at: iso(-1), ends_at: iso(60) });
+  out.member_banner_write_blocked = !!forged.error;
+  await admin.from("banners").delete().like("text", "rls banner%");
+}
+
 // stripe function must not be callable by users
 const st = await a.rpc("apply_stripe_entitlement", { p_user_id: A.id, p_plan: "boss", p_status: "active", p_stripe_customer_id: "x", p_stripe_sub_id: "y" }); out.stripe_fn_blocked_for_users = !!st.error;
 // cleanup

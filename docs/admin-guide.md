@@ -47,8 +47,9 @@ Members can also block each other without involving you. Blocks are private and 
 
 ### Announcements (`/admin/announcements`)
 
-Two tools:
+Three tools:
 
+- **Banner on Today and Plan**: a notice across the top of both screens, for a window you set. Write it, pick From and Until, and press Put it up. Every member sees it while it is in date and nobody can dismiss it; it takes itself down when the window closes, so an old notice cannot be left sitting there. The list underneath shows what is up now, what is scheduled and what has finished, each with a button to take it down or clear it. Use it for things that are true for a while: maintenance on Saturday, a launch, a change to the plans. It does not notify anyone; it is there when they open the app.
 - **Post and pin**: writes a post as you into the room you pick (Encourage is the one everyone reads) and pins it to the top until you unpin it. Pinned posts are listed below with Unpin and Remove. This is for announcements you are writing now; to pin a post that already exists, use the pin in the community or in Moderation.
 - **Push to everyone**: a phone or desktop notification to every member with device alerts on, plus a bell entry for every active member whether or not their alerts are on. Title, a message of up to 160 characters, and which screen opens when tapped. The result line tells you how many inboxes and devices it reached. Every send is written to the admin log with the text and counts. There is no undo, so read it twice.
 
@@ -103,7 +104,7 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 
 ## Where things live
 
-- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0019` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post, `0019` marks a day of a repeat that was edited on its own, `0020` notes on boss assignments.
+- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0019` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post, `0019` marks a day of a repeat that was edited on its own, `0020` notes on boss assignments, `0021` banners on Today and Plan.
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
 - Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.

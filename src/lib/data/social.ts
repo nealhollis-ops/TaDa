@@ -6,8 +6,8 @@
  * these helpers just shape the queries.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Assignment, AssignmentNote, Member, MemberCard, Message, PartnerRequest, Partnership, Post, PostType, Progress, ReactKind, SeatRow, Stats, Team, TeamInvite, TeamMessage } from "@/lib/planner/types";
-import { MEMBER_COLS, toAssignment, toAssignmentNote, toMember, toMessage, toPartnership, toPost, toProgress, toReply, toRequest, toStats, toTeam, toTeamMessage } from "./map";
+import type { Assignment, AssignmentNote, Banner, Member, MemberCard, Message, PartnerRequest, Partnership, Post, PostType, Progress, ReactKind, SeatRow, Stats, Team, TeamInvite, TeamMessage } from "@/lib/planner/types";
+import { MEMBER_COLS, toAssignment, toAssignmentNote, toBanner, toMember, toMessage, toPartnership, toPost, toProgress, toReply, toRequest, toStats, toTeam, toTeamMessage } from "./map";
 
 type SB = SupabaseClient;
 
@@ -251,6 +251,18 @@ export async function loadAssignments(sb: SB): Promise<Assignment[]> {
   const { data, error } = await sb.from("assignments").select("*").order("created_at");
   if (error) throw error;
   return (data ?? []).map(toAssignment);
+}
+
+/**
+ * The banner that is live right now, if there is one. The window is enforced by
+ * the row policy, so anything that comes back is already in date; the newest
+ * wins if two overlap.
+ */
+export async function loadBanner(sb: SB): Promise<Banner | null> {
+  const now = new Date().toISOString();
+  const { data, error } = await sb.from("banners").select("*").lte("starts_at", now).gt("ends_at", now).order("created_at", { ascending: false }).limit(1);
+  if (error) throw error;
+  return data && data.length ? toBanner(data[0]) : null;
 }
 
 /** Notes on every assignment this member can see; RLS decides which those are. */

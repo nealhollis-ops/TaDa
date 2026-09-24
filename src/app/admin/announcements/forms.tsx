@@ -1,12 +1,22 @@
 "use client";
 
 import { useActionState } from "react";
-import { deleteContent, postAnnouncement, pushAnnouncement, setPinned, type AdminResult } from "../actions";
+import { deleteContent, endBanner, postAnnouncement, pushAnnouncement, saveBanner, setPinned, type AdminResult } from "../actions";
 import { Notice } from "../notice";
 
 type Pinned = { id: string; type: string; text: string; createdAt: string; by: string };
+type BannerRow = { id: string; text: string; startsAt: string; endsAt: string };
 
-export function AnnouncementForms({ pinned }: { pinned: Pinned[] }) {
+/** "24 Sep, 14:30" - short, local, and unambiguous about the day. */
+const when = (iso: string) => new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+/** What a datetime-local input wants, in the admin's own timezone. */
+const localValue = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+export function AnnouncementForms({ pinned, banners }: { pinned: Pinned[]; banners: BannerRow[] }) {
+  const [bannerState, bannerAction, savingBanner] = useActionState<AdminResult, FormData>(saveBanner, null);
+  const [endState, endAction, ending] = useActionState<AdminResult, FormData>(endBanner, null);
+  const now = new Date();
   const [postState, postAction, posting] = useActionState<AdminResult, FormData>(postAnnouncement, null);
   const [pinState, pinAction, pinning] = useActionState<AdminResult, FormData>(setPinned, null);
   const [delState, delAction, deleting] = useActionState<AdminResult, FormData>(deleteContent, null);
@@ -14,7 +24,59 @@ export function AnnouncementForms({ pinned }: { pinned: Pinned[] }) {
   const input = "rounded-xl border border-line bg-white px-3 py-2 text-sm";
   return (
     <div>
-      <form action={postAction} className="mt-4 rounded-2xl border border-line bg-white p-4">
+      <form action={bannerAction} className="mt-4 rounded-2xl border border-line bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-fade">Banner on Today and Plan</h2>
+        <p className="mt-1 text-xs text-fade">Everyone sees this across the top of both screens while it is in date. It takes itself down when the window closes, so nothing is left up by mistake.</p>
+        <label className="mt-3 block text-xs text-fade">
+          Notice
+          <textarea name="text" rows={3} required maxLength={400} className={`${input} mt-1 block w-full`} placeholder="The app will be down for about an hour on Saturday morning..." />
+        </label>
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="text-xs text-fade">
+            From
+            <input type="datetime-local" name="starts" defaultValue={localValue(now)} className={`${input} block`} />
+          </label>
+          <label className="text-xs text-fade">
+            Until
+            <input type="datetime-local" name="ends" required defaultValue={localValue(new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000))} className={`${input} block`} />
+          </label>
+          <button type="submit" disabled={savingBanner} className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+            {savingBanner ? "Saving..." : "Put it up"}
+          </button>
+        </div>
+        <Notice state={bannerState ?? endState} />
+
+        {banners.length > 0 && (
+          <div className="mt-4 border-t border-line pt-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-fade">Banners ({banners.length})</h3>
+            <ul className="mt-2 space-y-2">
+              {banners.map((b) => {
+                const live = new Date(b.startsAt) <= now && new Date(b.endsAt) > now;
+                const over = new Date(b.endsAt) <= now;
+                return (
+                  <li key={b.id} className="flex flex-wrap items-start gap-2 rounded-xl border border-line p-2 text-sm">
+                    <span className="min-w-0 flex-1">
+                      <span className="text-ink">{b.text}</span>
+                      <span className="mt-0.5 block text-xs text-fade">
+                        {live ? "Up now" : over ? "Finished" : "Scheduled"} &middot; {when(b.startsAt)} to {when(b.endsAt)}
+                      </span>
+                    </span>
+                    <form action={endAction}>
+                      <input type="hidden" name="id" value={b.id} />
+                      <button type="submit" disabled={ending} className="rounded-xl bg-mist px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-60">
+                        {over ? "Remove" : "Take down"}
+                      </button>
+                    </form>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </form>
+
+      <form action={postAction} className="mt-6 rounded-2xl border border-line bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-fade">Post and pin in the community</h2>
         <label className="block text-xs text-fade">
           Announcement
           <textarea name="text" rows={4} required maxLength={2000} className={`${input} mt-1 block w-full`} placeholder="Something the whole community should see..." />

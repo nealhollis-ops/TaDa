@@ -293,6 +293,43 @@ export async function pushAnnouncement(_prev: AdminResult, formData: FormData): 
   return { ok: true, message: `Posted to ${rows.length} inbox${rows.length === 1 ? "" : "es"} and pushed to ${m} member${m === 1 ? "" : "s"} on ${sent} device${sent === 1 ? "" : "s"}.${dropped ? ` Removed ${dropped} dead device${dropped === 1 ? "" : "s"}.` : ""}` };
 }
 
+/**
+ * Put a notice across Today and Plan for a window. The window is the whole
+ * control: nobody has to remember to take it down, and an expired one cannot
+ * be left up by accident.
+ */
+export async function saveBanner(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
+  const { user } = await requireAdmin();
+  const text = str(formData.get("text")).slice(0, 400);
+  const startsRaw = str(formData.get("starts"));
+  const endsRaw = str(formData.get("ends"));
+  if (!text) return { ok: false, message: "Write the notice first." };
+  const starts = startsRaw ? new Date(startsRaw) : new Date();
+  const ends = endsRaw ? new Date(endsRaw) : null;
+  if (!ends || Number.isNaN(ends.getTime()) || Number.isNaN(starts.getTime())) return { ok: false, message: "Give it an end date and time." };
+  if (ends <= starts) return { ok: false, message: "The end has to come after the start." };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("banners").insert({ text, starts_at: starts.toISOString(), ends_at: ends.toISOString(), created_by: user.id });
+  if (error) return { ok: false, message: error.message };
+  await logAdmin(user.id, "banner.save", null, { ends: ends.toISOString() });
+  revalidatePath("/admin/announcements");
+  const live = starts <= new Date();
+  return { ok: true, message: live ? "Up now on Today and Plan." : "Scheduled. It appears when the start time comes." };
+}
+
+/** Take one down early, or clear one that was scheduled by mistake. */
+export async function endBanner(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
+  const { user } = await requireAdmin();
+  const id = str(formData.get("id"));
+  const admin = createAdminClient();
+  const { error } = await admin.from("banners").delete().eq("id", id);
+  if (error) return { ok: false, message: error.message };
+  await logAdmin(user.id, "banner.end", id);
+  revalidatePath("/admin/announcements");
+  return { ok: true, message: "Taken down." };
+}
+
 export async function setPinned(_prev: AdminResult, formData: FormData): Promise<AdminResult> {
   const { user } = await requireAdmin();
   const id = str(formData.get("id"));

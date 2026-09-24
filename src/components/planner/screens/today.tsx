@@ -4,6 +4,7 @@ import Image from "next/image";
 import { CheckCircle2, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
+import { Banner } from "../banner";
 import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
 import { dayLabel } from "@/lib/planner/calendar";
@@ -27,6 +28,7 @@ export function TodayScreen() {
 
   return (
     <div className="px-5 py-5">
+      <Banner />
       <div className="mb-4 flex items-center gap-2">
         <Image src="/brand/burst.png" alt="" width={60} height={60} priority style={{ margin: "-8px 0 -8px -4px", flex: "none" }} />
         <div>
