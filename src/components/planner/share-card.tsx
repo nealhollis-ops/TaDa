@@ -131,7 +131,7 @@ export function ShareBar() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="-mx-5 -mt-5 mb-4 flex w-[calc(100%+2.5rem)] items-center justify-center gap-2 px-5 py-3"
+        className="flex w-full items-center justify-center gap-2 px-5 py-3"
         style={{ background: C.gold }}
       >
         {/* Ink, not white: white on this gold is about 2:1 and unreadable on a

@@ -6,7 +6,6 @@ import { CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, 
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { Banner } from "../banner";
-import { ShareBar } from "../share-card";
 import { CommandBar } from "../shell";
 import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
@@ -64,9 +63,6 @@ export function TodayScreen() {
 
   return (
     <div className="px-5 py-5">
-      {/* First thing under the header, edge to edge. Sharing is the one thing we
-          want asked of people while they are in the day, not buried in Account. */}
-      <ShareBar />
       <div className="mb-4 flex items-center gap-2">
         <Image src="/brand/burst.png" alt="" width={60} height={60} priority style={{ margin: "-8px 0 -8px -4px", flex: "none" }} />
         <div>
