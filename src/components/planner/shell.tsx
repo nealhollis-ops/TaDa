@@ -9,6 +9,7 @@ import { usePlanner } from "./store";
 import { useDictation } from "./use-dictation";
 import { Avatar, Bar, C, Chip, DayField, Overlay, inputCls, inputStyle } from "./ui";
 import { Celebrate } from "./celebrate";
+import { ShareBar } from "./share-card";
 import { ago, lastPickableDate, ord, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, computeBadges, levelColor, levelIcon, levelOf } from "@/lib/planner/content";
 import { inSeries, seriesOf, type EditScope } from "@/lib/planner/tasks";
@@ -78,6 +79,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
+      {/* Outside the column on purpose: the bar runs the full width of the
+          screen, like the header above it, whatever the window is doing. */}
+      {view === "today" && <ShareBar />}
+
       <div className="mx-auto max-w-md pb-24">
         {/* Today places the bar itself, below the welcome and the quote; Timeline takes it at the top. */}
         {view === "timeline" && <CommandBar />}
@@ -112,7 +117,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {p.ceremony && (
-        <div className="pointer-events-none fixed inset-0 flex items-center justify-center" style={{ zIndex: 75, background: "rgba(20,42,56,0.35)" }}>
+        <div className="pointer-events-none fixed inset-0 flex items-center justify-center" style={{ zIndex: 75, background: "rgba(17,17,17,0.35)" }}>
           <div className="mx-6 rounded-3xl px-8 py-8 text-center" style={{ background: "rgba(17,17,17,0.96)", border: `3px solid ${C.gold}` }}>
             <div className="animate-bounce" style={{ fontSize: 72, lineHeight: 1 }}>
               {p.ceremony.badge.e}

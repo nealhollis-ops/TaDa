@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
+import { CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { Banner } from "../banner";
-import { ShareBar } from "../share-card";
 import { CommandBar } from "../shell";
 import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
@@ -59,14 +58,24 @@ export function TodayScreen() {
   const dueOpen = due.filter((a) => !a.done);
   const dueDone = due.filter((a) => a.done);
   const [showDone, setShowDone] = useState(false);
+  // Work with no day on it never appeared here, only on Plan, so anything not
+  // yet placed quietly aged out of view. It sits at the foot of the day now,
+  // still needing doing and still asking for a day.
+  const noDay = p.tasks.filter((t) => !t.date && !t.done);
+  // Ticking one off would otherwise drop it from the page altogether: it has no
+  // day, so it belongs to no day's finished list. Judged on when it was
+  // actually done, in the member's own timezone, it joins today's.
+  const finishedOn = (iso: string | null) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const doneList = [...todays.filter((t) => t.done), ...p.tasks.filter((t) => !t.date && t.done && finishedOn(t.doneAt) === p.today)];
 
   const firstName = (p.me.name || "").trim().split(/\s+/)[0] || "";
 
   return (
     <div className="px-5 py-5">
-      {/* First thing under the header, edge to edge. Sharing is the one thing we
-          want asked of people while they are in the day, not buried in Account. */}
-      <ShareBar />
       <div className="mb-4 flex items-center gap-2">
         <Image src="/brand/burst.png" alt="" width={60} height={60} priority style={{ margin: "-8px 0 -8px -4px", flex: "none" }} />
         <div>
@@ -128,7 +137,7 @@ export function TodayScreen() {
             </div>
           );
         })}
-        {todayDone > 0 && (
+        {doneList.length > 0 && (
           <div className="mb-4">
             <div className="mb-2 flex items-center gap-2">
               <CheckCircle2 size={16} style={{ color: C.teal }} />
@@ -136,11 +145,25 @@ export function TodayScreen() {
                 Done today
               </span>
             </div>
-            {todays
-              .filter((t) => t.done)
-              .map((t) => (
-                <TaskRow key={t.id} t={t} showDay={false} />
-              ))}
+            {doneList.map((t) => (
+              <TaskRow key={t.id} t={t} showDay={false} />
+            ))}
+          </div>
+        )}
+        {noDay.length > 0 && (
+          <div className="mb-4">
+            <div className="mb-2 flex items-center gap-2">
+              <CalendarDays size={16} style={{ color: C.fade }} />
+              <span className="text-xs font-semibold" style={{ color: C.fade }}>
+                No day yet
+              </span>
+            </div>
+            <p className="mb-2 text-xs" style={{ color: C.fade }}>
+              Not counted in today&rsquo;s total. Tick one off if you get to it, tap the pencil to give it a day, or let Organize place them all.
+            </p>
+            {noDay.map((t) => (
+              <TaskRow key={t.id} t={t} showDay={false} />
+            ))}
           </div>
         )}
       </div>
