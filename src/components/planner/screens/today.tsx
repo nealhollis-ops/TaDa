@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
+import { CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { Banner } from "../banner";
@@ -58,6 +58,10 @@ export function TodayScreen() {
   const dueOpen = due.filter((a) => !a.done);
   const dueDone = due.filter((a) => a.done);
   const [showDone, setShowDone] = useState(false);
+  // Work with no day on it never appeared here, only on Plan, so anything not
+  // yet placed quietly aged out of view. It sits at the foot of the day now,
+  // still needing doing and still asking for a day.
+  const noDay = p.tasks.filter((t) => !t.date && !t.done);
 
   const firstName = (p.me.name || "").trim().split(/\s+/)[0] || "";
 
@@ -137,6 +141,22 @@ export function TodayScreen() {
               .map((t) => (
                 <TaskRow key={t.id} t={t} showDay={false} />
               ))}
+          </div>
+        )}
+        {noDay.length > 0 && (
+          <div className="mb-4">
+            <div className="mb-2 flex items-center gap-2">
+              <CalendarDays size={16} style={{ color: C.fade }} />
+              <span className="text-xs font-semibold" style={{ color: C.fade }}>
+                No day yet
+              </span>
+            </div>
+            <p className="mb-2 text-xs" style={{ color: C.fade }}>
+              Not counted in today&rsquo;s total. Tick one off if you get to it, tap the pencil to give it a day, or let Organize place them all.
+            </p>
+            {noDay.map((t) => (
+              <TaskRow key={t.id} t={t} showDay={false} />
+            ))}
           </div>
         )}
       </div>

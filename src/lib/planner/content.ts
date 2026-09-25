@@ -147,6 +147,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip, and tasks with no day yet show Day TBD.",
     "A gray chip like From September means the task was left unfinished last month and carried into this one with no day set. Tap Organize to place it, tap the pencil to choose a day, or remove it if it no longer matters. See When the month turns for the full story.",
     "Check Big win for your major tasks. Big wins get a celebration twice the size, and the app schedules them in mornings when it does the placing.",
+    "Anything with no day on it gathers under No day yet, at the foot of Today. It is not counted in the day’s total, since you did not schedule it; it is there so nothing waits out of sight. Tick one off, tap the pencil to give it a day, or let Organize place the lot.",
   ]},
   { id: "dump", t: "The brain dump", b: [
     "Brain Dump is the first thing on Plan and takes everything at once. Type the whole jumble, or tap the mic in the corner of the box and just talk; your words land in the box and stay there until you tap Make it into tasks.",
