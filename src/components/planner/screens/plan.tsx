@@ -6,7 +6,7 @@ import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { TaskRow } from "../task-row";
 import { useDictation } from "../use-dictation";
-import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, pickableDates, WD, WDFULL } from "@/lib/planner/calendar";
+import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, WD, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import type { DumpItem, Task } from "@/lib/planner/types";
@@ -67,7 +67,7 @@ export function PlanScreen() {
         <div className="mb-2 flex items-center gap-2">
           <Mic size={16} style={{ color: C.gold }} />
           <span className="text-sm font-bold" style={{ color: C.cream }}>
-            Pour it all out
+            Brain Dump
           </span>
         </div>
         <p className="mb-3 text-xs" style={{ color: C.goldSoft }}>
@@ -99,7 +99,7 @@ export function PlanScreen() {
         {dumpPreview.length > 0 && (
           <div className="mt-3 rounded-xl p-3" style={{ background: "#fff" }}>
             <div className="mb-2 text-xs font-semibold" style={{ color: C.navy }}>
-              Found {dumpPreview.length} tasks. Tap the star for a big win, pick a day or leave it on Auto, or remove anything wrong. Repeats and times of day come from your own words.
+              Found {dumpPreview.length} tasks. Tap the star for a big win, pick a day or leave it on Auto, or remove anything wrong. A day in a later month waits under Later. Repeats and times of day come from your own words.
             </div>
             {dumpPreview.map((x, i) => (
               <div key={i} className="flex items-center gap-2 py-1.5" style={{ borderBottom: `1px solid ${C.line}` }}>
@@ -110,30 +110,34 @@ export function PlanScreen() {
                   <span className="block text-sm" style={{ color: C.ink, overflowWrap: "anywhere" }}>
                     {x.title}
                   </span>
-                  {(x.block || (x.repeat && x.repeat !== "none")) && (
+                  {(x.block || (x.repeat && x.repeat !== "none") || !x.date) && (
                     <span className="mt-0.5 flex flex-wrap gap-1">
                       {x.repeat && x.repeat !== "none" && <Chip color={C.goldDeep} bg={C.goldSoft}>{repeatLabel(x)}</Chip>}
                       {x.block && <Chip color={blockMeta(x.block)?.text ?? C.fade} bg={blockMeta(x.block)?.tint ?? C.mist}>{blockLabel(x.block)}</Chip>}
+                      {/* The week Auto is aiming at used to be readable in the day
+                          list itself. The day list is a date field now, so it is
+                          said here instead. */}
+                      {!x.date && (!x.repeat || x.repeat === "none") && (
+                        <Chip>Auto &middot; {m.weeks[x.week - 1] ? m.weeks[x.week - 1].label : `Wk ${x.week}`}</Chip>
+                      )}
                     </span>
                   )}
                 </span>
-                {/* A plain list here, not a date field: the row has to show at a glance
-                    which week Auto is sending the task to. */}
-                <select
-                  className="rounded-lg border px-1.5 py-1 text-xs"
-                  style={{ ...inputStyle, color: x.date ? C.ink : C.fade, maxWidth: 124 }}
-                  value={x.date ?? "auto"}
-                  onChange={(e) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: e.target.value === "auto" ? null : e.target.value } : y)))}
-                  aria-label="Due day"
-                  disabled={!!x.repeat && x.repeat !== "none"}
-                >
-                  <option value="auto">Auto ({m.weeks[x.week - 1] ? m.weeks[x.week - 1].label : `Wk ${x.week}`})</option>
-                  {pickableDates(m, p.today, x.date ?? null).map((d) => (
-                    <option key={d.date} value={d.date}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
+                {/* The same day field as the Add task form and the edit sheet, so a
+                    day in a later month is a couple of taps rather than an
+                    impossible one. Empty still means Auto. */}
+                <div className="shrink-0" style={{ width: 132 }}>
+                  <DayField
+                    compact
+                    value={x.date ?? null}
+                    onChange={(v) => setDumpPreview(dumpPreview.map((y, j) => (j === i ? { ...y, date: v } : y)))}
+                    min={p.today}
+                    max={lastPickableDate(m)}
+                    noneLabel="Let TaDa pick the day"
+                    ariaLabel="Due day"
+                    disabled={!!x.repeat && x.repeat !== "none"}
+                  />
+                </div>
                 <button onClick={() => setDumpPreview(dumpPreview.filter((_, j) => j !== i))} aria-label="Remove">
                   <X size={14} style={{ color: C.fade }} />
                 </button>

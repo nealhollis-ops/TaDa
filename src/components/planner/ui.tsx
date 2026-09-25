@@ -130,7 +130,7 @@ export function Overlay({ children, onClose, z = 85, align = "center", wide = fa
  *
  * An empty field means "no day chosen"; `noneLabel` says what that means here.
  */
-export function DayField({ value, onChange, min, max, noneLabel, compact = false, ariaLabel }: { value: string | null; onChange: (v: string | null) => void; min: string; max: string; noneLabel: string; compact?: boolean; ariaLabel?: string }) {
+export function DayField({ value, onChange, min, max, noneLabel, compact = false, ariaLabel, disabled = false }: { value: string | null; onChange: (v: string | null) => void; min: string; max: string; noneLabel: string; compact?: boolean; ariaLabel?: string; disabled?: boolean }) {
   return (
     <div className={compact ? "flex min-w-0 items-center gap-1" : "min-w-0"}>
       <input
@@ -138,12 +138,13 @@ export function DayField({ value, onChange, min, max, noneLabel, compact = false
         value={value ?? ""}
         min={min}
         max={max}
+        disabled={disabled}
         aria-label={ariaLabel ?? noneLabel}
         onChange={(e) => onChange(e.target.value || null)}
         className={compact ? "min-w-0 flex-1 rounded-lg border px-1.5 py-1 text-xs outline-none" : `${inputCls} py-2`}
-        style={{ ...inputStyle, color: value ? C.ink : C.fade }}
+        style={{ ...inputStyle, color: value ? C.ink : C.fade, opacity: disabled ? 0.5 : 1 }}
       />
-      {value && (
+      {value && !disabled && (
         <button onClick={() => onChange(null)} aria-label={noneLabel} title={noneLabel} className="shrink-0 px-1 text-xs" style={{ color: C.fade }}>
           &#215;
         </button>
