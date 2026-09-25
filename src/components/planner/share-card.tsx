@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, X } from "lucide-react";
+import { Check, Copy, Share2, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { C, inputCls, inputStyle, Overlay } from "./ui";
 
@@ -19,25 +19,34 @@ function ShareBody({ onSent }: { onSent?: () => void }) {
   const [said, setSaid] = useState("");
   const link = `https://gettada.me?from=${encodeURIComponent(p.me.slug)}`;
 
+  /** What actually gets sent: their words, then the link, as one piece of text. */
+  const full = () => `${message.trim() || DEFAULT_MESSAGE} ${link}`;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(full());
+      setSaid("Copied. Paste it into any app, Google Chat included.");
+    } catch {
+      setSaid("Copying was blocked. Select the message and link above and copy them by hand.");
+    }
+    setTimeout(() => setSaid(""), 4000);
+  };
+
   const share = async () => {
-    const text = message.trim() || DEFAULT_MESSAGE;
     const nav = navigator as Navigator & { share?: (d: { text?: string; url?: string }) => Promise<void> };
     if (nav.share) {
       try {
-        await nav.share({ text, url: link });
+        // Text only, with the link inside it. Passing "url" alongside "text"
+        // looks tidier but several targets, Messenger among them, take the url
+        // and throw the message away, so the note someone wrote never arrives.
+        await nav.share({ text: full() });
         onSent?.();
         return;
       } catch {
         // They backed out of the sheet, or it refused. Fall through to copying.
       }
     }
-    try {
-      await navigator.clipboard.writeText(`${text} ${link}`);
-      setSaid("Copied. Paste it wherever you like.");
-    } catch {
-      setSaid("Copy the message and link below and send them on.");
-    }
-    setTimeout(() => setSaid(""), 4000);
+    await copy();
   };
 
   return (
@@ -57,9 +66,16 @@ function ShareBody({ onSent }: { onSent?: () => void }) {
       <div className="mb-3 truncate text-xs" style={{ color: C.fade }}>
         {link}
       </div>
-      <button onClick={() => void share()} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.coral, color: "#fff" }}>
-        Share TaDa
-      </button>
+      <div className="flex gap-2">
+        <button onClick={() => void share()} className="flex-1 rounded-xl py-2.5 text-sm font-semibold" style={{ background: C.coral, color: "#fff" }}>
+          Share TaDa
+        </button>
+        {/* The share sheet only lists apps installed on the device, so Google
+            Chat and anything else on the web needs a plain copy. */}
+        <button onClick={() => void copy()} className="flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold" style={{ ...inputStyle, borderColor: C.line, color: C.navy2 }}>
+          {said.startsWith("Copied") ? <Check size={15} style={{ color: C.teal }} /> : <Copy size={15} />} Copy
+        </button>
+      </div>
       {said && (
         <p className="mt-2 text-xs font-medium" style={{ color: C.teal }}>
           {said}
