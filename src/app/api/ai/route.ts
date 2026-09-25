@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { serverEnv } from "@/lib/env";
-import { dstr, lastPickableDate, monthInfo, todayStr, validDate, weekOf, pad, WDFULL } from "@/lib/planner/calendar";
+import { dstr, lastPickableDate, monthInfo, monthOfDate, todayStr, validDateSpan, weekOf, pad, WDFULL } from "@/lib/planner/calendar";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
   let prompt: string;
   if (kind === "dump") {
     prompt =
-      `Someone poured out everything they need to get done this month. Today is ${today}, a ${WDFULL[new Date().getDay()]}. ` +
+      `Someone poured out everything they need to get done. Today is ${today}, a ${WDFULL[new Date().getDay()]}. ` +
       `The month's weeks run Monday through Sunday: ${weekList}. We're in week ${currentWeek}. ` +
       `Split their words into separate tasks, one item each. ` +
       `"week" is a number from ${currentWeek} to ${m.weekCount}. "big" is true only if it sounds like a major project. ` +
@@ -87,7 +87,9 @@ export async function POST(request: Request) {
       `"every morning" means repeat daily and block morning. Anything with no timing words gets repeat "none", an empty date and block "none". ` +
       `Keep the timing words out of the title, since the repeat and the block already carry them: ` +
       `"every weekday do a morning run" has the title "Morning run", and "team check-in on Fridays" has the title "Team check-in". ` +
-      `Dates must land between ${today} and ${dstr(m, m.days)}. Spread the tasks with no stated timing evenly across the remaining weeks. Their words: ${text}`;
+      `Dates may run from ${today} to ${lastPickableDate(m)}, so a day in a later month is fine: "the first week of April" or "next March" becomes a real date in that month, and the task waits under Later on Plan until its month comes around. ` +
+      `A task given a date beyond this month does not repeat. ` +
+      `Only name a date when they name one. Everything else has no date and is spread evenly across the remaining weeks of this month. Their words: ${text}`;
   } else {
     const tasks = Array.isArray(body?.tasks) ? body!.tasks!.slice(0, 400) : [];
     const tNow = new Date();
@@ -133,9 +135,13 @@ export async function POST(request: Request) {
       const items = arr
         .filter((x) => x && typeof x.title === "string" && x.title.trim())
         .map((x) => {
-          // A date only counts if it is a real day of this month and not already gone.
-          const date = validDate(m, typeof x.date === "string" && x.date ? x.date : null);
-          const repeat = REPEATS.includes(String(x.repeat)) ? String(x.repeat) : "none";
+          // A real day, today through the end of the picker's horizon. The Plan
+          // preview offers the same span by hand, so the two agree.
+          const date = validDateSpan(m, typeof x.date === "string" && x.date ? x.date : null);
+          const ahead = !!date && monthOfDate(date).prefix !== m.prefix;
+          // A repeat fans out across the month it starts in, and a later month is
+          // not this planner's month to fill. Same rule the talking calendar uses.
+          const repeat = !ahead && REPEATS.includes(String(x.repeat)) ? String(x.repeat) : "none";
           const wd = parseInt(String(x.weekday), 10);
           return {
             title: String(x.title).trim().slice(0, 120),
