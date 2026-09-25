@@ -964,8 +964,14 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const removeTask = useCallback(
     (id: string, scope: EditScope = "one") => {
       const target = tasksRef.current.find((t) => t.id === id);
-      // Removing a series takes the days still to come; finished ones stay in the record.
-      const gone = target && scope === "series" ? new Set(tasksRef.current.filter((t) => seriesKey(t) === seriesKey(target) && !t.done).map((t) => t.id)) : new Set([id]);
+      // Removing a series takes the days still to come; finished ones stay in
+      // the record. The task the member actually pressed delete on always goes,
+      // done or not: a standalone finished task reaches here with scope
+      // "series" and would otherwise filter itself out and survive.
+      const gone = new Set([id]);
+      if (target && scope === "series") {
+        tasksRef.current.filter((t) => seriesKey(t) === seriesKey(target) && !t.done).forEach((t) => gone.add(t.id));
+      }
       void persistTasks(tasksRef.current.filter((t) => !gone.has(t.id)));
       setEditing(null);
     },
