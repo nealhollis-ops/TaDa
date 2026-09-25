@@ -873,9 +873,20 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         ),
       );
       if (!fresh.length) return;
-      void persistTasks(organizeList(month, [...tasksRef.current, ...fresh]));
+      // The day field in the preview reaches a year out, so a batch can carry
+      // rows stamped for a later month. They belong in the Later list, exactly
+      // as they do when Add task is given the same day: dropping them into the
+      // month's own list would organize them into weeks that aren't theirs and
+      // then lose them on the next load.
+      const here = fresh.filter((t) => t.month === month.prefix);
+      const ahead = fresh.filter((t) => t.month !== month.prefix);
+      if (here.length) void persistTasks(organizeList(month, [...tasksRef.current, ...here]));
+      if (ahead.length) {
+        void persistLater([...laterRef.current, ...ahead]);
+        showToast(ahead.length === 1 ? "One of those lands in a later month. It is under Later on Plan." : `${ahead.length} of those land in later months. They are under Later on Plan.`);
+      }
     },
-    [month, persistTasks],
+    [month, persistTasks, persistLater, showToast],
   );
 
   /**
