@@ -62,6 +62,15 @@ export function TodayScreen() {
   // yet placed quietly aged out of view. It sits at the foot of the day now,
   // still needing doing and still asking for a day.
   const noDay = p.tasks.filter((t) => !t.date && !t.done);
+  // Ticking one off would otherwise drop it from the page altogether: it has no
+  // day, so it belongs to no day's finished list. Judged on when it was
+  // actually done, in the member's own timezone, it joins today's.
+  const finishedOn = (iso: string | null) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const doneList = [...todays.filter((t) => t.done), ...p.tasks.filter((t) => !t.date && t.done && finishedOn(t.doneAt) === p.today)];
 
   const firstName = (p.me.name || "").trim().split(/\s+/)[0] || "";
 
@@ -128,7 +137,7 @@ export function TodayScreen() {
             </div>
           );
         })}
-        {todayDone > 0 && (
+        {doneList.length > 0 && (
           <div className="mb-4">
             <div className="mb-2 flex items-center gap-2">
               <CheckCircle2 size={16} style={{ color: C.teal }} />
@@ -136,11 +145,9 @@ export function TodayScreen() {
                 Done today
               </span>
             </div>
-            {todays
-              .filter((t) => t.done)
-              .map((t) => (
-                <TaskRow key={t.id} t={t} showDay={false} />
-              ))}
+            {doneList.map((t) => (
+              <TaskRow key={t.id} t={t} showDay={false} />
+            ))}
           </div>
         )}
         {noDay.length > 0 && (
