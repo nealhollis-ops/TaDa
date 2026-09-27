@@ -177,7 +177,7 @@ export function PlanScreen() {
         <b style={{ color: C.ink }}>Add task</b> opens a short form. Tell it what needs doing, pick a day and a time of day, and say if the task repeats. You can leave the day blank and let TaDa pick one for you.
       </p>
       <p className="mb-4 text-xs" style={{ color: C.fade }}>
-        <b style={{ color: C.ink }}>Organize</b> picks a day for any task that doesn&rsquo;t have one yet. It looks at the week the task is already in, then picks the day with the least on it. It never picks a Sunday, and it never changes a day you chose yourself.
+        <b style={{ color: C.ink }}>Organize</b> gives a day to tasks that don&rsquo;t have one. It picks your emptiest day that week and skips Sundays. Days you picked stay put.
       </p>
       {p.showAdd && (
         <div ref={addRef} className="mb-5 rounded-2xl p-4" style={{ background: "#fff" }}>
