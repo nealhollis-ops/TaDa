@@ -156,7 +156,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Months work the same way. Say the deposit is due in April or book the venue the first week of March and it lands on a real day in that month, up to a year out, waiting under Later until its month arrives. Anything that far ahead is a single task rather than a repeat.",
   ]},
   { id: "organize", t: "The Organize button", b: [
-    "Organize gives every task without a day one: the quietest day of the week it already sits in, so nothing piles up. Sundays stay open on purpose.",
+    "Organize picks a day for any task that doesn't have one yet. It looks at the week the task is already in, then picks the day with the least on it, so nothing piles up. It never picks a Sunday.",
     "Tasks you gave an exact day, and repeating tasks pinned to a day, stay right where you put them. Nothing is added or removed, and you can change any day afterwards.",
     "It tells you what it did, and says so when every task already has a day and there was nothing to place.",
   ]},
