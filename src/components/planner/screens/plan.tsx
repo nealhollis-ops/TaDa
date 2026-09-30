@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, Pencil, Plus, Sparkles, Star, Trash2, Wand2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
+import { NoDayGroup } from "../no-day";
 import { TaskRow } from "../task-row";
 import { useDictation } from "../use-dictation";
 import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, WD, WDFULL } from "@/lib/planner/calendar";
@@ -44,6 +45,10 @@ export function PlanScreen() {
     return () => clearTimeout(t);
   }, [p.showAdd]);
   const activeCount = p.tasks.filter((t) => !t.done).length;
+  // A task with no day was filed into a week anyway and read as though it were
+  // scheduled. The weeks below hold dated work only; these wait in their own
+  // section at the foot of the page.
+  const noDay = p.tasks.filter((t) => !t.date);
   const completedCount = p.tasks.length - activeCount;
   const sel = "rounded-xl border px-2 py-2.5 text-sm";
 
@@ -285,7 +290,7 @@ export function PlanScreen() {
       </div>
 
       {m.weeks.map((wk) => {
-        const all = p.tasks.filter((t) => taskWeek(m, t) === wk.w);
+        const all = p.tasks.filter((t) => t.date && taskWeek(m, t) === wk.w);
         const wt = all.filter((t) => (tab === "active" ? !t.done : t.done)).sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
         // On the Completed tab, weeks with nothing finished stay out of the way.
         if (tab === "completed" && wt.length === 0) return null;
@@ -315,6 +320,11 @@ export function PlanScreen() {
           Nothing completed yet this month. Check something off on Today and it lands here.
         </div>
       )}
+
+      <NoDayGroup
+        tasks={noDay.filter((t) => (tab === "active" ? !t.done : t.done))}
+        note={tab === "active" ? "No day chosen yet, so they sit outside the weeks above. Tap the pencil to pick a day, or let Organize place them all." : "Finished without ever being given a day."}
+      />
 
       {/* Anything dated past this month waits here until its month comes around. */}
       {tab === "active" && p.later.length > 0 && <LaterGroup />}
