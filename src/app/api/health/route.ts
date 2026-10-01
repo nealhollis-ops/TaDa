@@ -26,6 +26,8 @@ export async function GET() {
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: present("NEXT_PUBLIC_VAPID_PUBLIC_KEY"),
       VAPID_PRIVATE_KEY: present("VAPID_PRIVATE_KEY"),
       CRON_SECRET: present("CRON_SECRET"),
+      // Optional: absent means the founder alerts fall back to their two default addresses.
+      FOUNDER_ALERT_EMAILS: present("FOUNDER_ALERT_EMAILS"),
     },
   });
 }

@@ -1,6 +1,6 @@
 # TaDa admin guide
 
-For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated September 23, 2026.
+For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated October 1, 2026.
 
 The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts whose profile role is `admin`. Members never see it, and the "Open the admin panel" button on Account only appears for admins.
 
@@ -69,11 +69,32 @@ Every pin and unpin is written to the admin log as `post.pin` or `post.unpin`.
 
 Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, notes added to assigned work (each one tells the other side), past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
 
+## Emails that come to you
+
+Two, both sent to **neal.hollis@gmail.com** and **debhollis1@gmail.com**, and both about money:
+
+- **Someone joined.** Sent when a subscription starts. Says who, their email, which plan, and whether they are on the 14-day trial or paying already.
+- **Someone changed plan.** Sent when a member moves between Standard, Teams and Boss, in either direction. Says who, what they were on, and what they are on now. The subject line says "upgraded" or "moved down" so you can tell from the inbox.
+
+Things worth knowing:
+
+- These come from Stripe activity only. A free account with no plan sends nothing, and neither does a comp grant you make by hand, because neither is a sale.
+- A plan change made in the Customer Portal counts, the same as one made at checkout.
+- Test-mode Stripe never sends them, so staging and `npm run test:stripe` stay quiet.
+- To change who gets them, set `FOUNDER_ALERT_EMAILS` in Vercel to a comma-separated list. Leave it unset and it is the two of you.
+- If an email ever fails to send, the subscription is still correct. Billing is never rolled back because an email bounced; the failure is written to the Vercel log instead.
+
+## Members who were sent by another member
+
+The gold bar on Today lets a member share TaDa. Their link carries their own slug, so when someone joins through it the new profile records who sent them in `profiles.referred_from`. There is no screen for this yet: read it in the Supabase table editor with
+`select name, email, referred_from from profiles where referred_from is not null order by created_at desc;`
+
 ## Billing, what you can and cannot do here
 
 - The app decides who gets in from the `entitlements` table only. Stripe writes rows with `source = 'stripe'` through the webhook; comp and admin rows are yours. Stripe code never touches your rows and you should never edit a Stripe row by hand.
 - Cancellations can be done from the member's page (Subscription card). Refunds, card problems and receipts are done in the Stripe dashboard. Search Stripe by the member's email.
 - Stripe is **live** as of September 21, 2026. Preview/staging deployments and `.env.local` still use test mode.
+- Comp invites (bulk comp to an email that is not a member yet) are redeemed by the signup trigger the moment that person creates their account. Between September 24 and October 1, 2026 that redemption was broken by a migration: anyone invited in that window signed up and hit the paywall instead. Migration `0023` restored it and redeemed every invite that was still waiting, so nothing needs doing by hand.
 - Boss seat counts sync once a day at 05:30 UTC. Removing a member from a boss team changes the next invoice, not today's.
 - The `stripe:setup` script is idempotent and mode-aware; re-run it against `.env.live` if a live price or the webhook ever needs recreating.
 
