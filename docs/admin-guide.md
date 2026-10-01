@@ -69,6 +69,20 @@ Every pin and unpin is written to the admin log as `post.pin` or `post.unpin`.
 
 Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, notes added to assigned work (each one tells the other side), past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
 
+## Emails that go to members
+
+Two, both from TaDa itself rather than from Supabase or Stripe:
+
+- **Welcome to TaDa**, once, when someone first confirms their account. Explains the Brain Dump, Organize and Today in three short paragraphs, and points at the guide. Stamped on `profiles.welcomed_at`, so it cannot arrive twice. To send it to someone again, set that column back to null.
+- **Your TaDa trial ends \<day\>**, three days before the card is charged, naming the plan and the exact date. Stamped on `entitlements.trial_reminder_sent_at`. Someone who cancels and resubscribes gets one for the new trial.
+
+Things worth knowing:
+
+- Everyone who had an account before October 1, 2026 was marked as already welcomed, so the change did not mail your existing members.
+- Receipts and failed-payment notices are **not** these. Stripe sends those if they are switched on in the Stripe dashboard; TaDa does not duplicate them.
+- Partner requests and assigned work stay as bell and push only. Three alerts for one event is how people end up muting an app.
+- A send that fails clears its own stamp, so the next sign-in or the next morning tries again rather than losing the email silently.
+
 ## Emails that come to you
 
 Two, both sent to **neal.hollis@gmail.com** and **debhollis1@gmail.com**, and both about money:
@@ -104,6 +118,7 @@ The gold bar on Today lets a member share TaDa. Their link carries their own slu
 |---|---|---|
 | 05:00 | `/api/cron/digest` | Rolls the day's automatic milestone posts into one Wins digest once there are five or more. |
 | 05:30 | `/api/cron/seats` | Recounts boss seats and updates the Stripe extra-seat quantity. |
+| 14:00 (9am Central) | `/api/cron/trial` | Emails anyone whose free trial becomes a charge in three days. Stamps `entitlements.trial_reminder_sent_at` so it goes once per subscription. |
 | 13:00 (8am Central) | `/api/cron/overdue` | Finds assigned work still open the day after its deadline and sends the assignee one Past due notice, bell plus push. Stamps `assignments.overdue_notified_at` so it never repeats. |
 
 To run one by hand (for example on staging, where crons do not fire): `curl -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/overdue`. Each returns a small JSON summary.

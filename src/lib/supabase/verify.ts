@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWelcomeOnce } from "@/lib/member-emails";
 
 /**
  * Shared handler for the links Supabase emails out.
@@ -35,6 +37,14 @@ export async function verifyAuthLink(request: Request) {
   if (failed) {
     return NextResponse.redirect(new URL("/login?error=link", request.url));
   }
+  // First time through, say hello. sendWelcomeOnce claims the row before it
+  // sends, so the many later magic-link sign-ins that land here do nothing.
+  // Not awaited into the redirect: a slow mail API must not hold the door shut.
+  if (type !== "recovery") {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) await sendWelcomeOnce(createAdminClient(), data.user.id);
+  }
+
   // Password recovery and invites land on the "set a new password" screen.
   const target = type === "recovery" || type === "invite" ? "/account/password" : next;
   return NextResponse.redirect(new URL(target, request.url));
