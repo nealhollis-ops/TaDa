@@ -80,6 +80,12 @@ npm run test:rls
   Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` in Vercel or pushes are silently skipped.
 - Team invitations go out by email from `/api/invites/send`; the link lands on `/invite/<token>`.
 - `/api/cron/digest` (nightly, Vercel cron) rolls a busy day's milestone posts into one digest. Needs `CRON_SECRET`.
+- Member email lives in `src/lib/email.ts` (one Resend call, one branded shell) and `src/lib/member-emails.ts`:
+  a welcome on first confirmation, and a trial-ending notice three days out from `/api/cron/trial`. Both claim
+  their row (`update ... where <stamp> is null`) before sending and release the claim if the send fails, so a
+  double sign-in or a cron run twice cannot send twice and a failure is retried. The trial cron reads Stripe's
+  `trial_end` rather than the entitlement's `expires_at`, which carries a day of grace, and compares calendar
+  days in one timezone so a second of clock skew cannot skip a day.
 - `NEXT_PUBLIC_TADA_URL` is Deb's recorded TaDa. `NEXT_PUBLIC_TOUR_URL` is the Voomly embed URL for the welcome tour (the `embed.html?videoId=...` link, not the share page); the Tour modal shows it in a 16:9 player. Leave it empty and the modal shows a placeholder instead.
 
 ## Billing (Phase 4)

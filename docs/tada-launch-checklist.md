@@ -76,7 +76,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 ## Phase 6: Content, legal, and email
 
 - [ ] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line
-- [ ] Transactional emails wired: welcome, trial reminder on day 11, receipt on conversion, payment failed, partner request received, work assigned
+- [x] Transactional emails wired: welcome (on first confirmation) and trial reminder three days out. Receipts and failed-payment notices are left to Stripe rather than duplicated; partner requests and assigned work stay bell + push, so one event does not raise three alerts.
 - [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice
 - [x] Drop the tour video link into the welcome checklist
 - [ ] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb
