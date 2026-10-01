@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { serverEnv } from "@/lib/env";
 import { applySubscription, getStripe, syncBossSeats } from "@/lib/stripe";
+import { alertNewMember } from "@/lib/founder-alert";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
         if (userId && customerId) await admin.from("billing_customers").upsert({ user_id: userId, stripe_customer_id: customerId });
         const applied = await applySubscription(admin, sub);
         if (applied?.plan === "boss") await syncBossSeats(admin, applied.userId);
+        if (applied) await alertNewMember(admin, applied.userId, applied.plan, sub.status);
         break;
       }
       case "customer.subscription.created":

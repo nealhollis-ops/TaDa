@@ -141,13 +141,13 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Removed it by accident? Open app.gettada.me in your browser, sign in, and install it again from Account. Your tasks are safe either way; they live in your account, not on the phone.",
   ]},
   { id: "addtasks", t: "Adding tasks", b: [
-    "Go to Plan and tap Add task, which sits under Brain Dump. The form opens and scrolls itself into view. Type what needs doing, then either pick an exact day or leave the day empty and let the app choose one for you inside the week you select. The day box opens your phone's own calendar and runs from today to a year out, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
+    "Go to Plan and tap Add task, which sits under Brain Dump. The form opens and scrolls itself into view. Type what needs doing. Pick a day, or leave the day blank and let Organize choose one later. The day box opens your phone's own calendar and runs from today to a year out, so you can't schedule into the past by accident; a task already sitting on an earlier day keeps that day when you edit it.",
     "Give a task a day in a later month and it waits under Later, at the foot of Plan, grouped by month and showing the year once it isn't this one. Open it there to change it or remove it. When that month comes around it joins the month like any other task.",
     "The month below the buttons has two tabs. Active shows what is still to do, week by week. Completed shows what you have already checked off, so finished work moves out of the way but is never lost. The counts on the tabs are for the whole month.",
     "Pick a time of day if you want. Each one has its own color everywhere in the app: Morning is yellow, Afternoon is green, Evening is red. Tasks with no time yet show a gray Time TBD chip, and tasks with no day yet show Day TBD.",
-    "A gray chip like From September means the task was left unfinished last month and carried into this one with no day set. Tap Organize to place it, tap the pencil to choose a day, or remove it if it no longer matters. See When the month turns for the full story.",
+    "A gray chip like From September means the task was left unfinished last month and carried into this one with no day set. It waits under No day yet until you place it. Tap Organize, tap the pencil to choose a day, or remove it if it no longer matters. See When the month turns for the full story.",
     "Check Big win for your major tasks. Big wins get a celebration twice the size, and the app schedules them in mornings when it does the placing.",
-    "Anything with no day on it gathers under No day yet, at the foot of Today. It is not counted in the day’s total, since you did not schedule it; it is there so nothing waits out of sight. Tick one off, tap the pencil to give it a day, or let Organize place the lot.",
+    "Anything with no day on it gathers under No day yet, at the foot of both Today and Plan. On Plan it sits below the weeks rather than inside one, so a week only ever shows work you actually scheduled. On Today it is left out of the day’s total, since you did not plan it for today. Tick one off, tap the pencil to give it a day, or let Organize place the lot.",
   ]},
   { id: "dump", t: "The brain dump", b: [
     "Brain Dump is the first thing on Plan and takes everything at once. Type the whole jumble, or tap the mic in the corner of the box and just talk; your words land in the box and stay there until you tap Make it into tasks.",
@@ -243,6 +243,11 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Messages and partner activity arrive live. If something looks stale, tap Refresh.",
     "Block anyone from their profile. Open a profile, tap Block this member, and their posts, replies, and messages vanish from your view. They're never notified. Unblock any time under Blocked members in your Account. The Report button beside it sends the profile to us for a look.",
     "The full Privacy Policy and Terms are linked at the bottom of Account.",
+  ]},
+  { id: "share", t: "Sharing TaDa", b: [
+    "The gold bar at the top of Today opens a short note you can send to anyone. Change the words to whatever you like, then tap Share TaDa and pick an app, or tap Copy and paste it wherever you want.",
+    "Copy is the one to use for anything that lives in a browser tab, like Google Chat or Slack. The Share button hands over to your phone or computer's own share menu, which can only offer apps that are installed on that device.",
+    "The link carries your name in it, so when someone joins after following it we know who brought them in. The same thing sits on your Account page if you would rather find it there.",
   ]},
   { id: "plans", t: "Plans and pricing", b: [
     "Standard is $17 a month or $170 a year with two months free. It holds the full planner, celebrations, community, and one accountability partner.",

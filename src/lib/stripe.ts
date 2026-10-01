@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { serverEnv } from "@/lib/env";
 import type { Plan } from "@/lib/planner/types";
 import { SEATS_INCLUDED } from "@/lib/planner/content";
+import { alertPlanChange } from "@/lib/founder-alert";
 
 export type Interval = "monthly" | "yearly";
 export const PLAN_KEYS: Plan[] = ["standard", "teams", "boss"];
@@ -99,6 +100,9 @@ export async function applySubscription(admin: SupabaseClient, sub: Stripe.Subsc
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
   const userId = sub.metadata?.user_id || (await userIdForCustomer(admin, customerId));
   if (!userId) return null;
+  // Read the plan on file before the write, so a move between plans can be
+  // told apart from the many updates that change only the status.
+  const { data: before } = await admin.from("entitlements").select("plan").eq("user_id", userId).eq("source", "stripe").maybeSingle();
   // Keep the member <-> customer map current so the portal works however the subscription was created.
   await admin.from("billing_customers").upsert({ user_id: userId, stripe_customer_id: customerId }, { onConflict: "user_id" });
 
@@ -117,6 +121,12 @@ export async function applySubscription(admin: SupabaseClient, sub: Stripe.Subsc
     p_expires_at: expiresAt,
   });
   if (error) throw error;
+  // After the write, and never in a way that can undo it: the founders hear
+  // about a move between plans whichever way it went, and whether it came from
+  // the portal or a fresh checkout.
+  if (before?.plan && before.plan !== info.plan) {
+    await alertPlanChange(admin, userId, before.plan as Plan, info.plan);
+  }
   return { userId, plan: info.plan };
 }
 

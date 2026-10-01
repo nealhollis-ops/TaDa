@@ -66,6 +66,14 @@ npm run test:rls
   `addDumped` runs them through `buildNewTasks` like any other task.
 - The store holds one month. A task dated in a later month is stamped for that month and kept in a separate
   `later` list, shown under Later on Plan, so Organize, progress and streak maths stay month-scoped.
+- A task with no day is in neither a day nor a week, so it gets its own `NoDayGroup` section at the foot of
+  Today and of Plan. Plan's week groups hold dated tasks only; Today leaves these out of the day's total and
+  counts one finished today into "Done today" on `doneAt`, not on a date it never had.
+- The gold bar at the top of Today opens the same share sheet as Account (`share-card.tsx`). It hands
+  `navigator.share` a single `text` with the link inside it: passing `url` as well lets a target keep the
+  link and drop the message, which is what Messenger does. Copy is the fallback for anything that lives in a
+  browser tab. The link carries `?from=<slug>`, which the marketing site forwards to signup and
+  `handle_new_user` records in `profiles.referred_from`.
 - A repeat lays down one row per day, tied together by `rootId`. An edit reaches `"one"` or `"series"`
   (`applyEdit`); a day edited on its own carries `exception` and later series edits skip it.
 - Live updates come from Supabase Realtime; push notifications go through `/api/notify` and the service worker.
@@ -82,6 +90,12 @@ npm run test:rls
 - The Stripe account is shared with other products. Everything TaDa creates carries `metadata.app = tada`,
   and the webhook ignores subscriptions whose prices are not `tada_*`.
 - Members with no active entitlement see the paywall; checkout gives 14 days free with a card up front.
+- The founders are emailed when someone starts a subscription and when someone moves between plans
+  (`src/lib/founder-alert.ts`, sent with Resend). The signup notice comes from the webhook's
+  `checkout.session.completed` branch, which fires once per checkout; the plan-change notice comes from
+  `applySubscription`, which compares the entitlement row on file against the one it is about to write.
+  Test-mode Stripe keys send nothing, so `npm run test:stripe` stays quiet. Addresses default to the two
+  founders and can be overridden with `FOUNDER_ALERT_EMAILS`.
 - Boss seats: `/api/stripe/seats` runs after roster changes and `/api/cron/seats` re-syncs nightly.
 - `npm run test:stripe` (dev server running, test keys) replays real Stripe events into the local webhook
   and checks trial start, seat sync, plan change, cancel, and that comp rows are untouched.
@@ -110,6 +124,7 @@ src/app/login/        sign-in screen and its server action
 src/app/(app)/        signed-in screens (today, account/password)
 supabase/migrations/  schema, RLS policies, storage buckets, realtime
 supabase/templates/   branded auth emails
+src/lib/founder-alert.ts  emails the founders on a new subscription or a plan change
 scripts/              seed-admins.mjs, rls-smoke-test.mjs
 src/proxy.ts          Next 16 proxy (formerly middleware): refreshes the Supabase session
 src/components/pwa/   service worker registration + install prompt
