@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requestOrigin } from "@/lib/request-origin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWelcomeOnce } from "@/lib/member-emails";
 
 export type AuthMode = "signin" | "signup" | "magic" | "forgot";
 export type AuthState = { error?: string; message?: string; mode?: AuthMode } | null;
@@ -64,7 +66,11 @@ export async function authAction(_prev: AuthState, formData: FormData): Promise<
     });
     if (error) return { mode, error: friendly(error.message) };
     // When email confirmation is off, Supabase returns a live session right away.
-    if (data.session) redirect(next);
+    // That path never reaches /auth/callback, so the welcome is sent from here.
+    if (data.session) {
+      if (data.user) await sendWelcomeOnce(createAdminClient(), data.user.id);
+      redirect(next);
+    }
     return { mode, message: "Almost there. Check your email and tap the confirmation link." };
   }
 
