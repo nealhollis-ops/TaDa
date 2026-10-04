@@ -69,6 +69,15 @@ Every pin and unpin is written to the admin log as `post.pin` or `post.unpin`.
 
 Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, notes added to assigned work (each one tells the other side), past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
 
+## Boss categories
+
+A boss team owner can name up to 10 categories and file assigned work into them. The card sits above Assign work in the team; the dropdown appears in Assign work and in the editor once at least one category exists; Track progress groups by category with uncategorised work last.
+
+- Only the team owner writes them. That is the `team_categories_write` policy, plus a trigger on `assignments` that blocks anyone but the owner changing `category_id` - needed because the member it was assigned to can already update their own row to tick it off, and RLS works per row rather than per column.
+- The 10 cap is a database trigger, not just the UI, so it holds whoever is calling.
+- Deleting a category sets its tasks back to no category; it never deletes work. The foreign key is `on delete set null`.
+- Tables: `team_categories`, and `assignments.category_id`. Migration `0025`.
+
 ## Emails that go to members
 
 Two, both from TaDa itself rather than from Supabase or Stripe:

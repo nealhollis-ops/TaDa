@@ -215,6 +215,12 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "6. Run more than one. Create as many teams as you like, and one person can be on several. Each has its own room and its own progress view.",
     "What a team can't do: assign tasks or set deadlines. That's the Boss plan, where the owner's teams become boss teams. Everything above still works the same way there, with the boss powers added on top.",
   ]},
+  { id: "categories", t: "Categories, for a boss", b: [
+    "A boss can name up to 10 categories for their team: Content, Admin, whatever the work actually divides into. They live in the Categories card at the top of the team, above Assign work. Five suggestions are offered when you start; tap Keep on the ones you want and ignore the rest.",
+    "Assign work then has a Category box. Leave it on No category and nothing changes. Track progress groups the list by category, with anything uncategorised at the bottom, and inside every group the soonest deadline comes first.",
+    "Rename a category with the pencil, remove it with the x. Removing one never deletes work: those tasks simply move to No category. You can re-file a task any time by opening it with the pencil in Track progress.",
+    "Only the boss creates, renames or deletes categories, and only the boss can change which one a task is in. Everyone else sees the category on their own task as a small chip and nothing more.",
+  ]},
   { id: "bossguide", t: "Running a Boss team, step by step", b: [
     "1. Create the team. On Partners, open the Boss Mode tab, type a name into the box that says Name a new boss team and tap the button beside it. It's a boss team because you're on the Boss plan, and you can run more than one.",
     "2. Invite your people by email. Each person gets an email with a link and an invite card on their own Boss Mode tab. They don't need to be on a paid plan of their own; your seats cover them. Before they accept, they're told a boss team shares their signup email with you and that hidden and private settings don't apply inside it.",

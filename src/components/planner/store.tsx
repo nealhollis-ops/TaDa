@@ -12,7 +12,7 @@ import { dateLabel, dayOfMonth, dayOfYear, monthOfDate, todayStr, weekOf, previo
 import { computeBadges, findNewBadge, levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
 import { buzz, buzzGrand, greet, playChime, playGrand, primeSound, setSoundOn, tryGreet } from "@/lib/planner/sound";
 import { applyEdit, applyOps, buildNewTasks, bumpStats, carryUnfinished, creditPerfectWeek, currentMonth, organizeList, seriesKey, spawnRepeaters, taskWeek, type EditScope, type NewTaskForm } from "@/lib/planner/tasks";
-import { DEF_STATS, type Assignment, type AssignmentNote, type Badge, type Banner, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
+import { DEF_STATS, type Assignment, type AssignmentNote, type Badge, type Banner, type DumpItem, type Member, type Message, type MyProfile, type PartnerRequest, type Partnership, type Plan, type Post, type PostType, type Progress, type ReactKind, type Stats, type Task, type Team, type TeamCategory, type TeamInvite, type TeamMessage } from "@/lib/planner/types";
 import * as P from "@/lib/data/planner";
 import * as S from "@/lib/data/social";
 import { enablePush, disablePush } from "@/lib/data/push";
@@ -52,6 +52,13 @@ export type PlannerState = {
   banner: Banner | null;
   /** Notes kept on assigned work, boss mode only. */
   assignmentNotes: AssignmentNote[];
+  /** Buckets a boss sorts assigned work into. Only a team owner may change these. */
+  teamCategories: TeamCategory[];
+  categoriesOf: (teamId: string) => TeamCategory[];
+  addCategory: (teamId: string, name: string) => Promise<void>;
+  renameCategory: (id: string, name: string) => Promise<void>;
+  removeCategory: (id: string) => Promise<void>;
+  setTaskCategory: (assignmentId: string, categoryId: string | null) => Promise<void>;
   posts: Post[];
   blocked: string[];
   seekers: Member[];
@@ -133,7 +140,7 @@ export type PlannerActions = {
   removeMember: (teamId: string, userId: string) => Promise<void>;
   reassignTask: (id: string, userId: string) => Promise<void>;
   sendTeamMsg: (teamId: string, text: string) => Promise<void>;
-  assignTask: (teamId: string, toUser: string, title: string, date: string | null) => Promise<void>;
+  assignTask: (teamId: string, toUser: string, title: string, date: string | null, categoryId?: string | null) => Promise<void>;
   toggleAssigned: (a: Assignment) => Promise<void>;
   removeAssigned: (id: string) => Promise<void>;
   editAssignment: (id: string, patch: { title: string; toUser: string; date: string | null }) => Promise<void>;
@@ -201,6 +208,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [teamReads, setTeamReads] = useState<Record<string, string>>({});
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState<AssignmentNote[]>([]);
+  const [teamCategories, setTeamCategories] = useState<TeamCategory[]>([]);
   const [banner, setBanner] = useState<Banner | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
@@ -372,7 +380,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const refreshShared = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [reqs, pairs, msgs, tms, invs, asg, notes, bnr, ps, blk, seek] = await Promise.all([
+      const [reqs, pairs, msgs, tms, invs, asg, notes, bnr, cats, ps, blk, seek] = await Promise.all([
         S.loadRequests(sb, me.id),
         S.loadPartnerships(sb, me.id),
         S.loadMessages(sb, me.id),
@@ -381,6 +389,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         S.loadAssignments(sb),
         S.loadAssignmentNotes(sb).catch(() => [] as AssignmentNote[]),
         S.loadBanner(sb).catch(() => null),
+        S.loadTeamCategories(sb).catch(() => [] as TeamCategory[]),
         S.loadPosts(sb),
         S.loadBlocks(sb, me.id),
         S.loadSeekers(sb),
@@ -388,6 +397,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       const [tmsgs, outInv, reads] = await Promise.all([S.loadTeamMessages(sb, tms.map((t) => t.id)), S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id)), S.loadTeamReads(sb, me.id).catch(() => ({}))]);
       setTeamReads(reads);
       setAssignmentNotes(notes);
+      setTeamCategories(cats);
       setBanner(bnr);
       setRequests(reqs);
       setPartnerships(pairs);
@@ -1458,11 +1468,91 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [sb, me.id, fail],
   );
 
+  const categoriesOf = useCallback((teamId: string) => teamCategories.filter((c) => c.teamId === teamId).sort((a, b) => a.sort - b.sort), [teamCategories]);
+
+  /**
+   * Add a category. The cap and the owner-only rule are both enforced by the
+   * database, so a refused write here is reported rather than guessed at.
+   */
+  const addCategory = useCallback(
+    async (teamId: string, name: string) => {
+      const clean = name.trim();
+      if (!clean) return;
+      const mine = teamCategories.filter((c) => c.teamId === teamId);
+      if (mine.length >= 10) return showToast("That is all ten categories. Remove one to add another.");
+      if (mine.some((c) => c.name.toLowerCase() === clean.toLowerCase())) return showToast("You already have a category by that name.");
+      try {
+        // The tint is the next free slot in the palette, so two live categories
+        // never share a colour until all ten are in use.
+        const used = new Set(mine.map((c) => c.tint));
+        let tint = 0;
+        while (tint < 10 && used.has(tint)) tint += 1;
+        const sort = mine.length ? Math.max(...mine.map((c) => c.sort)) + 1 : 0;
+        const made = await S.createTeamCategory(sb, teamId, clean, tint % 10, sort);
+        setTeamCategories((list) => [...list, made]);
+      } catch (e) {
+        fail(e, "That category didn't save. Try again.");
+      }
+    },
+    [sb, teamCategories, fail, showToast],
+  );
+
+  const renameCategory = useCallback(
+    async (id: string, name: string) => {
+      const clean = name.trim();
+      if (!clean) return;
+      const before = teamCategories.find((c) => c.id === id);
+      if (!before) return;
+      if (teamCategories.some((c) => c.teamId === before.teamId && c.id !== id && c.name.toLowerCase() === clean.toLowerCase())) {
+        return showToast("You already have a category by that name.");
+      }
+      setTeamCategories((list) => list.map((c) => (c.id === id ? { ...c, name: clean } : c)));
+      try {
+        await S.renameTeamCategory(sb, id, clean);
+      } catch (e) {
+        setTeamCategories((list) => list.map((c) => (c.id === id ? before : c)));
+        fail(e, "That rename didn't stick. Try again.");
+      }
+    },
+    [sb, teamCategories, fail, showToast],
+  );
+
+  /** The label goes; the work it was on stays, under No category. */
+  const removeCategory = useCallback(
+    async (id: string) => {
+      const before = teamCategories;
+      setTeamCategories((list) => list.filter((c) => c.id !== id));
+      setAssignments((list) => list.map((a) => (a.categoryId === id ? { ...a, categoryId: null } : a)));
+      try {
+        await S.deleteTeamCategory(sb, id);
+      } catch (e) {
+        setTeamCategories(before);
+        fail(e, "That category didn't delete. Try again.");
+      }
+    },
+    [sb, teamCategories, fail],
+  );
+
+  const setTaskCategory = useCallback(
+    async (assignmentId: string, categoryId: string | null) => {
+      const before = assignments.find((a) => a.id === assignmentId);
+      if (!before) return;
+      setAssignments((list) => list.map((a) => (a.id === assignmentId ? { ...a, categoryId } : a)));
+      try {
+        await S.updateAssignment(sb, assignmentId, { categoryId });
+      } catch (e) {
+        setAssignments((list) => list.map((a) => (a.id === assignmentId ? before : a)));
+        fail(e, "That category didn't save. Only the team owner can set one.");
+      }
+    },
+    [sb, assignments, fail],
+  );
+
   const assignTask = useCallback(
-    async (teamId: string, toUser: string, title: string, date: string | null) => {
+    async (teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null) => {
       if (!title.trim() || !toUser) return;
       try {
-        const a = await S.createAssignment(sb, me.id, teamId, toUser, title.trim(), date);
+        const a = await S.createAssignment(sb, me.id, teamId, toUser, title.trim(), date, categoryId);
         setAssignments((list) => [...list, a]);
         S.notify("assignment", toUser);
       } catch (e) {
@@ -1679,7 +1769,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     toggleTask, addTask, organize, organizing, parseDump, addDumped, runCommand, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, teamCategories, categoriesOf, addCategory, renameCategory, removeCategory, setTaskCategory, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, enableThisDevice, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 

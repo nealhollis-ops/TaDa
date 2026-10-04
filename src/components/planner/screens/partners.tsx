@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
+import { CategoriesCard, tintOf } from "../categories-card";
 import { Avatar, BadgeStrip, Bar, C, DayField, QuoteCard, inputCls, inputStyle, renderRich } from "../ui";
 import { ago, dateLabel, lastPickableDate } from "@/lib/planner/calendar";
 import { levelOf, QUOTES, SEATS_INCLUDED, TEAM_CAP } from "@/lib/planner/content";
@@ -469,6 +470,7 @@ function TeamCard({ t }: { t: Team }) {
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
   const [assignTo, setAssignTo] = useState("");
   const [assignTitle, setAssignTitle] = useState("");
+  const [assignCat, setAssignCat] = useState("");
   const [assignDay, setAssignDay] = useState("none");
   const tMsgs = p.teamMsgs.filter((m) => m.teamId === t.id && !p.isBlocked(m.userId));
   const pending = p.outgoingInvites.filter((i) => i.teamId === t.id);
@@ -558,6 +560,8 @@ function TeamCard({ t }: { t: Team }) {
           )}
           {t.kind === "boss" && owner && (
             <div className="mt-3">
+              <SectionLabel>Categories</SectionLabel>
+              <CategoriesCard t={t} />
               <SectionLabel>Assign work</SectionLabel>
               <div className="mb-2 rounded-xl p-3" style={{ background: C.cream }}>
                 <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={assignTo} onChange={(e) => setAssignTo(e.target.value)}>
@@ -571,11 +575,22 @@ function TeamCard({ t }: { t: Team }) {
                     ))}
                 </select>
                 <input className="mb-2 w-full rounded-xl border px-3 py-2 text-sm outline-none" style={inputStyle} placeholder="What needs doing?" value={assignTitle} onChange={(e) => setAssignTitle(e.target.value)} />
+                {/* Only worth showing once there is something to choose from. */}
+                {p.categoriesOf(t.id).length > 0 && (
+                  <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={assignCat} onChange={(e) => setAssignCat(e.target.value)}>
+                    <option value="">No category</option>
+                    {p.categoriesOf(t.id).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <div className="flex gap-2">
                   <DaySelect value={assignDay} onChange={setAssignDay} />
                   <button
                     onClick={() => {
-                      void p.assignTask(t.id, assignTo, assignTitle, assignDay === "none" ? null : assignDay);
+                      void p.assignTask(t.id, assignTo, assignTitle, assignDay === "none" ? null : assignDay, assignCat || null);
                       setAssignTitle("");
                     }}
                     className="rounded-xl px-3 text-xs font-semibold"
@@ -688,6 +703,14 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
   const completed = mine.filter((a) => a.done).sort((a, b) => (b.doneAt || "").localeCompare(a.doneAt || ""));
   const rows = tab === "assigned" ? assigned : completed;
 
+  // Named categories in the order the boss made them, then whatever has none.
+  // A group with nothing in it is left out rather than shown empty.
+  const cats = p.categoriesOf(t.id);
+  const groups = [
+    ...cats.map((c) => ({ id: c.id as string | null, name: c.name, tint: c.tint, rows: rows.filter((a) => a.categoryId === c.id) })),
+    { id: null as string | null, name: "No category", tint: 0, rows: rows.filter((a) => !a.categoryId || !cats.some((c) => c.id === a.categoryId)) },
+  ].filter((g) => g.rows.length > 0);
+
   return (
     <div>
       {owner && (
@@ -726,27 +749,43 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
           {tab === "assigned" ? "Nothing waiting." : "Nothing finished yet."}
         </div>
       )}
-      {rows.map((a) =>
-        editing === a.id ? (
-          <AssignmentEditor key={a.id} a={a} t={t} onDone={() => setEditing(null)} />
-        ) : (
-          <AssignmentRow
-            key={a.id}
-            a={a}
-            owner={owner}
-            confirming={confirmDelete === a.id}
-            onEdit={() => {
-              setConfirmDelete(null);
-              setEditing(a.id);
-            }}
-            onAskDelete={() => setConfirmDelete(confirmDelete === a.id ? null : a.id)}
-            onDelete={() => {
-              setConfirmDelete(null);
-              void p.removeAssigned(a.id);
-            }}
-          />
-        ),
-      )}
+      {groups.map((g) => (
+        <div key={g.id ?? "none"} className="mb-1">
+          {/* The header only earns its space once the boss has made a category. */}
+          {cats.length > 0 && (
+            <div className="mb-1 flex items-center gap-1.5">
+              <span className="shrink-0 rounded-full" style={{ width: 9, height: 9, background: g.id ? tintOf(g.tint) : C.line }} />
+              <span className="text-xs font-semibold" style={{ color: g.id ? C.ink : C.fade }}>
+                {g.name}
+              </span>
+              <span className="ml-auto" style={{ fontSize: 10, color: C.fade }}>
+                {g.rows.length}
+              </span>
+            </div>
+          )}
+          {g.rows.map((a) =>
+            editing === a.id ? (
+              <AssignmentEditor key={a.id} a={a} t={t} onDone={() => setEditing(null)} />
+            ) : (
+              <AssignmentRow
+                key={a.id}
+                a={a}
+                owner={owner}
+                confirming={confirmDelete === a.id}
+                onEdit={() => {
+                  setConfirmDelete(null);
+                  setEditing(a.id);
+                }}
+                onAskDelete={() => setConfirmDelete(confirmDelete === a.id ? null : a.id)}
+                onDelete={() => {
+                  setConfirmDelete(null);
+                  void p.removeAssigned(a.id);
+                }}
+              />
+            ),
+          )}
+        </div>
+      ))}
       {owner && (
         <p className="mt-1 text-xs" style={{ color: C.fade }}>
           Pick a name to see one person&rsquo;s work, or All members for the whole team.
@@ -760,6 +799,7 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
   const p = usePlanner();
   const late = !a.done && !!a.date && a.date < p.today;
   const canToggle = owner || a.toUser === p.me.id;
+  const cat = p.categoriesOf(a.teamId).find((c) => c.id === a.categoryId);
   const when = a.done ? (a.doneAt ? `Done ${dateLabel(a.doneAt.slice(0, 10), p.month)}` : "Done") : a.date ? (late ? `Overdue, was ${dateLabel(a.date, p.month)}` : `Due ${dateLabel(a.date, p.month)}`) : "No deadline";
   return (
     <div className="mb-1.5 rounded-xl px-3 py-2" style={{ background: C.cream, opacity: a.done ? 0.65 : 1 }}>
@@ -771,10 +811,19 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
           <div className="text-xs font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
             {a.title}
           </div>
-          <div className="mt-0.5 flex gap-1" style={{ fontSize: 10, color: late ? C.coral : C.fade }}>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1" style={{ fontSize: 10, color: late ? C.coral : C.fade }}>
             <span>{a.toUser === p.me.id ? "You" : p.nameOf(a.toUser)}</span>
             <span>·</span>
             <span>{when}</span>
+            {cat && (
+              <>
+                <span>·</span>
+                <span className="flex items-center gap-1" style={{ color: C.fade }}>
+                  <span className="shrink-0 rounded-full" style={{ width: 7, height: 7, background: tintOf(cat.tint) }} />
+                  {cat.name}
+                </span>
+              </>
+            )}
           </div>
           <AssignmentNotes a={a} compact />
         </div>
@@ -809,8 +858,11 @@ function AssignmentEditor({ a, t, onDone }: { a: Assignment; t: Team; onDone: ()
   const [title, setTitle] = useState(a.title);
   const [toUser, setToUser] = useState(a.toUser ?? "");
   const [day, setDay] = useState(dayValue(a.date));
+  const [cat, setCat] = useState(a.categoryId ?? "");
+  const cats = p.categoriesOf(t.id);
   const save = async () => {
     await p.editAssignment(a.id, { title, toUser, date: day === "none" ? null : day });
+    if ((a.categoryId ?? "") !== cat) await p.setTaskCategory(a.id, cat || null);
     onDone();
   };
   return (
@@ -827,6 +879,16 @@ function AssignmentEditor({ a, t, onDone }: { a: Assignment; t: Team; onDone: ()
         }}
         autoFocus
       />
+      {cats.length > 0 && (
+        <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category">
+          <option value="">No category</option>
+          {cats.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      )}
       <div className="mb-2 flex gap-2">
         <select className="min-w-0 flex-1 rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={toUser} onChange={(e) => setToUser(e.target.value)}>
           {t.members.map((id) => (
