@@ -6,8 +6,8 @@
  * these helpers just shape the queries.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Assignment, AssignmentNote, Banner, Member, MemberCard, Message, PartnerRequest, Partnership, Post, PostType, Progress, ReactKind, SeatRow, Stats, Team, TeamInvite, TeamMessage } from "@/lib/planner/types";
-import { MEMBER_COLS, toAssignment, toAssignmentNote, toBanner, toMember, toMessage, toPartnership, toPost, toProgress, toReply, toRequest, toStats, toTeam, toTeamMessage } from "./map";
+import type { Assignment, AssignmentNote, Banner, Member, MemberCard, Message, PartnerRequest, Partnership, Post, PostType, Progress, ReactKind, SeatRow, Stats, Team, TeamInvite, TeamMessage , TeamCategory } from "@/lib/planner/types";
+import { MEMBER_COLS, toAssignment, toAssignmentNote, toBanner, toMember, toMessage, toPartnership, toPost, toProgress, toReply, toRequest, toStats, toTeam, toTeamCategory, toTeamMessage } from "./map";
 
 type SB = SupabaseClient;
 
@@ -278,19 +278,45 @@ export async function addAssignmentNote(sb: SB, me: string, assignmentId: string
   return toAssignmentNote(data);
 }
 
-export async function createAssignment(sb: SB, me: string, teamId: string, toUser: string, title: string, date: string | null): Promise<Assignment> {
-  const { data, error } = await sb.from("assignments").insert({ team_id: teamId, from_user: me, to_user: toUser, title: title.slice(0, 120), date }).select("*").single();
+export async function createAssignment(sb: SB, me: string, teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null): Promise<Assignment> {
+  const { data, error } = await sb.from("assignments").insert({ team_id: teamId, from_user: me, to_user: toUser, title: title.slice(0, 120), date, category_id: categoryId }).select("*").single();
   if (error) throw error;
   return toAssignment(data);
 }
 
-export async function updateAssignment(sb: SB, id: string, patch: { done?: boolean; doneAt?: string | null; toUser?: string | null; title?: string; date?: string | null }) {
+// ----------------------------------------------------- team categories --
+/** Every category on every team this member belongs to; RLS decides which. */
+export async function loadTeamCategories(sb: SB): Promise<TeamCategory[]> {
+  const { data, error } = await sb.from("team_categories").select("*").order("sort");
+  if (error) throw error;
+  return (data ?? []).map(toTeamCategory);
+}
+
+export async function createTeamCategory(sb: SB, teamId: string, name: string, tint: number, sort: number): Promise<TeamCategory> {
+  const { data, error } = await sb.from("team_categories").insert({ team_id: teamId, name: name.trim().slice(0, 32), tint, sort }).select("*").single();
+  if (error) throw error;
+  return toTeamCategory(data);
+}
+
+export async function renameTeamCategory(sb: SB, id: string, name: string) {
+  const { error } = await sb.from("team_categories").update({ name: name.trim().slice(0, 32) }).eq("id", id);
+  if (error) throw error;
+}
+
+/** The work keeps its place in the world; only the label goes. */
+export async function deleteTeamCategory(sb: SB, id: string) {
+  const { error } = await sb.from("team_categories").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateAssignment(sb: SB, id: string, patch: { done?: boolean; doneAt?: string | null; toUser?: string | null; title?: string; date?: string | null; categoryId?: string | null }) {
   const row: Record<string, unknown> = {};
   if (patch.done !== undefined) row.done = patch.done;
   if (patch.doneAt !== undefined) row.done_at = patch.doneAt;
   if (patch.toUser !== undefined) row.to_user = patch.toUser;
   if (patch.title !== undefined) row.title = patch.title.slice(0, 120);
   if (patch.date !== undefined) row.date = patch.date;
+  if (patch.categoryId !== undefined) row.category_id = patch.categoryId;
   const { error } = await sb.from("assignments").update(row).eq("id", id);
   if (error) throw error;
 }

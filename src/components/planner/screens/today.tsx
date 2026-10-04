@@ -7,6 +7,7 @@ import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { Banner } from "../banner";
 import { NoDayGroup } from "../no-day";
+import { tintOf } from "../categories-card";
 import { CommandBar } from "../shell";
 import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
@@ -25,6 +26,8 @@ function AssignedRow({ a }: { a: Assignment }) {
   const p = usePlanner();
   const late = !a.done && !!a.date && a.date < p.today;
   const team = p.teams.find((t) => t.id === a.teamId);
+  // Read-only here. Only the boss can set or change it.
+  const cat = p.categoriesOf(a.teamId).find((c) => c.id === a.categoryId);
   return (
     <div className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: a.done ? 0.65 : 1 }}>
       <button onClick={() => void p.toggleAssigned(a)} className="shrink-0" aria-label="Toggle assigned task">
@@ -39,6 +42,12 @@ function AssignedRow({ a }: { a: Assignment }) {
             {team ? team.name : "Team"}
           </Chip>
           <Chip>{late ? "Overdue" : "Due today"}</Chip>
+          {cat && (
+            <span className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold" style={{ background: C.mist, color: C.navy2 }}>
+              <span className="shrink-0 rounded-full" style={{ width: 7, height: 7, background: tintOf(cat.tint) }} />
+              {cat.name}
+            </span>
+          )}
         </div>
         <AssignmentNotes a={a} />
       </div>

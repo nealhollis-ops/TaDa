@@ -1,5 +1,5 @@
 /* Row <-> app object mapping. Keeps snake_case at the database edge only. */
-import type { Assignment, AssignmentNote, Banner, Member, Message, PartnerRequest, Partnership, Post, Progress, Reply, Stats, Task, Team, TeamMessage } from "@/lib/planner/types";
+import type { Assignment, AssignmentNote, Banner, Member, Message, PartnerRequest, Partnership, Post, Progress, Reply, Stats, Task, Team, TeamMessage , TeamCategory } from "@/lib/planner/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>;
@@ -94,8 +94,9 @@ export const toTeam = (r: Row, members: string[]): Team => ({ id: r.id, name: r.
 export const toTeamMessage = (r: Row): TeamMessage => ({ id: r.id, teamId: r.team_id, userId: r.user_id, text: r.text, createdAt: r.created_at });
 export const toAssignment = (r: Row): Assignment => ({
   id: r.id, teamId: r.team_id, fromUser: r.from_user, toUser: r.to_user ?? null, title: r.title, date: r.date ?? null,
-  done: !!r.done, doneAt: r.done_at ?? null, createdAt: r.created_at,
+  done: !!r.done, doneAt: r.done_at ?? null, createdAt: r.created_at, categoryId: r.category_id ?? null,
 });
+export const toTeamCategory = (r: Row): TeamCategory => ({ id: r.id, teamId: r.team_id, name: r.name, tint: r.tint ?? 0, sort: r.sort ?? 0 });
 export const toBanner = (r: Row): Banner => ({ id: r.id, text: r.text, startsAt: r.starts_at, endsAt: r.ends_at });
 export const toAssignmentNote = (r: Row): AssignmentNote => ({ id: r.id, assignmentId: r.assignment_id, userId: r.user_id, text: r.text, createdAt: r.created_at });
 export const toReply = (r: Row, reactions: Record<string, string[]> = {}): Reply => ({ id: r.id, postId: r.post_id, userId: r.user_id, text: r.text, createdAt: r.created_at, edited: !!r.edited_at, reactions });
