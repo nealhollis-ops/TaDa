@@ -77,7 +77,12 @@ exception when duplicate_object then null; end $$;
 create or replace function public.assignment_category_owner_only()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  if new.category_id is distinct from old.category_id
+  -- auth.uid() is null for the service role, the SQL editor and the seed
+  -- scripts. Those are already trusted, and an anon caller is turned away by
+  -- the row policy before it gets here, so this only has to answer for a
+  -- signed-in member.
+  if auth.uid() is not null
+     and new.category_id is distinct from old.category_id
      and not public.is_team_owner(new.team_id) then
     raise exception 'Only the team owner can change a task category.' using errcode = 'insufficient_privilege';
   end if;
