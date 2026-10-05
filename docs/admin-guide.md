@@ -1,6 +1,6 @@
 # TaDa admin guide
 
-For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated October 1, 2026.
+For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated October 5, 2026.
 
 The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts whose profile role is `admin`. Members never see it, and the "Open the admin panel" button on Account only appears for admins.
 
@@ -141,6 +141,7 @@ The gold bar on Today lets a member share TaDa. Their link carries their own slu
 
 - The app decides who gets in from the `entitlements` table only. Stripe writes rows with `source = 'stripe'` through the webhook; comp and admin rows are yours. Stripe code never touches your rows and you should never edit a Stripe row by hand.
 - Cancellations can be done from the member's page (Subscription card). Refunds, card problems and receipts are done in the Stripe dashboard. Search Stripe by the member's email.
+- No member has ever gone through checkout on production: as of October 5, 2026 every entitlement is comp or admin and `entitlements` holds zero rows with `source = 'stripe'`. The live billing path, and the founder email that announces a new paying member, have therefore never run against a real customer. Phase 7 of the launch checklist still has the one real purchase outstanding.
 - Stripe is **live** as of September 21, 2026. Preview/staging deployments and `.env.local` still use test mode.
 - Comp invites (bulk comp to an email that is not a member yet) are redeemed by the signup trigger the moment that person creates their account. Between September 24 and October 1, 2026 that redemption was broken by a migration: anyone invited in that window signed up and hit the paywall instead. Migration `0023` restored it and redeemed every invite that was still waiting, so nothing needs doing by hand.
 - Boss seat counts sync once a day at 05:30 UTC. Removing a member from a boss team changes the next invoice, not today's.
