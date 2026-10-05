@@ -146,6 +146,8 @@ src/app/(app)/        signed-in screens (today, account/password)
 supabase/migrations/  schema, RLS policies, storage buckets, realtime
 supabase/templates/   branded auth emails
 src/lib/founder-alert.ts  emails the founders on a new subscription or a plan change
+src/components/planner/   the planner shell; categories-card.tsx and no-day.tsx are the boss
+                          category editor and the undated-task section used by Today and Plan
 scripts/              seed-admins.mjs, rls-smoke-test.mjs
 src/proxy.ts          Next 16 proxy (formerly middleware): refreshes the Supabase session
 src/components/pwa/   service worker registration + install prompt
