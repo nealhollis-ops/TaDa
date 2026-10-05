@@ -80,6 +80,7 @@ A boss taps the star on a task row, or beside the title when assigning, to mean 
 - Owner only. Migration `0027` widened `0025`'s category trigger to guard the category and the star together, and retired the narrow one.
 - The small link under the Assigned/Completed tabs switches between **By category** (grouped, star floats within its group, deadline order under it) and **By due date** (one flat list, pure date order, star shown but not reordering). The choice is kept per team in browser storage, so it is per device and not worth worrying about.
 - The toggle only appears once the team has a category to group by.
+- Every category heading folds its group away, and Collapse all folds the lot, leaving the headings and counts as a table of contents. Everything starts open; folded groups are kept per team in browser storage beside the sort choice. No per-group minimum: a threshold would measure group size when the problem is page length, and the control would come and go as work was ticked off.
 
 ## Assigned work with no deadline
 
