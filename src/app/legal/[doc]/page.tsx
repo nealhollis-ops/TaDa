@@ -5,7 +5,13 @@ import { DOCS } from "../content";
 
 export async function generateMetadata({ params }: { params: Promise<{ doc: string }> }) {
   const { doc } = await params;
-  return { title: DOCS[doc]?.title ?? "Legal" };
+  const d = DOCS[doc];
+  // The same documents are published on the marketing site. Point the canonical
+  // there so the two copies are not read as duplicate content.
+  return {
+    title: d?.title ?? "Legal",
+    ...(d ? { alternates: { canonical: `https://www.gettada.me/legal/${doc}` } } : {}),
+  };
 }
 
 const NAV: { href: string; label: string; key: string }[] = [
