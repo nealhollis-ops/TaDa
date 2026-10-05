@@ -147,6 +147,8 @@ export type PlannerActions = {
   /** Add a note to a piece of assigned work and tell the other side about it. */
   addAssignmentNote: (a: Assignment, text: string) => Promise<void>;
   notesFor: (assignmentId: string) => AssignmentNote[];
+  /** Change the wording of a note you wrote. Nobody is notified a second time. */
+  editAssignmentNote: (id: string, text: string) => Promise<void>;
   /** Direct messages with anyone: partners here, boss-team contacts on the Boss Mode tab. */
   threadWith: (userId: string) => Message[];
   sendDirect: (toUser: string, text: string, opts?: { boss?: boolean }) => Promise<void>;
@@ -1572,6 +1574,24 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
 
   const notesFor = useCallback((assignmentId: string) => assignmentNotes.filter((n) => n.assignmentId === assignmentId), [assignmentNotes]);
 
+  const editAssignmentNote = useCallback(
+    async (id: string, text: string) => {
+      const body = text.trim();
+      const before = assignmentNotes.find((n) => n.id === id);
+      if (!body || !before || body === before.text) return;
+      setAssignmentNotes((list) => list.map((n) => (n.id === id ? { ...n, text: body, edited: true } : n)));
+      try {
+        // No notification: the other side already heard about this note once,
+        // and a second ping for a fixed typo is how people start muting things.
+        await S.editAssignmentNote(sb, id, body);
+      } catch (e) {
+        setAssignmentNotes((list) => list.map((n) => (n.id === id ? before : n)));
+        fail(e, "That edit didn't save. You can only change your own notes.");
+      }
+    },
+    [sb, assignmentNotes, fail],
+  );
+
   const addAssignmentNote = useCallback(
     async (a: Assignment, text: string) => {
       const body = text.trim();
@@ -1777,7 +1797,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     toggleTask, addTask, organize, organizing, parseDump, addDumped, runCommand, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, notesFor, teamCategories, categoriesOf, addCategory, renameCategory, removeCategory, setTaskCategory, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, editAssignmentNote, notesFor, teamCategories, categoriesOf, addCategory, renameCategory, removeCategory, setTaskCategory, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, enableThisDevice, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 
