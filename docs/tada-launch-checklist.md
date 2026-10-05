@@ -6,16 +6,16 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 0: Accounts and the URL come first
 
-- [ ] Confirm you can log into the registrar that holds gettada.me (buy it now if you haven't yet, and grab clientcare@gettada.me email at the same time)
-- [ ] Decide the structure: gettada.me IS the product, and your ClickFunnels sales pages simply link to it
-- [ ] Create the Vercel account (or team) and create an EMPTY project named "tada" with no deploy yet
-- [ ] In that Vercel project, open Domains and add gettada.me, plus www.gettada.me set to redirect to the bare domain, then copy the DNS records Vercel shows you
-- [ ] At the registrar, add the A record Vercel gives you for the bare domain and the www record. A root domain uses an A record instead of a CNAME, and Vercel shows the exact values on screen
-- [ ] Wait for Vercel to show the domain as verified with SSL. Now the very first deploy will answer at the real address, and everything after this (Stripe, webhooks, emails) gets configured against the final URL exactly once
-- [ ] Create the Supabase project, name it tada-prod, and save the project URL, anon key, and service role key in your password manager
-- [ ] Create the Stripe account and grab the TEST keys (live keys come in Phase 7)
-- [ ] Create an Anthropic API key at console.anthropic.com for the brain dump and the talk-to-the-calendar bar
-- [ ] Create a Resend account for app emails and verify a sending domain like mail.gettada.me (it gives you DNS records to add)
+- [x] Confirm you can log into the registrar that holds gettada.me (buy it now if you haven't yet, and grab clientcare@gettada.me email at the same time)
+- [x] Decide the structure: gettada.me IS the product, and your ClickFunnels sales pages simply link to it
+- [x] Create the Vercel account (or team) and create an EMPTY project named "tada" with no deploy yet
+- [x] In that Vercel project, open Domains and add gettada.me, plus www.gettada.me set to redirect to the bare domain, then copy the DNS records Vercel shows you
+- [x] At the registrar, add the A record Vercel gives you for the bare domain and the www record. A root domain uses an A record instead of a CNAME, and Vercel shows the exact values on screen
+- [x] Wait for Vercel to show the domain as verified with SSL. Now the very first deploy will answer at the real address, and everything after this (Stripe, webhooks, emails) gets configured against the final URL exactly once
+- [x] Create the Supabase project, name it tada-prod, and save the project URL, anon key, and service role key in your password manager
+- [x] Create the Stripe account and grab the TEST keys (live keys come in Phase 7)
+- [x] Create an Anthropic API key at console.anthropic.com for the brain dump and the talk-to-the-calendar bar
+- [x] Create a Resend account for app emails and verify a sending domain like mail.gettada.me (it gives you DNS records to add)
 - [ ] Record two assets while it's easy: Deb saying "TaDa!" as a one second mp3, and the welcome tour video
 
 ## Phase 1: Scaffold the project with Claude Code
@@ -83,8 +83,8 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 7: Deploy, verify, launch
 
-- [ ] Push to GitHub. Vercel builds and the app answers at https://gettada.me with SSL, because the domain was attached back in Phase 0
-- [ ] Swap Stripe to LIVE keys in Vercel, point the live webhook at the live URL, then run one real 17 dollar purchase on your own card and refund it
+- [x] Push to GitHub. Vercel builds and the app answers with SSL. The app lives at https://app.gettada.me; the bare gettada.me is the marketing site, in its own Vercel project
+- [ ] Swap Stripe to LIVE keys in Vercel, point the live webhook at the live URL, then run one real 17 dollar purchase on your own card and refund it. Live keys and the live webhook are in place as of September 21, 2026, but the purchase has not happened: as of October 5 the entitlements table holds zero rows with source stripe, so every member is comp or admin and the live billing path has never run with a real customer
 - [ ] Install the app to one Android phone and one iPhone home screen, then send a test push to each
 - [ ] Private beta: comp 10 to 20 Faith Hub Unleashed members through the admin invite, run two weeks, fix what they find
 - [ ] Build the ClickFunnels sales page for the three tiers with checkout links, and add TaDa to the Faith Hub Unleashed package page as an included benefit
