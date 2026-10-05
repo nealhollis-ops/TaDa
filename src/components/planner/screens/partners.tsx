@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Trash2, X } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Star, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { CategoriesCard, tintOf } from "../categories-card";
@@ -471,6 +471,7 @@ function TeamCard({ t }: { t: Team }) {
   const [assignTo, setAssignTo] = useState("");
   const [assignTitle, setAssignTitle] = useState("");
   const [assignCat, setAssignCat] = useState("");
+  const [assignStar, setAssignStar] = useState(false);
   const [assignDay, setAssignDay] = useState("none");
   const tMsgs = p.teamMsgs.filter((m) => m.teamId === t.id && !p.isBlocked(m.userId));
   const pending = p.outgoingInvites.filter((i) => i.teamId === t.id);
@@ -573,7 +574,14 @@ function TeamCard({ t }: { t: Team }) {
                       </option>
                     ))}
                 </select>
-                <input className="mb-2 w-full rounded-xl border px-3 py-2 text-sm outline-none" style={inputStyle} placeholder="What needs doing?" value={assignTitle} onChange={(e) => setAssignTitle(e.target.value)} />
+                <div className="mb-2 flex items-center gap-2">
+                  <input className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm outline-none" style={inputStyle} placeholder="What needs doing?" value={assignTitle} onChange={(e) => setAssignTitle(e.target.value)} />
+                  {/* One bit, not a grade: starred work rises to the top of its
+                      group and the deadline order is kept underneath. */}
+                  <button onClick={() => setAssignStar(!assignStar)} className="shrink-0 rounded-xl p-2" style={{ background: assignStar ? C.goldSoft : C.mist }} aria-label={assignStar ? "Not do-this-first" : "Mark do-this-first"} title="Do this first">
+                    <Star size={16} style={{ color: assignStar ? C.gold : C.fade, fill: assignStar ? C.gold : "none" }} />
+                  </button>
+                </div>
                 {/* Only worth showing once there is something to choose from. */}
                 {p.categoriesOf(t.id).length > 0 && (
                   <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={assignCat} onChange={(e) => setAssignCat(e.target.value)}>
@@ -589,8 +597,9 @@ function TeamCard({ t }: { t: Team }) {
                   <DaySelect value={assignDay} onChange={setAssignDay} />
                   <button
                     onClick={() => {
-                      void p.assignTask(t.id, assignTo, assignTitle, assignDay === "none" ? null : assignDay, assignCat || null);
+                      void p.assignTask(t.id, assignTo, assignTitle, assignDay === "none" ? null : assignDay, assignCat || null, assignStar);
                       setAssignTitle("");
+                      setAssignStar(false);
                     }}
                     className="rounded-xl px-3 text-xs font-semibold"
                     style={{ background: C.coral, color: "#fff" }}
@@ -698,7 +707,11 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const mine = p.assignments.filter((a) => a.teamId === t.id && a.toUser && (owner ? !who || a.toUser === who : a.toUser === p.me.id));
-  const assigned = mine.filter((a) => !a.done).sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
+  // Starred first, then soonest deadline. One rule, and it holds inside every
+  // category group too, because the groups are cut from this same list.
+  const assigned = mine
+    .filter((a) => !a.done)
+    .sort((a, b) => Number(b.starred) - Number(a.starred) || (a.date || "9").localeCompare(b.date || "9"));
   const completed = mine.filter((a) => a.done).sort((a, b) => (b.doneAt || "").localeCompare(a.doneAt || ""));
   const rows = tab === "assigned" ? assigned : completed;
 
@@ -808,6 +821,7 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
         </button>
         <div className="min-w-0 flex-1">
           <div className="text-xs font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
+            {a.starred && <Star size={11} className="mr-1 inline" style={{ color: C.gold, fill: C.gold }} />}
             {a.title}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-1" style={{ fontSize: 10, color: late ? C.coral : C.fade }}>
@@ -828,6 +842,9 @@ function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: 
         </div>
         {owner && (
           <>
+            <button onClick={() => void p.setTaskStar(a.id, !a.starred)} className="shrink-0" aria-label={a.starred ? "Not do-this-first" : "Mark do-this-first"} title="Do this first">
+              <Star size={14} style={{ color: a.starred ? C.gold : C.fade, fill: a.starred ? C.gold : "none" }} />
+            </button>
             <button onClick={onEdit} className="shrink-0" aria-label="Edit assignment">
               <Pencil size={14} style={{ color: C.fade }} />
             </button>

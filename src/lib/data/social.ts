@@ -284,8 +284,8 @@ export async function editAssignmentNote(sb: SB, id: string, text: string) {
   if (error) throw error;
 }
 
-export async function createAssignment(sb: SB, me: string, teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null): Promise<Assignment> {
-  const { data, error } = await sb.from("assignments").insert({ team_id: teamId, from_user: me, to_user: toUser, title: title.slice(0, 120), date, category_id: categoryId }).select("*").single();
+export async function createAssignment(sb: SB, me: string, teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null, starred = false): Promise<Assignment> {
+  const { data, error } = await sb.from("assignments").insert({ team_id: teamId, from_user: me, to_user: toUser, title: title.slice(0, 120), date, category_id: categoryId, starred }).select("*").single();
   if (error) throw error;
   return toAssignment(data);
 }
@@ -315,7 +315,7 @@ export async function deleteTeamCategory(sb: SB, id: string) {
   if (error) throw error;
 }
 
-export async function updateAssignment(sb: SB, id: string, patch: { done?: boolean; doneAt?: string | null; toUser?: string | null; title?: string; date?: string | null; categoryId?: string | null }) {
+export async function updateAssignment(sb: SB, id: string, patch: { done?: boolean; doneAt?: string | null; toUser?: string | null; title?: string; date?: string | null; categoryId?: string | null; starred?: boolean }) {
   const row: Record<string, unknown> = {};
   if (patch.done !== undefined) row.done = patch.done;
   if (patch.doneAt !== undefined) row.done_at = patch.doneAt;
@@ -323,6 +323,7 @@ export async function updateAssignment(sb: SB, id: string, patch: { done?: boole
   if (patch.title !== undefined) row.title = patch.title.slice(0, 120);
   if (patch.date !== undefined) row.date = patch.date;
   if (patch.categoryId !== undefined) row.category_id = patch.categoryId;
+  if (patch.starred !== undefined) row.starred = patch.starred;
   const { error } = await sb.from("assignments").update(row).eq("id", id);
   if (error) throw error;
 }
