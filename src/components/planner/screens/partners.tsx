@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, Circle, Pencil, RefreshCw, Send, Star, Trash2, X } from "lucide-react";
+import { ArrowDownUp, CheckCircle2, Circle, Pencil, RefreshCw, Send, Star, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { CategoriesCard, tintOf } from "../categories-card";
@@ -707,21 +707,46 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const mine = p.assignments.filter((a) => a.teamId === t.id && a.toUser && (owner ? !who || a.toUser === who : a.toUser === p.me.id));
-  // Starred first, then soonest deadline. One rule, and it holds inside every
-  // category group too, because the groups are cut from this same list.
+  // Which shape the list takes. Remembered per team, per device: a boss who
+  // thinks in deadlines should not retype that choice every visit. Browser
+  // storage can be absent or throw, so a failure just means the default.
+  const sortKey = `tada-assign-sort-${t.id}`;
+  const [sortBy, setSortBy] = useState<"category" | "date">(() => {
+    try {
+      return localStorage.getItem(sortKey) === "date" ? "date" : "category";
+    } catch {
+      return "category";
+    }
+  });
+  const chooseSort = (next: "category" | "date") => {
+    setSortBy(next);
+    try {
+      localStorage.setItem(sortKey, next);
+    } catch {
+      // Private mode, or storage blocked. The choice holds for this visit.
+    }
+  };
+
+  const byDate = (a: Assignment, b: Assignment) => (a.date || "9").localeCompare(b.date || "9");
+  // Grouped by category, the star floats: it is the boss saying do this one
+  // first within its bucket. Sorted by date it does not, because a list that
+  // says "by due date" and does not start with the soonest date is a small lie.
   const assigned = mine
     .filter((a) => !a.done)
-    .sort((a, b) => Number(b.starred) - Number(a.starred) || (a.date || "9").localeCompare(b.date || "9"));
+    .sort(sortBy === "date" ? byDate : (a, b) => Number(b.starred) - Number(a.starred) || byDate(a, b));
   const completed = mine.filter((a) => a.done).sort((a, b) => (b.doneAt || "").localeCompare(a.doneAt || ""));
   const rows = tab === "assigned" ? assigned : completed;
 
   // Named categories in the order the boss made them, then whatever has none.
   // A group with nothing in it is left out rather than shown empty.
   const cats = p.categoriesOf(t.id);
-  const groups = [
+  const grouped = sortBy === "category" && cats.length > 0;
+  const groups = !grouped
+    ? [{ id: null as string | null, name: "", tint: 0, rows }]
+    : [
     ...cats.map((c) => ({ id: c.id as string | null, name: c.name, tint: c.tint, rows: rows.filter((a) => a.categoryId === c.id) })),
     { id: null as string | null, name: "No category", tint: 0, rows: rows.filter((a) => !a.categoryId || !cats.some((c) => c.id === a.categoryId)) },
-  ].filter((g) => g.rows.length > 0);
+      ].filter((g) => g.rows.length > 0);
 
   return (
     <div>
@@ -756,6 +781,22 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
           </button>
         ))}
       </div>
+      {/* A modifier of the list, not a peer of the tabs: Assigned and Completed
+          choose what you are looking at, this chooses how it is arranged. Only
+          worth offering once there is a category to group by. */}
+      {cats.length > 0 && (
+        <div className="-mt-1 mb-2 flex justify-end">
+          <button
+            onClick={() => chooseSort(sortBy === "category" ? "date" : "category")}
+            className="flex items-center gap-1 text-[11px]"
+            style={{ color: C.fade }}
+            aria-label={sortBy === "category" ? "Sorted by category, switch to due date" : "Sorted by due date, switch to category"}
+          >
+            <ArrowDownUp size={12} />
+            {sortBy === "category" ? "By category" : "By due date"}
+          </button>
+        </div>
+      )}
       {rows.length === 0 && (
         <div className="mb-1.5 rounded-xl px-3 py-3 text-center text-xs" style={{ background: C.cream, color: C.fade }}>
           {tab === "assigned" ? "Nothing waiting." : "Nothing finished yet."}
@@ -764,7 +805,7 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
       {groups.map((g) => (
         <div key={g.id ?? "none"} className="mb-1">
           {/* The header only earns its space once the boss has made a category. */}
-          {cats.length > 0 && (
+          {grouped && (
             <div className="mb-1 flex items-center gap-1.5">
               <span className="shrink-0 rounded-full" style={{ width: 9, height: 9, background: g.id ? tintOf(g.tint) : C.line }} />
               <span className="text-xs font-semibold" style={{ color: g.id ? C.ink : C.fade }}>
@@ -783,6 +824,7 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
                 key={a.id}
                 a={a}
                 owner={owner}
+                showCategory={!grouped}
                 confirming={confirmDelete === a.id}
                 onEdit={() => {
                   setConfirmDelete(null);
@@ -807,11 +849,12 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
   );
 }
 
-function AssignmentRow({ a, owner, confirming, onEdit, onAskDelete, onDelete }: { a: Assignment; owner: boolean; confirming: boolean; onEdit: () => void; onAskDelete: () => void; onDelete: () => void }) {
+function AssignmentRow({ a, owner, showCategory, confirming, onEdit, onAskDelete, onDelete }: { a: Assignment; owner: boolean; showCategory: boolean; confirming: boolean; onEdit: () => void; onAskDelete: () => void; onDelete: () => void }) {
   const p = usePlanner();
   const late = !a.done && !!a.date && a.date < p.today;
   const canToggle = owner || a.toUser === p.me.id;
-  const cat = p.categoriesOf(a.teamId).find((c) => c.id === a.categoryId);
+  // Under a category header the name on the row would just say it twice.
+  const cat = showCategory ? p.categoriesOf(a.teamId).find((c) => c.id === a.categoryId) : undefined;
   const when = a.done ? (a.doneAt ? `Done ${dateLabel(a.doneAt.slice(0, 10), p.month)}` : "Done") : a.date ? (late ? `Overdue, was ${dateLabel(a.date, p.month)}` : `Due ${dateLabel(a.date, p.month)}`) : "No deadline";
   return (
     <div className="mb-1.5 rounded-xl px-3 py-2" style={{ background: C.cream, opacity: a.done ? 0.65 : 1 }}>
