@@ -228,6 +228,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "A boss can star a task to mean do this one first. Starred work rises to the top of its category group, and the deadline order is kept underneath it. You see the star on your own task but only the boss can set it.",
     "The small link under the tabs switches between By category and By due date. By category is the grouped view; By due date is one flat list, soonest first, with each task's category shown as a coloured dot on the row. A star does not jump the queue in the date view, because a list that says by due date should start with the soonest date. Your choice is remembered.",
     "Work assigned to you with no deadline shows on Today too, at the foot of Assigned to you, marked No deadline.",
+    "Tap any category heading in Track progress to fold that group away, or Collapse all to fold the lot and leave just the headings and their counts. Everything starts open, and whatever you fold stays folded next time you come back.",
     "Notes on a task can be fixed after the fact. Tap the pencil beside anything you wrote to change the wording; it then shows as edited so nobody reads it as the original. You can only change your own notes, not the other person's, and nobody is notified a second time.",
   ]},
   { id: "bossguide", t: "Running a Boss team, step by step", b: [

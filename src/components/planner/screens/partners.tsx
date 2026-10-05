@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowDownUp, CheckCircle2, Circle, Pencil, RefreshCw, Send, Star, Trash2, X } from "lucide-react";
+import { ArrowDownUp, CheckCircle2, ChevronDown, ChevronRight, Circle, Pencil, RefreshCw, Send, Star, Trash2, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { CategoriesCard, tintOf } from "../categories-card";
@@ -727,6 +727,28 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
     }
   };
 
+  // Which groups are folded away. Open by default: collapsing work a boss
+  // never asked to hide would be worse than a long page.
+  const collapseKey = `tada-assign-collapsed-${t.id}`;
+  const [collapsed, setCollapsed] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(collapseKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  });
+  const keepCollapsed = (next: string[]) => {
+    setCollapsed(next);
+    try {
+      localStorage.setItem(collapseKey, JSON.stringify(next));
+    } catch {
+      // Private mode, or storage blocked. It holds for this visit.
+    }
+  };
+  const toggleGroup = (key: string) => keepCollapsed(collapsed.includes(key) ? collapsed.filter((k) => k !== key) : [...collapsed, key]);
+
   const byDate = (a: Assignment, b: Assignment) => (a.date || "9").localeCompare(b.date || "9");
   // Grouped by category, the star floats: it is the boss saying do this one
   // first within its bucket. Sorted by date it does not, because a list that
@@ -741,12 +763,14 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
   // A group with nothing in it is left out rather than shown empty.
   const cats = p.categoriesOf(t.id);
   const grouped = sortBy === "category" && cats.length > 0;
+  const groupKey = (g: { id: string | null }) => g.id ?? "none";
   const groups = !grouped
     ? [{ id: null as string | null, name: "", tint: 0, rows }]
     : [
     ...cats.map((c) => ({ id: c.id as string | null, name: c.name, tint: c.tint, rows: rows.filter((a) => a.categoryId === c.id) })),
     { id: null as string | null, name: "No category", tint: 0, rows: rows.filter((a) => !a.categoryId || !cats.some((c) => c.id === a.categoryId)) },
       ].filter((g) => g.rows.length > 0);
+  const allShut = groups.length > 0 && groups.every((g) => collapsed.includes(groupKey(g)));
 
   return (
     <div>
@@ -785,7 +809,21 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
           choose what you are looking at, this chooses how it is arranged. Only
           worth offering once there is a category to group by. */}
       {cats.length > 0 && (
-        <div className="-mt-1 mb-2 flex justify-end">
+        <div className="-mt-1 mb-2 flex items-center justify-between">
+          {/* One tap to a table of contents, rather than tapping every header.
+              Only worth offering when there is more than one group to fold. */}
+          {grouped && groups.length > 1 ? (
+            <button
+              onClick={() => keepCollapsed(allShut ? [] : groups.map(groupKey))}
+              className="flex items-center gap-1 text-[11px]"
+              style={{ color: C.fade }}
+            >
+              {allShut ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              {allShut ? "Expand all" : "Collapse all"}
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             onClick={() => chooseSort(sortBy === "category" ? "date" : "category")}
             className="flex items-center gap-1 text-[11px]"
@@ -806,7 +844,8 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
         <div key={g.id ?? "none"} className="mb-1">
           {/* The header only earns its space once the boss has made a category. */}
           {grouped && (
-            <div className="mb-1 flex items-center gap-1.5">
+            <button onClick={() => toggleGroup(groupKey(g))} className="mb-1 flex w-full items-center gap-1.5" aria-expanded={!collapsed.includes(groupKey(g))}>
+              {collapsed.includes(groupKey(g)) ? <ChevronRight size={12} style={{ color: C.fade }} /> : <ChevronDown size={12} style={{ color: C.fade }} />}
               <span className="shrink-0 rounded-full" style={{ width: 9, height: 9, background: g.id ? tintOf(g.tint) : C.line }} />
               <span className="text-xs font-semibold" style={{ color: g.id ? C.ink : C.fade }}>
                 {g.name}
@@ -814,9 +853,9 @@ function AssignmentTracker({ t, owner }: { t: Team; owner: boolean }) {
               <span className="ml-auto" style={{ fontSize: 10, color: C.fade }}>
                 {g.rows.length}
               </span>
-            </div>
+            </button>
           )}
-          {g.rows.map((a) =>
+          {(!grouped || !collapsed.includes(groupKey(g))) && g.rows.map((a) =>
             editing === a.id ? (
               <AssignmentEditor key={a.id} a={a} t={t} onDone={() => setEditing(null)} />
             ) : (
