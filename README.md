@@ -103,6 +103,10 @@ npm run test:rls
   Test-mode Stripe keys send nothing, so `npm run test:stripe` stays quiet. Addresses default to the two
   founders and can be overridden with `FOUNDER_ALERT_EMAILS`.
 - Boss seats: `/api/stripe/seats` runs after roster changes and `/api/cron/seats` re-syncs nightly.
+- Boss categories (`team_categories`, `assignments.category_id`, migration 0025): up to 10 per team, owner-only.
+  The cap and the owner-only rule are both in the database - a trigger for the cap, and a second trigger that
+  rejects a `category_id` change from anyone but the team owner, since `assignments_update` legitimately lets
+  the assignee update their own row. Deleting a category is `on delete set null`, so the work survives it.
 - `npm run test:stripe` (dev server running, test keys) replays real Stripe events into the local webhook
   and checks trial start, seat sync, plan change, cancel, and that comp rows are untouched.
 
