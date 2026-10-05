@@ -98,7 +98,7 @@ export const toAssignment = (r: Row): Assignment => ({
 });
 export const toTeamCategory = (r: Row): TeamCategory => ({ id: r.id, teamId: r.team_id, name: r.name, tint: r.tint ?? 0, sort: r.sort ?? 0 });
 export const toBanner = (r: Row): Banner => ({ id: r.id, text: r.text, startsAt: r.starts_at, endsAt: r.ends_at });
-export const toAssignmentNote = (r: Row): AssignmentNote => ({ id: r.id, assignmentId: r.assignment_id, userId: r.user_id, text: r.text, createdAt: r.created_at });
+export const toAssignmentNote = (r: Row): AssignmentNote => ({ id: r.id, assignmentId: r.assignment_id, userId: r.user_id, text: r.text, createdAt: r.created_at, edited: !!r.edited_at });
 export const toReply = (r: Row, reactions: Record<string, string[]> = {}): Reply => ({ id: r.id, postId: r.post_id, userId: r.user_id, text: r.text, createdAt: r.created_at, edited: !!r.edited_at, reactions });
 export const toPost = (r: Row, replies: Reply[], reactions: Record<string, string[]>): Post => ({
   id: r.id, userId: r.user_id, type: r.type, text: r.text, milestone: !!r.milestone, pinned: !!r.pinned, createdAt: r.created_at, edited: !!r.edited_at, replies, reactions,

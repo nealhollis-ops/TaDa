@@ -69,6 +69,14 @@ Every pin and unpin is written to the admin log as `post.pin` or `post.unpin`.
 
 Every push the app sends also lands in the member's bell. The app sends them for messages, partner requests, team invites, assigned work, notes added to assigned work (each one tells the other side), past-due assignments (one reminder per task, sent by the morning cron), badges and levels, replies and mentions. Members control device alerts with the Notifications switch in Account and can separately silence community replies and mentions with the "From the community" switch. Banned members and members who have blocked the sender never receive a notification from that person. Your announcement pushes ignore the community switch but respect bans and the device-alert switch.
 
+## Plan looks three months ahead
+
+Plan has month tabs: the month you are in, plus the next two. The current tab is Plan as it always was. A later tab shows that month by week and takes new work, but offers no Brain Dump and no Organize, because both place things in the weeks of the month you are living in. Nothing extra is fetched for it - a task is in a later month because it carries a date there, so it was already loaded. Anything beyond the three tabs stays under Later at the foot of the page.
+
+## Notes on assigned work can be edited
+
+Whoever wrote a note can change its wording; the row then carries `edited_at` and shows as edited. Author only, enforced by the `assignment_notes_update` policy with both USING and WITH CHECK - the second stops a note being re-pointed at a different assignment. Not the boss, not an admin. No second notification goes out for an edit. Deleting a note is still not possible. Migration `0026`.
+
 ## Boss categories
 
 A boss team owner can name up to 10 categories and file assigned work into them. The section sits above Assign work and is collapsible: it opens by default for a team with no categories yet, and stays shut once there are some, naming them on the closed heading. The dropdown appears in Assign work and in the task editor once at least one category exists. Track progress groups by category, uncategorised work last, soonest deadline first inside every group.

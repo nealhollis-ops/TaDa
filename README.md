@@ -66,6 +66,13 @@ npm run test:rls
   `addDumped` runs them through `buildNewTasks` like any other task.
 - The store holds one month. A task dated in a later month is stamped for that month and kept in a separate
   `later` list, shown under Later on Plan, so Organize, progress and streak maths stay month-scoped.
+- Plan carries month tabs for the current month and the next two (`ahead` in `plan.tsx`). A later tab reads
+  from the `later` list that is already loaded, so no extra queries; it hides the dump, Organize and the
+  Active/Completed tabs, all of which are defined against the month in `p.month`. `LaterGroup` takes a `first`
+  prop so it starts after the tabbed months and nothing is listed twice.
+- Notes on assigned work are editable by their author (migration 0026, `edited_at`). The policy carries
+  WITH CHECK as well as USING, so a note cannot be moved to another assignment; posts and replies predate that
+  habit and still lack it.
 - A task with no day is in neither a day nor a week, so it gets its own `NoDayGroup` section at the foot of
   Today and of Plan. Plan's week groups hold dated tasks only; Today leaves these out of the day's total and
   counts one finished today into "Done today" on `doneAt`, not on a date it never had.

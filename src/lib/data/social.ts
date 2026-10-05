@@ -278,6 +278,12 @@ export async function addAssignmentNote(sb: SB, me: string, assignmentId: string
   return toAssignmentNote(data);
 }
 
+/** Only the author may call this; the row policy is what actually decides. */
+export async function editAssignmentNote(sb: SB, id: string, text: string) {
+  const { error } = await sb.from("assignment_notes").update({ text: text.slice(0, 1000), edited_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function createAssignment(sb: SB, me: string, teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null): Promise<Assignment> {
   const { data, error } = await sb.from("assignments").insert({ team_id: teamId, from_user: me, to_user: toUser, title: title.slice(0, 120), date, category_id: categoryId }).select("*").single();
   if (error) throw error;

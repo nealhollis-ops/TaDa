@@ -149,6 +149,11 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Check Big win for your major tasks. Big wins get a celebration twice the size, and the app schedules them in mornings when it does the placing.",
     "Anything with no day on it gathers under No day yet, at the foot of both Today and Plan. On Plan it sits below the weeks rather than inside one, so a week only ever shows work you actually scheduled. On Today it is left out of the day’s total, since you did not plan it for today. Tick one off, tap the pencil to give it a day, or let Organize place the lot.",
   ]},
+  { id: "months", t: "Looking at next month", b: [
+    "Plan opens on three tabs: this month and the two after it. The first is your month and works as it always has. The other two are for putting work where it belongs before it arrives.",
+    "On a later month you can add tasks, move them, change them and take them off. There is no Brain Dump and no Organize there, because both work in the weeks of the month you are living in; the gold note on the tab says when that month takes over.",
+    "Adding to a later month asks for a day, since the day is what puts the task in that month. Anything further out than the three tabs still waits under Later at the foot of the page.",
+  ]},
   { id: "dump", t: "The brain dump", b: [
     "Brain Dump is the first thing on Plan and takes everything at once. Type the whole jumble, or tap the mic in the corner of the box and just talk; your words land in the box and stay there until you tap Make it into tasks.",
     "Tap Make it into tasks. You'll get a preview list where you can star big wins or remove anything wrong. Each row carries an Auto chip naming the week it is headed for; leave it alone and the app chooses a light day in that week. Or open the day box and pick the exact day yourself, anywhere from today to a year out, and it stays put. A day in a later month waits under Later at the foot of Plan until that month comes around. Then Add them to my month places everything on your calendar.",
@@ -220,6 +225,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Assign work then has a Category box. Leave it on No category and nothing changes. Track progress groups the list by category, with anything uncategorised at the bottom, and inside every group the soonest deadline comes first.",
     "Rename a category with the pencil, remove it with the x. Removing one never deletes work: those tasks simply move to No category. You can re-file a task any time by opening it with the pencil in Track progress.",
     "Only the boss creates, renames or deletes categories, and only the boss can change which one a task is in. Everyone else sees the category on their own task as a small chip and nothing more.",
+    "Notes on a task can be fixed after the fact. Tap the pencil beside anything you wrote to change the wording; it then shows as edited so nobody reads it as the original. You can only change your own notes, not the other person's, and nobody is notified a second time.",
   ]},
   { id: "bossguide", t: "Running a Boss team, step by step", b: [
     "1. Create the team. On Partners, open the Boss Mode tab, type a name into the box that says Name a new boss team and tap the button beside it. It's a boss team because you're on the Boss plan, and you can run more than one.",
