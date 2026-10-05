@@ -140,7 +140,9 @@ export type PlannerActions = {
   removeMember: (teamId: string, userId: string) => Promise<void>;
   reassignTask: (id: string, userId: string) => Promise<void>;
   sendTeamMsg: (teamId: string, text: string) => Promise<void>;
-  assignTask: (teamId: string, toUser: string, title: string, date: string | null, categoryId?: string | null) => Promise<void>;
+  assignTask: (teamId: string, toUser: string, title: string, date: string | null, categoryId?: string | null, starred?: boolean) => Promise<void>;
+  /** Mark assigned work do-this-first. Owner only, which the database enforces. */
+  setTaskStar: (assignmentId: string, starred: boolean) => Promise<void>;
   toggleAssigned: (a: Assignment) => Promise<void>;
   removeAssigned: (id: string) => Promise<void>;
   editAssignment: (id: string, patch: { title: string; toUser: string; date: string | null }) => Promise<void>;
@@ -1543,6 +1545,21 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     [sb, teamCategories, fail],
   );
 
+  const setTaskStar = useCallback(
+    async (assignmentId: string, starred: boolean) => {
+      const before = assignments.find((a) => a.id === assignmentId);
+      if (!before) return;
+      setAssignments((list) => list.map((a) => (a.id === assignmentId ? { ...a, starred } : a)));
+      try {
+        await S.updateAssignment(sb, assignmentId, { starred });
+      } catch (e) {
+        setAssignments((list) => list.map((a) => (a.id === assignmentId ? before : a)));
+        fail(e, "That star didn't save. Only the team owner can set one.");
+      }
+    },
+    [sb, assignments, fail],
+  );
+
   const setTaskCategory = useCallback(
     async (assignmentId: string, categoryId: string | null) => {
       const before = assignments.find((a) => a.id === assignmentId);
@@ -1559,10 +1576,10 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   );
 
   const assignTask = useCallback(
-    async (teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null) => {
+    async (teamId: string, toUser: string, title: string, date: string | null, categoryId: string | null = null, starred = false) => {
       if (!title.trim() || !toUser) return;
       try {
-        const a = await S.createAssignment(sb, me.id, teamId, toUser, title.trim(), date, categoryId);
+        const a = await S.createAssignment(sb, me.id, teamId, toUser, title.trim(), date, categoryId, starred);
         setAssignments((list) => [...list, a]);
         S.notify("assignment", toUser);
       } catch (e) {
@@ -1797,7 +1814,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     toggleTask, addTask, organize, organizing, parseDump, addDumped, runCommand, saveEdit, removeLater, removeTask,
     sendMsg, addPost, addReply, toggleReact, toggleReplyReact, editPost: editPostAction, togglePin, editReply: editReplyAction, deletePost: deletePostAction, deleteReply: deleteReplyAction,
     sendRequest, acceptRequest, declineRequest, endPartnership: endPartnershipAction,
-    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, editAssignmentNote, notesFor, teamCategories, categoriesOf, addCategory, renameCategory, removeCategory, setTaskCategory, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
+    createTeam: createTeamAction, inviteToTeam, answerInvite, cancelInvite: cancelInviteAction, leaveTeam: leaveTeamAction, removeMember: removeMemberAction, reassignTask, sendTeamMsg, assignTask, toggleAssigned, addAssignmentNote, editAssignmentNote, notesFor, setTaskStar, teamCategories, categoriesOf, addCategory, renameCategory, removeCategory, setTaskCategory, removeAssigned, editAssignment, threadWith, sendDirect, dmUnread, markThreadRead, teamUnread, markTeamRead,
     blockUser, unblockUser, reportUser, toggleMute, toggleNotif, enableThisDevice, toggleCommunityNotif, saveAccount, pickAvatar, removeAvatar: removeAvatarAction, markTour, refreshShared, loadCardsFor, showToast, markRead, markAllRead, startCheckout, openPortal,
   };
 

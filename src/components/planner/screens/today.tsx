@@ -35,6 +35,7 @@ function AssignedRow({ a }: { a: Assignment }) {
       </button>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium" style={{ color: C.ink, textDecoration: a.done ? "line-through" : "none", overflowWrap: "anywhere" }}>
+          {a.starred && <Star size={13} className="mr-1 inline" style={{ color: C.gold, fill: C.gold }} />}
           {a.title}
         </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -65,7 +66,8 @@ export function TodayScreen() {
   // already finished. Assigned work piles up faster than personal tasks, and a
   // long tail of ticked-off items should never bury the few still open.
   const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today);
-  const dueOpen = due.filter((a) => !a.done);
+  // Same rule the boss sees in the tracker: starred first, then deadline.
+  const dueOpen = due.filter((a) => !a.done).sort((a, b) => Number(b.starred) - Number(a.starred) || (a.date || "9").localeCompare(b.date || "9"));
   const dueDone = due.filter((a) => a.done);
   const [showDone, setShowDone] = useState(false);
   // Work with no day on it never appeared here, only on Plan, so anything not
