@@ -71,7 +71,7 @@ Every push the app sends also lands in the member's bell. The app sends them for
 
 ## Boss categories
 
-A boss team owner can name up to 10 categories and file assigned work into them. The card sits above Assign work in the team; the dropdown appears in Assign work and in the editor once at least one category exists; Track progress groups by category with uncategorised work last.
+A boss team owner can name up to 10 categories and file assigned work into them. The section sits above Assign work and is collapsible: it opens by default for a team with no categories yet, and stays shut once there are some, naming them on the closed heading. The dropdown appears in Assign work and in the task editor once at least one category exists. Track progress groups by category, uncategorised work last, soonest deadline first inside every group.
 
 - Only the team owner writes them. That is the `team_categories_write` policy, plus a trigger on `assignments` that blocks anyone but the owner changing `category_id` - needed because the member it was assigned to can already update their own row to tick it off, and RLS works per row rather than per column.
 - The 10 cap is a database trigger, not just the UI, so it holds whoever is calling.

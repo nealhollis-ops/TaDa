@@ -216,7 +216,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "What a team can't do: assign tasks or set deadlines. That's the Boss plan, where the owner's teams become boss teams. Everything above still works the same way there, with the boss powers added on top.",
   ]},
   { id: "categories", t: "Categories, for a boss", b: [
-    "A boss can name up to 10 categories for their team: Content, Admin, whatever the work actually divides into. They live in the Categories card at the top of the team, above Assign work. Five suggestions are offered when you start; tap Keep on the ones you want and ignore the rest.",
+    "A boss can name up to 10 categories for their team: Content, Admin, whatever the work actually divides into. They live under Categories, just above Assign work. That section folds away once you have some, and names them on the closed line so you can see what you have without opening it; tap the heading to set them up again. Five suggestions are offered when you start; tap Keep on the ones you want and ignore the rest.",
     "Assign work then has a Category box. Leave it on No category and nothing changes. Track progress groups the list by category, with anything uncategorised at the bottom, and inside every group the soonest deadline comes first.",
     "Rename a category with the pencil, remove it with the x. Removing one never deletes work: those tasks simply move to No category. You can re-file a task any time by opening it with the pencil in Track progress.",
     "Only the boss creates, renames or deletes categories, and only the boss can change which one a task is in. Everyone else sees the category on their own task as a small chip and nothing more.",
