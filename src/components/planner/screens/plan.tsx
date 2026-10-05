@@ -7,7 +7,7 @@ import { C, Chip, DayField, inputCls, inputStyle } from "../ui";
 import { NoDayGroup } from "../no-day";
 import { TaskRow } from "../task-row";
 import { useDictation } from "../use-dictation";
-import { dateLabel, isRestDay, lastPickableDate, monthLabelIn, ord, WD, WDFULL } from "@/lib/planner/calendar";
+import { dateLabel, dstr, isRestDay, lastPickableDate, monthInfo, monthLabelIn, monthPrefixAhead, ord, WD, WDFULL } from "@/lib/planner/calendar";
 import { BLOCK_META, blockLabel, blockMeta } from "@/lib/planner/content";
 import { emptyForm, taskWeek, type NewTaskForm } from "@/lib/planner/tasks";
 import type { DumpItem, Task } from "@/lib/planner/types";
@@ -22,6 +22,17 @@ export function PlanScreen() {
   const [dumpBusy, setDumpBusy] = useState(false);
   const [dumpPreview, setDumpPreview] = useState<DumpItem[]>([]);
   const [tab, setTab] = useState<"active" | "completed">("active");
+  // How far ahead we are looking: 0 is the month we are in, 1 and 2 are the two
+  // after it. Derived from today every render rather than stored, so the tabs
+  // are right on the morning the month turns.
+  const [ahead, setAhead] = useState(0);
+  const AHEAD = 2;
+  const viewMonth = ahead === 0 ? m : monthInfo(new Date(m.year, m.month + ahead, 1));
+  // A task is in a later month because it carries a date there, so the Later
+  // list already holds everything these tabs need. Nothing new is fetched.
+  const viewTasks = ahead === 0 ? p.tasks : p.later.filter((t) => t.month === viewMonth.prefix);
+  const monthsShown = Array.from({ length: AHEAD + 1 }, (_, n) => (n === 0 ? m : monthInfo(new Date(m.year, m.month + n, 1))));
+  const countFor = (n: number) => (n === 0 ? p.tasks.filter((t) => !t.done).length : p.later.filter((t) => t.month === monthsShown[n].prefix && !t.done).length);
   const { listening: dumpListening, toggle: dumpMic } = useDictation(setDumpText, () => p.showToast("Talking isn’t supported in this browser. Use the mic on your phone keyboard instead."));
   // The form opens below the fold on a phone, and below the dump card now that
   // the buttons sit under it. Bring it to the member rather than making them
@@ -68,6 +79,30 @@ export function PlanScreen() {
 
   return (
     <div className="px-5 py-5">
+      {/* Three months: this one and the two after it. Anything further out stays
+          under Later at the foot of the page. */}
+      <div className="mb-4 flex rounded-xl p-1" style={{ background: C.mist }}>
+        {monthsShown.map((mi, n) => (
+          <button
+            key={mi.prefix}
+            onClick={() => {
+              setAhead(n);
+              // The add form belongs to the month it was opened on.
+              if (p.showAdd) p.set("showAdd", false);
+            }}
+            className="flex-1 rounded-lg py-1.5 text-center"
+            style={{ background: ahead === n ? "#fff" : "transparent", boxShadow: ahead === n ? "0 1px 2px rgba(17,17,17,0.12)" : "none" }}
+          >
+            <span className="block text-xs font-semibold" style={{ color: ahead === n ? C.ink : C.fade }}>
+              {mi.name}
+            </span>
+            <span className="block" style={{ fontSize: 10, color: n === 0 && ahead === n ? C.coral : C.fade }}>
+              {n === 0 ? "this month" : countFor(n) || "nothing yet"}
+            </span>
+          </button>
+        ))}
+      </div>
+      {ahead === 0 && (
       <div className="mb-5 rounded-2xl p-4" style={{ background: C.navy }}>
         <div className="mb-2 flex items-center gap-2">
           <Mic size={16} style={{ color: C.gold }} />
@@ -163,8 +198,37 @@ export function PlanScreen() {
         )}
       </div>
 
+      )}
+
+      {/* Looking ahead. Organize and the dump both work in the weeks of the
+          month you are in, so neither is offered here; what is left is enough
+          to put work where it belongs before the month arrives. */}
+      {ahead > 0 && (
+        <>
+          <div className="mb-3 rounded-xl p-3" style={{ background: C.goldSoft }}>
+            <p className="text-xs leading-relaxed" style={{ color: C.goldDeep }}>
+              Looking ahead. Add things, move them, take them off. {viewMonth.name} becomes your month on the 1st, and Organize, progress and streaks start then.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              // A day is what makes a task belong to a later month, so the form
+              // opens on the 1st rather than on "pick my day for me".
+              setForm({ ...emptyForm(1), day: dstr(viewMonth, 1) });
+              p.set("showAdd", !p.showAdd);
+            }}
+            className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold"
+            style={{ background: C.coral, color: "#fff" }}
+          >
+            <Plus size={18} /> Add task to {viewMonth.name}
+          </button>
+        </>
+      )}
+
       {/* Add task and Organize sit under the dump, where someone lands after
           pouring everything out and wants to place what is left. */}
+      {ahead === 0 && (
+      <>
       <div className="mb-3 flex gap-2">
         <button onClick={() => p.set("showAdd", !p.showAdd)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-semibold" style={{ background: C.coral, color: "#fff" }}>
           <Plus size={18} /> Add task
@@ -184,6 +248,8 @@ export function PlanScreen() {
       <p className="mb-4 text-xs" style={{ color: C.fade }}>
         <b style={{ color: C.ink }}>Organize</b> gives a day to tasks that don&rsquo;t have one. It picks your emptiest day that week and skips Sundays. Days you picked stay put.
       </p>
+      </>
+      )}
       {p.showAdd && (
         <div ref={addRef} className="mb-5 rounded-2xl p-4" style={{ background: "#fff" }}>
           <input
@@ -200,8 +266,8 @@ export function PlanScreen() {
             <DayField
               value={form.day === "auto" ? null : form.day}
               onChange={(v) => setForm({ ...form, day: v ?? "auto" })}
-              min={p.today}
-              max={lastPickableDate(m)}
+              min={ahead === 0 ? p.today : dstr(viewMonth, 1)}
+              max={ahead === 0 ? lastPickableDate(m) : dstr(viewMonth, viewMonth.days)}
               noneLabel="Pick my day for me"
               ariaLabel="Day"
             />
@@ -268,6 +334,7 @@ export function PlanScreen() {
         </div>
       )}
 
+      {ahead === 0 && (
       <div className="mb-4 flex rounded-xl p-1" style={{ background: C.mist }}>
         {(
           [
@@ -288,21 +355,29 @@ export function PlanScreen() {
           </button>
         ))}
       </div>
+      )}
 
-      {m.weeks.map((wk) => {
-        const all = p.tasks.filter((t) => t.date && taskWeek(m, t) === wk.w);
-        const wt = all.filter((t) => (tab === "active" ? !t.done : t.done)).sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
+      {viewMonth.weeks.map((wk) => {
+        const all = viewTasks.filter((t) => t.date && taskWeek(viewMonth, t) === wk.w);
+        // A future month has nothing completed in it, so it is always the
+        // active list there whatever the tab last said.
+        const showDone = ahead === 0 && tab === "completed";
+        const wt = all.filter((t) => (showDone ? t.done : !t.done)).sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
         // On the Completed tab, weeks with nothing finished stay out of the way.
-        if (tab === "completed" && wt.length === 0) return null;
+        if (showDone && wt.length === 0) return null;
+        // A whole empty future month would be six identical boxes saying
+        // nothing is here; one line at the foot says it once instead.
+        if (ahead > 0 && wt.length === 0) return null;
+        const isNow = ahead === 0 && wk.w === p.currentWeek;
         return (
           <div key={wk.w} className="mb-5">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-bold" style={{ color: wk.w === p.currentWeek ? C.coral : C.navy }}>
+              <span className="text-sm font-bold" style={{ color: isNow ? C.coral : C.navy }}>
                 {wk.label}
-                {wk.w === p.currentWeek ? " (this week)" : ""}
+                {isNow ? " (this week)" : ""}
               </span>
               <span className="text-xs" style={{ color: C.fade }}>
-                {tab === "active" ? `${wt.length} to do, ${all.length - wt.length} done` : `${wt.length} done`}
+                {showDone ? `${wt.length} done` : `${wt.length} to do${ahead === 0 ? `, ${all.length - wt.length} done` : ""}`}
               </span>
             </div>
             {wt.length === 0 ? (
@@ -315,19 +390,26 @@ export function PlanScreen() {
           </div>
         );
       })}
-      {tab === "completed" && completedCount === 0 && (
+      {ahead === 0 && tab === "completed" && completedCount === 0 && (
         <div className="rounded-2xl p-6 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
           Nothing completed yet this month. Check something off on Today and it lands here.
         </div>
       )}
+      {ahead > 0 && viewTasks.length === 0 && (
+        <div className="rounded-2xl p-6 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
+          Nothing in {viewMonth.name} yet. Anything you add here waits until the month comes around.
+        </div>
+      )}
 
+      {ahead === 0 && (
       <NoDayGroup
         tasks={noDay.filter((t) => (tab === "active" ? !t.done : t.done))}
         note={tab === "active" ? "No day chosen yet, so they sit outside the weeks above. Tap the pencil to pick a day, or let Organize place them all." : "Finished without ever being given a day."}
       />
+      )}
 
       {/* Anything dated past this month waits here until its month comes around. */}
-      {tab === "active" && p.later.length > 0 && <LaterGroup />}
+      {ahead === 0 && tab === "active" && <LaterGroup first={AHEAD + 1} />}
     </div>
   );
 }
@@ -340,9 +422,16 @@ function repeatLabel(x: DumpItem) {
   return x.weekday != null ? `Every ${WD[x.weekday]}` : "Weekly";
 }
 
-function LaterGroup() {
+/**
+ * Months beyond the ones with tabs. first is how many months ahead the tabs
+ * already cover, so nothing is listed in two places at once.
+ */
+function LaterGroup({ first }: { first: number }) {
   const p = usePlanner();
-  const months = Array.from(new Set(p.later.map((t) => t.month))).sort();
+  const from = monthPrefixAhead(p.month, first);
+  const rows = p.later.filter((t) => t.month >= from);
+  const months = Array.from(new Set(rows.map((t) => t.month))).sort();
+  if (!rows.length) return null;
   return (
     <div className="mt-6">
       <div className="mb-2 flex items-center justify-between">
@@ -350,7 +439,7 @@ function LaterGroup() {
           Later
         </span>
         <span className="text-xs" style={{ color: C.fade }}>
-          {p.later.length} waiting
+          {rows.length} waiting
         </span>
       </div>
       <p className="mb-2 text-xs" style={{ color: C.fade }}>
@@ -361,7 +450,7 @@ function LaterGroup() {
           <div className="mb-1 text-xs font-semibold" style={{ color: C.navy2 }}>
             {monthLabelIn(mp, p.month)}
           </div>
-          {collapseRepeats(p.later.filter((t) => t.month === mp)).map(({ t, count }) => (
+          {collapseRepeats(rows.filter((t) => t.month === mp)).map(({ t, count }) => (
             <LaterRow key={t.id} t={t} count={count} />
           ))}
         </div>
