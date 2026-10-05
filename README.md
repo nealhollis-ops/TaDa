@@ -70,6 +70,10 @@ npm run test:rls
   from the `later` list that is already loaded, so no extra queries; it hides the dump, Organize and the
   Active/Completed tabs, all of which are defined against the month in `p.month`. `LaterGroup` takes a `first`
   prop so it starts after the tabbed months and nothing is listed twice.
+- Assignments carry `starred` (migration 0027). The owner-only trigger from 0025 was widened to guard the
+  category and the star together; the narrow category-only function is dropped. The tracker's sort toggle lives
+  in `AssignmentTracker` and is kept per team in `localStorage` under `tada-assign-sort-<teamId>`, every read
+  and write guarded so blocked storage just means the default.
 - Notes on assigned work are editable by their author (migration 0026, `edited_at`). The policy carries
   WITH CHECK as well as USING, so a note cannot be moved to another assignment; posts and replies predate that
   habit and still lack it.

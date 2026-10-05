@@ -94,7 +94,7 @@ export const toTeam = (r: Row, members: string[]): Team => ({ id: r.id, name: r.
 export const toTeamMessage = (r: Row): TeamMessage => ({ id: r.id, teamId: r.team_id, userId: r.user_id, text: r.text, createdAt: r.created_at });
 export const toAssignment = (r: Row): Assignment => ({
   id: r.id, teamId: r.team_id, fromUser: r.from_user, toUser: r.to_user ?? null, title: r.title, date: r.date ?? null,
-  done: !!r.done, doneAt: r.done_at ?? null, createdAt: r.created_at, categoryId: r.category_id ?? null,
+  done: !!r.done, doneAt: r.done_at ?? null, createdAt: r.created_at, categoryId: r.category_id ?? null, starred: !!r.starred,
 });
 export const toTeamCategory = (r: Row): TeamCategory => ({ id: r.id, teamId: r.team_id, name: r.name, tint: r.tint ?? 0, sort: r.sort ?? 0 });
 export const toBanner = (r: Row): Banner => ({ id: r.id, text: r.text, startsAt: r.starts_at, endsAt: r.ends_at });

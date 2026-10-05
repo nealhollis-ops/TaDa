@@ -225,6 +225,9 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Assign work then has a Category box. Leave it on No category and nothing changes. Track progress groups the list by category, with anything uncategorised at the bottom, and inside every group the soonest deadline comes first.",
     "Rename a category with the pencil, remove it with the x. Removing one never deletes work: those tasks simply move to No category. You can re-file a task any time by opening it with the pencil in Track progress.",
     "Only the boss creates, renames or deletes categories, and only the boss can change which one a task is in. Everyone else sees the category on their own task as a small chip and nothing more.",
+    "A boss can star a task to mean do this one first. Starred work rises to the top of its category group, and the deadline order is kept underneath it. You see the star on your own task but only the boss can set it.",
+    "The small link under the tabs switches between By category and By due date. By category is the grouped view; By due date is one flat list, soonest first, with each task's category shown as a coloured dot on the row. A star does not jump the queue in the date view, because a list that says by due date should start with the soonest date. Your choice is remembered.",
+    "Work assigned to you with no deadline shows on Today too, at the foot of Assigned to you, marked No deadline.",
     "Notes on a task can be fixed after the fact. Tap the pencil beside anything you wrote to change the wording; it then shows as edited so nobody reads it as the original. You can only change your own notes, not the other person's, and nobody is notified a second time.",
   ]},
   { id: "bossguide", t: "Running a Boss team, step by step", b: [

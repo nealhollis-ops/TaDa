@@ -73,6 +73,18 @@ Every push the app sends also lands in the member's bell. The app sends them for
 
 Plan has month tabs: the month you are in, plus the next two. The current tab is Plan as it always was. A later tab shows that month by week and takes new work, but offers no Brain Dump and no Organize, because both place things in the weeks of the month you are living in. Nothing extra is fetched for it - a task is in a later month because it carries a date there, so it was already loaded. Anything beyond the three tabs stays under Later at the foot of the page.
 
+## Starring assigned work, and how the list is sorted
+
+A boss taps the star on a task row, or beside the title when assigning, to mean do this first. One bit rather than High/Normal/Low, because three levels become everything-is-High within a month.
+
+- Owner only. Migration `0027` widened `0025`'s category trigger to guard the category and the star together, and retired the narrow one.
+- The small link under the Assigned/Completed tabs switches between **By category** (grouped, star floats within its group, deadline order under it) and **By due date** (one flat list, pure date order, star shown but not reordering). The choice is kept per team in browser storage, so it is per device and not worth worrying about.
+- The toggle only appears once the team has a category to group by.
+
+## Assigned work with no deadline
+
+It now shows on the member's Today page at the foot of Assigned to you, marked "No deadline". Before, the filter asked for a date before comparing it, so an assignment without one never appeared on Today at all - not deferred, invisible - and Boss Mode was the only place it existed. Assignments dated in the future still stay off Today.
+
 ## Notes on assigned work can be edited
 
 Whoever wrote a note can change its wording; the row then carries `edited_at` and shows as edited. Author only, enforced by the `assignment_notes_update` policy with both USING and WITH CHECK - the second stops a note being re-pointed at a different assignment. Not the boss, not an admin. No second notification goes out for an edit. Deleting a note is still not possible. Migration `0026`.
@@ -85,6 +97,10 @@ A boss team owner can name up to 10 categories and file assigned work into them.
 - The 10 cap is a database trigger, not just the UI, so it holds whoever is calling.
 - Deleting a category sets its tasks back to no category; it never deletes work. The foreign key is `on delete set null`.
 - Tables: `team_categories`, and `assignments.category_id`. Migration `0025`.
+
+## Installing the app
+
+The "Install TaDa on this phone" card sits directly under Your profile on Account, above Notifications. It used to be below the plan and the badge case, where someone had to hunt for it. It renders nothing at all when the app is already running installed, so it never nags anyone who has done it.
 
 ## Emails that go to members
 

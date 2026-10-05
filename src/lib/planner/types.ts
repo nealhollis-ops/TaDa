@@ -121,7 +121,7 @@ export type Message = { id: string; fromUser: string; toUser: string; text: stri
 export type Team = { id: string; name: string; kind: "standard" | "boss"; ownerId: string; createdAt: string; members: string[] };
 export type TeamInvite = { id: string; teamId: string; email: string; token: string; invitedBy: string; acceptedAt: string | null; createdAt: string; teamName?: string; teamKind?: "standard" | "boss" };
 export type TeamMessage = { id: string; teamId: string; userId: string; text: string; createdAt: string };
-export type Assignment = { id: string; teamId: string; fromUser: string; toUser: string | null; title: string; date: string | null; done: boolean; doneAt: string | null; createdAt: string; categoryId: string | null };
+export type Assignment = { id: string; teamId: string; fromUser: string; toUser: string | null; title: string; date: string | null; done: boolean; doneAt: string | null; createdAt: string; categoryId: string | null; starred: boolean };
 
 /** A bucket a boss sorts assigned work into. Ten per team, named by the owner. */
 export type TeamCategory = { id: string; teamId: string; name: string; tint: number; sort: number };
