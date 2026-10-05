@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Pencil, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pencil, X } from "lucide-react";
 import { usePlanner } from "./store";
 import { C, inputStyle } from "./ui";
 import type { Team } from "@/lib/planner/types";
@@ -29,6 +29,10 @@ export function CategoriesCard({ t }: { t: Team }) {
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  // Setting categories up is a once-in-a-while job, so it folds away. A team
+  // with none yet opens it, because a boss cannot keep a section they have
+  // never seen; a team that has them keeps it shut and out of the way.
+  const [open, setOpen] = useState(() => p.categoriesOf(t.id).length === 0);
 
   const taken = new Set(cats.map((c) => c.name.toLowerCase()));
   const offers = SUGGESTED.filter((s) => !taken.has(s.toLowerCase()));
@@ -46,6 +50,15 @@ export function CategoriesCard({ t }: { t: Team }) {
   };
 
   return (
+    <>
+      <button onClick={() => setOpen(!open)} className="mb-2 mt-3 flex w-full items-center gap-1.5 text-xs font-bold uppercase" style={{ color: C.coral, letterSpacing: 0.5 }} aria-expanded={open}>
+        {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        Categories
+        <span className="ml-auto normal-case" style={{ fontWeight: 600, color: C.fade, letterSpacing: 0 }}>
+          {cats.length ? cats.map((c) => c.name).join(", ") : "none yet"}
+        </span>
+      </button>
+      {open && (
     <div className="mb-2 rounded-xl p-3" style={{ background: C.cream }}>
       <p className="mb-2 text-xs" style={{ color: C.fade }}>
         Up to 10. Tap a suggestion to keep it, or write your own. Deleting one leaves its tasks under No category.
@@ -132,5 +145,7 @@ export function CategoriesCard({ t }: { t: Team }) {
         {cats.length} of 10 used{full ? " - remove one to add another" : ""}
       </div>
     </div>
+      )}
+    </>
   );
 }
