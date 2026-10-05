@@ -42,7 +42,7 @@ function AssignedRow({ a }: { a: Assignment }) {
           <Chip color={C.coral} bg="#FDE2E2">
             {team ? team.name : "Team"}
           </Chip>
-          <Chip>{late ? "Overdue" : "Due today"}</Chip>
+          <Chip>{!a.date ? "No deadline" : late ? "Overdue" : "Due today"}</Chip>
           {cat && (
             <span className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold" style={{ background: C.mist, color: C.navy2 }}>
               <span className="shrink-0 rounded-full" style={{ width: 7, height: 7, background: tintOf(cat.tint) }} />
@@ -65,7 +65,11 @@ export function TodayScreen() {
   // Same rule as the day itself: what still needs doing sits above what is
   // already finished. Assigned work piles up faster than personal tasks, and a
   // long tail of ticked-off items should never bury the few still open.
-  const due = p.assignedToMe.filter((a) => a.date && a.date <= p.today);
+  // Work assigned with no deadline used to fail this filter and never appear
+  // here at all, so a boss could hand someone a task they were never shown on
+  // the screen they live in. Your own undated tasks already have a home at the
+  // foot of the day; assigned ones now do too.
+  const due = p.assignedToMe.filter((a) => !a.date || a.date <= p.today);
   // Same rule the boss sees in the tracker: starred first, then deadline.
   const dueOpen = due.filter((a) => !a.done).sort((a, b) => Number(b.starred) - Number(a.starred) || (a.date || "9").localeCompare(b.date || "9"));
   const dueDone = due.filter((a) => a.done);
