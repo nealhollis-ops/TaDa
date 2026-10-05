@@ -973,6 +973,14 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
 
   const removeTask = useCallback(
     (id: string, scope: EditScope = "one") => {
+      // A task dated in a later month lives in the other list, and saveEdit has
+      // always known that. Delete did not, so the sheet closed and the task
+      // stayed: silent, and the only way out was to drag the date back first.
+      if (laterRef.current.some((t) => t.id === id)) {
+        void persistLater(laterRef.current.filter((t) => t.id !== id));
+        setEditing(null);
+        return;
+      }
       const target = tasksRef.current.find((t) => t.id === id);
       // Removing a series takes the days still to come; finished ones stay in
       // the record. The task the member actually pressed delete on always goes,
@@ -985,7 +993,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       void persistTasks(tasksRef.current.filter((t) => !gone.has(t.id)));
       setEditing(null);
     },
-    [persistTasks],
+    [persistTasks, persistLater],
   );
 
   // ----------------------------------------------------------- encourage --
