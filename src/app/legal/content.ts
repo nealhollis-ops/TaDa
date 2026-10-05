@@ -10,7 +10,7 @@ export type LegalDoc = {
   sections: { h: string; body: string[] }[];
 };
 
-export const LEGAL_UPDATED = "September 20, 2026";
+export const LEGAL_UPDATED = "October 5, 2026";
 
 export const DOCS: Record<string, LegalDoc> = {
   terms: {
@@ -210,6 +210,7 @@ export const DOCS: Record<string, LegalDoc> = {
           "- Supabase: our database and sign-in system, where your account and planner data live. Hosted in the United States.",
           "- Vercel: hosts the app and serves it to your device.",
           "- Stripe: processes payments and stores your card securely. Stripe's privacy policy applies to the card details you enter on their checkout page.",
+          "- Google Analytics: counts visits to our marketing site at www.gettada.me and shows which pages people read. It runs only on that site, never inside the app, and never sees your planner data.",
           "- Resend: sends our emails, such as sign-in links, invitations and receipts.",
           "- Anthropic: processes the text you enter into the AI features. Under our agreement that text is not used to train their models.",
           "- Push notifications travel through the notification service built into your browser or phone (for example Google, Apple or Mozilla). They see that a notification was sent to your device, not your planner data.",
@@ -219,7 +220,8 @@ export const DOCS: Record<string, LegalDoc> = {
         h: "5. Cookies and storage on your device",
         body: [
           "TaDa uses a sign-in cookie so you stay logged in. It uses local storage on your device for small conveniences, such as remembering that the welcome sound already played or which onboarding steps you finished. The installed app caches its own files so it opens quickly and works briefly offline.",
-          "We do not use advertising cookies or third-party tracking pixels.",
+          "Our marketing site at www.gettada.me uses Google Analytics to measure visits. It sets its own cookies on that site only. The app itself does not run it.",
+          "We do not use advertising cookies, and we never sell what we measure or share it with advertisers.",
         ],
       },
       {
