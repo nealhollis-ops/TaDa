@@ -141,7 +141,20 @@ The gold bar on Today lets a member share TaDa. Their link carries their own slu
 
 - The app decides who gets in from the `entitlements` table only. Stripe writes rows with `source = 'stripe'` through the webhook; comp and admin rows are yours. Stripe code never touches your rows and you should never edit a Stripe row by hand.
 - Cancellations can be done from the member's page (Subscription card). Refunds, card problems and receipts are done in the Stripe dashboard. Search Stripe by the member's email.
-- The live billing path was proven end to end on October 5, 2026 with a real Standard checkout: the webhook delivered, `billing_customers` and the entitlement were written (standard / trialing / stripe, trial to October 20), the paywall opened, and the confirm, welcome and founder-alert emails all delivered. That was the first live run of the founder alert. What is still unproven is the other half of the loop: a cancellation writing `status = 'canceled'` and the paywall closing again.
+- **The live billing loop was proven end to end on October 5, 2026**, with a real Standard checkout on the live account and all three cancellation shapes after it:
+
+  | Step | What was observed |
+  |---|---|
+  | Checkout, live mode | `checkout.session.completed` delivered and verified |
+  | Entitlement written | standard / trialing / stripe, trial to October 20 |
+  | Paywall opened | `effective_plan` returned standard |
+  | Emails | confirm, welcome, and the founder alert to both founders, all delivered |
+  | Cancel scheduled for a date | `customer.subscription.updated`; status stays trialing and access is kept to `expires_at`, which is correct |
+  | Cancel immediately | `customer.subscription.deleted`; status went to canceled, `expires_at` moved to now, `effective_plan` went null and the paywall shut at once |
+
+  That last row is the chargeback and refund path, and it revokes access without waiting. It was also the first live run of the founder alert, which had only ever been tested against Stripe test-mode keys.
+
+  Two things worth knowing from that session, because both looked like faults and were not. A scheduled cancellation leaves the subscription `trialing` with a `cancel_at` date, so the member keeps access until then by design; only a terminal cancellation sends `customer.subscription.deleted`. And a 14-day trial takes the card without charging it, so a cancellation during the trial leaves nothing to refund.
 - Stripe is **live** as of September 21, 2026. Preview/staging deployments and `.env.local` still use test mode.
 - Comp invites (bulk comp to an email that is not a member yet) are redeemed by the signup trigger the moment that person creates their account. Between September 24 and October 1, 2026 that redemption was broken by a migration: anyone invited in that window signed up and hit the paywall instead. Migration `0023` restored it and redeemed every invite that was still waiting, so nothing needs doing by hand.
 - Boss seat counts sync once a day at 05:30 UTC. Removing a member from a boss team changes the next invoice, not today's.
