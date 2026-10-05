@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { Check, MessageSquare, Pencil, Send } from "lucide-react";
 import { usePlanner } from "./store";
 import { Avatar, C, inputStyle } from "./ui";
 import { ago } from "@/lib/planner/calendar";
@@ -18,8 +18,15 @@ export function AssignmentNotes({ a, compact = false }: { a: Assignment; compact
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
   const notes = p.notesFor(a.id);
   const size = compact ? 10 : 11;
+
+  const saveEdit = async (id: string) => {
+    await p.editAssignmentNote(id, editText);
+    setEditing(null);
+  };
 
   const send = async () => {
     if (!text.trim() || busy) return;
@@ -44,8 +51,47 @@ export function AssignmentNotes({ a, compact = false }: { a: Assignment; compact
               <div className="min-w-0 flex-1">
                 <div style={{ fontSize: size - 1, color: C.fade }}>
                   {n.userId === p.me.id ? "You" : p.nameOf(n.userId)} · {ago(n.createdAt)}
+                  {n.edited ? " · edited" : ""}
                 </div>
-                <div style={{ fontSize: size + 1, color: C.ink, overflowWrap: "anywhere" }}>{n.text}</div>
+                {editing === n.id ? (
+                  <div className="mt-0.5 flex gap-1.5">
+                    <input
+                      className="min-w-0 flex-1 rounded-lg border px-2 py-1"
+                      style={{ ...inputStyle, fontSize: size + 1 }}
+                      value={editText}
+                      maxLength={1000}
+                      autoFocus
+                      onChange={(e) => setEditText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void saveEdit(n.id);
+                        if (e.key === "Escape") setEditing(null);
+                      }}
+                      aria-label="Edit note"
+                    />
+                    <button onClick={() => void saveEdit(n.id)} className="shrink-0" aria-label="Save note">
+                      <Check size={size + 3} style={{ color: C.teal }} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-1.5">
+                    <span className="min-w-0 flex-1" style={{ fontSize: size + 1, color: C.ink, overflowWrap: "anywhere" }}>
+                      {n.text}
+                    </span>
+                    {/* Your own words only. The row policy says the same thing. */}
+                    {n.userId === p.me.id && (
+                      <button
+                        onClick={() => {
+                          setEditing(n.id);
+                          setEditText(n.text);
+                        }}
+                        className="shrink-0"
+                        aria-label="Edit note"
+                      >
+                        <Pencil size={size} style={{ color: C.fade }} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}

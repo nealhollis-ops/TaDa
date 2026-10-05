@@ -64,7 +64,7 @@ export type DumpItem = {
 export type Banner = { id: string; text: string; startsAt: string; endsAt: string };
 
 /** A line of conversation kept on a piece of assigned work, boss mode only. */
-export type AssignmentNote = { id: string; assignmentId: string; userId: string; text: string; createdAt: string };
+export type AssignmentNote = { id: string; assignmentId: string; userId: string; text: string; createdAt: string; edited: boolean };
 
 export type Badge = { id: string; e: string; name: string };
 
