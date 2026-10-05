@@ -136,6 +136,11 @@ export function AccountScreen() {
         </label>
       </div>
 
+      {/* Installing is a first-week job, and it was sitting below the plan and
+          the badge case where someone had to go looking for it. Directly under
+          the profile instead: the first thing after who you are. */}
+      <InstallCard />
+
       <NotificationsCard on={p.me.notifOn} onToggle={() => void p.toggleNotif()} communityOn={p.me.notifCommunity} onToggleCommunity={() => void p.toggleCommunityNotif()} onEnableDevice={p.enableThisDevice} />
 
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>
@@ -288,7 +293,6 @@ export function AccountScreen() {
       )}
 
       <ShareCard />
-      <InstallCard />
 
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff" }}>
         <div className="mb-1 text-xs font-semibold" style={{ color: C.navy2 }}>
