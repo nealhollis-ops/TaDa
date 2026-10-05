@@ -560,7 +560,6 @@ function TeamCard({ t }: { t: Team }) {
           )}
           {t.kind === "boss" && owner && (
             <div className="mt-3">
-              <SectionLabel>Categories</SectionLabel>
               <CategoriesCard t={t} />
               <SectionLabel>Assign work</SectionLabel>
               <div className="mb-2 rounded-xl p-3" style={{ background: C.cream }}>
