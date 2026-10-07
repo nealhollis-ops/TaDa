@@ -566,13 +566,15 @@ function TeamCard({ t }: { t: Team }) {
               <div className="mb-2 rounded-xl p-3" style={{ background: C.cream }}>
                 <select className="mb-2 w-full rounded-xl border px-2 py-2 text-sm" style={inputStyle} value={assignTo} onChange={(e) => setAssignTo(e.target.value)}>
                   <option value="">Assign to...</option>
-                  {t.members
-                    .filter((id) => id !== p.me.id)
-                    .map((id) => (
-                      <option key={id} value={id}>
-                        {p.nameOf(id)}
-                      </option>
-                    ))}
+                  {/* The boss is on the team too, and work they take on themselves
+                      belongs on the same board as everyone else. The edit sheet
+                      always allowed reassigning to yourself; this did not. */}
+                  {t.members.map((id) => (
+                    <option key={id} value={id}>
+                      {p.nameOf(id)}
+                      {id === p.me.id ? " (you)" : ""}
+                    </option>
+                  ))}
                 </select>
                 <div className="mb-2 flex items-center gap-2">
                   <input className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm outline-none" style={inputStyle} placeholder="What needs doing?" value={assignTitle} onChange={(e) => setAssignTitle(e.target.value)} />
