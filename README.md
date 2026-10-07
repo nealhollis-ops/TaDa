@@ -63,13 +63,19 @@ npm run test:rls
   (calendar weeks, repeats, Organize, streaks with the Saturday/Sunday rules, calendar-bar ops, month rollover).
 - The brain dump and the calendar bar call `POST /api/ai` (Anthropic key stays on the server; 30 calls per member per day).
   The dump reply is pinned to a JSON schema, so every item carries a day, a time block and a repeat, and
-  `addDumped` runs them through `buildNewTasks` like any other task.
+  `addDumped` runs them through `buildNewTasks` like any other task. Dates in later months are parsed the
+  same way the calendar bar parses them; `addDumped` splits the result by month and routes anything past this
+  one into the `later` list rather than the month's `tasks`.
 - The store holds one month. A task dated in a later month is stamped for that month and kept in a separate
   `later` list, shown under Later on Plan, so Organize, progress and streak maths stay month-scoped.
 - Plan carries month tabs for the current month and the next two (`ahead` in `plan.tsx`). A later tab reads
   from the `later` list that is already loaded, so no extra queries; it hides the dump, Organize and the
   Active/Completed tabs, all of which are defined against the month in `p.month`. `LaterGroup` takes a `first`
   prop so it starts after the tabbed months and nothing is listed twice.
+- A boss can assign work to themselves: the Assign work dropdown lists the owner marked "(you)", as the
+  task editor's reassign list and the holding tank always did. No schema change - `assignments_owner_insert`
+  and `assignments_select` are both satisfied when `from_user` and `to_user` are the same person - and no
+  notification, since the `assignment` notify copy is `self: false`.
 - Assignments carry `starred` (migration 0027). The owner-only trigger from 0025 was widened to guard the
   category and the star together; the narrow category-only function is dropped. The tracker's sort toggle lives
   in `AssignmentTracker` and is kept per team in `localStorage` under `tada-assign-sort-<teamId>`, every read
@@ -118,6 +124,8 @@ npm run test:rls
   The cap and the owner-only rule are both in the database - a trigger for the cap, and a second trigger that
   rejects a `category_id` change from anyone but the team owner, since `assignments_update` legitimately lets
   the assignee update their own row. Deleting a category is `on delete set null`, so the work survives it.
+  The card offers three suggestions at a time out of a list of five, topped up as each is kept and trimmed by
+  `10 - cats.length`, so suggestions plus real categories can never exceed the cap.
 - `npm run test:stripe` (dev server running, test keys) replays real Stripe events into the local webhook
   and checks trial start, seat sync, plan change, cancel, and that comp rows are untouched.
 

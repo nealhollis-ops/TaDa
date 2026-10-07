@@ -73,6 +73,12 @@ Every push the app sends also lands in the member's bell. The app sends them for
 
 Plan has month tabs: the month you are in, plus the next two. The current tab is Plan as it always was. A later tab shows that month by week and takes new work, but offers no Brain Dump and no Organize, because both place things in the weeks of the month you are living in. Nothing extra is fetched for it - a task is in a later month because it carries a date there, so it was already loaded. Anything beyond the three tabs stays under Later at the foot of the page.
 
+## The Brain Dump, and work with no day
+
+The dump is the box at the top of Plan, renamed from "Pour it all out". It reads dates out of plain speech, including months ahead of this one: *the deposit is due in April* lands on a real day in April, up to a year out. Anything beyond the current month is stamped for its month and kept in the store's `later` list, so it waits under Later on Plan (or on its own tab, if it is one of the next two months) rather than distorting this month's counts. The preview's own day picker runs a year out for the same reason.
+
+A task with **no day at all** is a different thing again, and is not the same as assigned work with no deadline. It gathers under "No day yet" at the foot of both Today and Plan: on Plan below the weeks rather than inside one, so a week only ever shows work that was actually scheduled, and on Today outside the day's total, since nobody planned it for today. One ticked off today still counts towards "Done today", which reads `doneAt` rather than a date it never had. Carried-over work from last month arrives in exactly this state.
+
 ## Starring assigned work, and how the list is sorted
 
 A boss taps the star on a task row, or beside the title when assigning, to mean do this first. One bit rather than High/Normal/Low, because three levels become everything-is-High within a month.
@@ -197,7 +203,24 @@ Every admin action is written to `admin_log` with who did it, what, to whom, and
 
 ## Where things live
 
-- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0019` as of this update: `0014` past-due reminders, `0015` boss direct messages, `0016` admin profile link, `0017` team room read marks, `0018` stops a member pinning their own post, `0019` marks a day of a repeat that was edited on its own, `0020` notes on boss assignments, `0021` banners on Today and Plan.
+- Database and sign-in: Supabase project `tada-prod`. Migrations are in `supabase/migrations` and are applied by pasting into the SQL editor. Keep the files in git; they are the source of truth. Applied through `0027` as of this update:
+
+  | | |
+  |---|---|
+  | `0014` | past-due reminders |
+  | `0015` | boss direct messages |
+  | `0016` | admin profile link |
+  | `0017` | team room read marks |
+  | `0018` | stops a member pinning their own post |
+  | `0019` | marks a day of a repeat that was edited on its own |
+  | `0020` | notes on boss assignments |
+  | `0021` | banners on Today and Plan |
+  | `0022` | referral slugs and `profiles.referred_from` |
+  | `0023` | restores comp-invite redemption that `0022` dropped, and repairs the members it missed |
+  | `0024` | `welcomed_at` and `trial_reminder_sent_at` for the member emails |
+  | `0025` | boss categories: `team_categories`, `assignments.category_id`, the cap and owner-only triggers |
+  | `0026` | `assignment_notes.edited_at` and the author-only update policy |
+  | `0027` | `assignments.starred`, and the owner-only trigger widened to guard the category and the star together |
 - Hosting: Vercel project `ta-da`. Every push to `main` deploys. Environment variables live in Vercel's project settings; `/api/health` shows which ones are present and which email domain is in use.
 - Staging: see the next section. It is a separate Supabase project and a Vercel preview, so nothing you do there touches members.
 - Email: Resend, sending from `hello@gettada.me`. Sign-in emails go through Supabase's SMTP, also via Resend.

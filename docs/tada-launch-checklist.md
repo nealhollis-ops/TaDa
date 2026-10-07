@@ -16,7 +16,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [x] Create the Stripe account and grab the TEST keys (live keys come in Phase 7)
 - [x] Create an Anthropic API key at console.anthropic.com for the brain dump and the talk-to-the-calendar bar
 - [x] Create a Resend account for app emails and verify a sending domain like mail.gettada.me (it gives you DNS records to add)
-- [ ] Record two assets while it's easy: Deb saying "TaDa!" as a one second mp3, and the welcome tour video
+- [ ] Record two assets while it's easy: Deb saying "TaDa!" as a one second mp3, and the welcome tour video. The tour video is done and live - the Voomly embed is wired to NEXT_PUBLIC_TOUR_URL and production serves it, confirmed on /help. Only the mp3 is outstanding
 
 ## Phase 1: Scaffold the project with Claude Code
 
@@ -77,7 +77,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 - [ ] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line
 - [x] Transactional emails wired: welcome (on first confirmation) and trial reminder three days out. Receipts and failed-payment notices are left to Stripe rather than duplicated; partner requests and assigned work stay bell + push, so one event does not raise three alerts.
-- [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice
+- [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice. The wiring is already there and a one second file ships at public/audio/tada.mp3 (NEXT_PUBLIC_TADA_URL overrides it); what cannot be checked from the code is whether that file is Deb's own recording or the placeholder, so this one needs her ear rather than a build
 - [x] Drop the tour video link into the welcome checklist
 - [ ] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb
 
