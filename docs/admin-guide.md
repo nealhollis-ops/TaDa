@@ -1,6 +1,6 @@
 # TaDa admin guide
 
-For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated October 5, 2026.
+For Deb and Neal. Everything an admin can do, where it lives, and what it touches. Last updated October 7, 2026.
 
 The admin panel is at **app.gettada.me/admin**. It is only reachable by accounts whose profile role is `admin`. Members never see it, and the "Open the admin panel" button on Account only appears for admins.
 
@@ -81,6 +81,14 @@ A boss taps the star on a task row, or beside the title when assigning, to mean 
 - The small link under the Assigned/Completed tabs switches between **By category** (grouped, star floats within its group, deadline order under it) and **By due date** (one flat list, pure date order, star shown but not reordering). The choice is kept per team in browser storage, so it is per device and not worth worrying about.
 - The toggle only appears once the team has a category to group by.
 - Every category heading folds its group away, and Collapse all folds the lot, leaving the headings and counts as a table of contents. Everything starts open; folded groups are kept per team in browser storage beside the sort choice. No per-group minimum: a threshold would measure group size when the problem is page length, and the control would come and go as work was ticked off.
+
+## A boss can assign work to themselves
+
+The name dropdown in Assign work lists the owner alongside the team, marked "(you)". It used to filter the owner out, which was inconsistent: the task editor's reassign list and the holding tank already let a boss take work back, so the one place that created work was the only place that would not. A boss who is also doing the work had to keep it on a separate personal list.
+
+Self-assigned work is an ordinary assignment - same row, same star, category and notes, same Track progress group - and shows on the boss's own Today under Assigned to you. It attributes to "You" rather than their own name. No notification goes out, because the `assignment` notify copy is already `self: false`, and nobody needs telling what they just typed.
+
+Nothing changed in the database. `assignments_owner_insert` checks `from_user = auth.uid() and is_team_owner(team_id)`, and `assignments_select` allows `to_user = auth.uid() or is_team_owner(team_id)`; a row where the two are the same person satisfies both. The filter was the only thing in the way.
 
 ## Assigned work with no deadline
 
