@@ -102,6 +102,7 @@ Whoever wrote a note can change its wording; the row then carries `edited_at` an
 
 A boss team owner can name up to 10 categories and file assigned work into them. The section sits above Assign work and is collapsible: it opens by default for a team with no categories yet, and stays shut once there are some, naming them on the closed heading. The dropdown appears in Assign work and in the task editor once at least one category exists. Track progress groups by category, uncategorised work last, soonest deadline first inside every group.
 
+- Suggestions come three at a time out of a list of five, topped up as each is kept, rather than all five at once. The card is longest on its first open, which is when a boss knows least about what it is for, and a short list reads as an offer where a long one reads as a chore. The cap on real categories is still 10, and the offer is trimmed so the two together can never exceed it.
 - Only the team owner writes them. That is the `team_categories_write` policy, plus a trigger on `assignments` that blocks anyone but the owner changing `category_id` - needed because the member it was assigned to can already update their own row to tick it off, and RLS works per row rather than per column.
 - The 10 cap is a database trigger, not just the UI, so it holds whoever is calling.
 - Deleting a category sets its tasks back to no category; it never deletes work. The foreign key is `on delete set null`.

@@ -12,11 +12,15 @@ import type { Team } from "@/lib/planner/types";
  * trigger both enforce, so this card simply is not rendered for them.
  *
  * Suggestions are offers rather than rows. A brand new team starts at zero of
- * ten, and a boss who ignores them is left with a clean list instead of five
- * names to delete.
+ * ten, and a boss who ignores them is left with a clean list instead of a
+ * handful of names to delete.
  */
 
+/** Offered a few at a time, in this order, never all at once. */
 const SUGGESTED = ["Content", "Admin", "Marketing", "Follow-up", "Events"];
+
+/** How many suggestions are on offer at once. */
+const OFFERS_SHOWN = 3;
 
 /** Ten colours, so a category keeps its own as others come and go. */
 export const CATEGORY_TINTS = ["#F8B018", "#12B76A", "#E30022", "#7A5200", "#0B6B3A", "#B00018", "#333333", "#F0997B", "#5DCAA5", "#D4537E"];
@@ -35,8 +39,12 @@ export function CategoriesCard({ t }: { t: Team }) {
   const [open, setOpen] = useState(() => p.categoriesOf(t.id).length === 0);
 
   const taken = new Set(cats.map((c) => c.name.toLowerCase()));
-  const offers = SUGGESTED.filter((s) => !taken.has(s.toLowerCase()));
   const full = cats.length >= 10;
+  // Three at a time, not the whole list. The card is at its longest the first
+  // time it is opened, which is exactly when a boss knows least about what it
+  // is for, so a wall of dashed rows reads as work to get through. The rest
+  // surface one at a time as categories get made, and never past ten.
+  const offers = SUGGESTED.filter((s) => !taken.has(s.toLowerCase())).slice(0, Math.min(OFFERS_SHOWN, 10 - cats.length));
 
   const add = (name: string) => {
     if (full) return;
