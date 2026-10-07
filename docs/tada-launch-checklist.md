@@ -75,7 +75,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 ## Phase 6: Content, legal, and email
 
-- [ ] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line
+- [x] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line. All three live at /legal/terms, /legal/privacy and /legal/refunds on both app.gettada.me and the marketing site, linked from the foot of Account, the sign-in page, the paywall and Help. The age line is on the signup form, in Terms section 1 and in Privacy section 9. Audited October 7, 2026 against what the app actually does: referrals, the Voomly tour embed and note notifications were added, the claim that we email receipts was removed (Stripe sends those), and the governing-law clause now names South Carolina. Not reviewed by an attorney
 - [x] Transactional emails wired: welcome (on first confirmation) and trial reminder three days out. Receipts and failed-payment notices are left to Stripe rather than duplicated; partner requests and assigned work stay bell + push, so one event does not raise three alerts.
 - [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice. The wiring is already there and a one second file ships at public/audio/tada.mp3 (NEXT_PUBLIC_TADA_URL overrides it); what cannot be checked from the code is whether that file is Deb's own recording or the placeholder, so this one needs her ear rather than a build
 - [x] Drop the tour video link into the welcome checklist

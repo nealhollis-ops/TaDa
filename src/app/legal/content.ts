@@ -10,7 +10,7 @@ export type LegalDoc = {
   sections: { h: string; body: string[] }[];
 };
 
-export const LEGAL_UPDATED = "October 5, 2026";
+export const LEGAL_UPDATED = "October 7, 2026";
 
 export const DOCS: Record<string, LegalDoc> = {
   terms: {
@@ -144,7 +144,7 @@ export const DOCS: Record<string, LegalDoc> = {
       {
         h: "17. Governing law and disputes",
         body: [
-          "These terms are governed by the laws of the United States and of the state in which Data Forge Media is organized, without regard to conflict-of-law rules. If we have a disagreement, please write to us first at clientcare@gettada.me; almost everything can be sorted out with a conversation. Any claim that cannot be resolved that way must be brought in the state or federal courts of that state.",
+          "These terms are governed by the laws of the State of South Carolina and of the United States, without regard to conflict-of-law rules. If we have a disagreement, please write to us first at clientcare@gettada.me; almost everything can be sorted out with a conversation. Any claim that cannot be resolved that way must be brought in the state or federal courts located in South Carolina, and both you and Data Forge Media agree to the jurisdiction of those courts.",
         ],
       },
       {
@@ -177,6 +177,7 @@ export const DOCS: Record<string, LegalDoc> = {
           "Billing: your plan, trial and subscription status, and the customer and subscription identifiers Stripe gives us. We never receive or store your full card number.",
           "Devices and technical data: a notification subscription for each device you turn notifications on with, the browser type, and standard server logs (IP address, time, pages requested) kept for security and troubleshooting.",
           "AI inputs: the text you type into the brain dump or the talking calendar, so it can be turned into tasks.",
+          "Referrals: members can share TaDa with a personal link. If you create your account through someone's link, we record which member sent you, so we know how people are finding TaDa and can credit whoever told you about it. If you share your own link, anyone who joins through it is recorded against you the same way. Neither of you is shown the other's activity.",
           "We do not collect your location, your contacts, or audio recordings. Voice input is handled by your device's own speech recognition; only the resulting text reaches us.",
         ],
       },
@@ -211,8 +212,9 @@ export const DOCS: Record<string, LegalDoc> = {
           "- Vercel: hosts the app and serves it to your device.",
           "- Stripe: processes payments and stores your card securely. Stripe's privacy policy applies to the card details you enter on their checkout page.",
           "- Google Analytics: counts visits to our marketing site at www.gettada.me and shows which pages people read. It runs only on that site, never inside the app, and never sees your planner data.",
-          "- Resend: sends our emails, such as sign-in links, invitations and receipts.",
+          "- Resend: sends our emails, such as sign-in links, invitations, your welcome note and trial reminders. Payment receipts come from Stripe rather than from us.",
           "- Anthropic: processes the text you enter into the AI features. Under our agreement that text is not used to train their models.",
+          "- Voomly: hosts the welcome tour video, which plays in an embedded player inside the app and on our marketing site. When that player loads it receives the usual request information, such as your IP address and browser type, and it may set its own cookies. It never receives your planner data.",
           "- Push notifications travel through the notification service built into your browser or phone (for example Google, Apple or Mozilla). They see that a notification was sent to your device, not your planner data.",
         ],
       },
@@ -221,6 +223,7 @@ export const DOCS: Record<string, LegalDoc> = {
         body: [
           "TaDa uses a sign-in cookie so you stay logged in. It uses local storage on your device for small conveniences, such as remembering that the welcome sound already played or which onboarding steps you finished. The installed app caches its own files so it opens quickly and works briefly offline.",
           "Our marketing site at www.gettada.me uses Google Analytics to measure visits. It sets its own cookies on that site only. The app itself does not run it.",
+          "The welcome tour plays through an embedded video player from Voomly, which may set its own cookies when you open it. It is the only third-party embed in the app.",
           "We do not use advertising cookies, and we never sell what we measure or share it with advertisers.",
         ],
       },
@@ -228,7 +231,7 @@ export const DOCS: Record<string, LegalDoc> = {
         h: "6. Emails and notifications",
         body: [
           "We send emails you need: sign-in links, password resets, invitations, trial and billing notices, and occasional news about TaDa. You cannot opt out of the ones required to run your account, such as billing notices, while you have an account.",
-          "Push notifications are off until you turn them on in Account. When on, your device is alerted to new direct messages, partner requests, team invitations, work assigned to you by a boss and a one-time reminder when it goes past due, badges and levels you earn, community replies and mentions, and the occasional announcement from us. Turn them off at any time with the same switch. We also record how far you have read in each team room, so the app can show you an unread count.",
+          "Push notifications are off until you turn them on in Account. When on, your device is alerted to new direct messages, partner requests, team invitations, work assigned to you by a boss, notes added to that work by either of you, a one-time reminder when it goes past due, badges and levels you earn, community replies and mentions, and the occasional announcement from us. Turn them off at any time with the same switch. We also record how far you have read in each team room, so the app can show you an unread count.",
         ],
       },
       {
