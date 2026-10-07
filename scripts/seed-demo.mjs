@@ -249,7 +249,10 @@ const must = (r) => { if (r.error) throw r.error; return r.data; };
 
 async function wipe(demoId, castIds) {
   const everyone = [demoId, ...castIds];
-  must(await admin.from("tasks").delete().eq("user_id", demoId).eq("month", M.prefix));
+  // Every month, not just this one: the app spawns repeating tasks forward from
+  // the previous month on first load, so leaving last month behind would clone
+  // every repeater on top of the ones seeded here.
+  must(await admin.from("tasks").delete().eq("user_id", demoId));
   must(await admin.from("teams").delete().eq("owner_id", demoId));            // cascades members, invites, chat, assignments
   must(await admin.from("posts").delete().in("user_id", everyone));           // cascades replies, reactions
   must(await admin.from("replies").delete().in("user_id", everyone));
