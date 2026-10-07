@@ -46,6 +46,12 @@ export async function POST(request: Request) {
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     payment_method_collection: "always",
+    // The Stripe account is shared with the other Faith Solutions products, and
+    // Klarna is switched on there for the ones it suits. A $17 subscription is
+    // not one of them, so it is dropped per session rather than account-wide,
+    // which would take it away from the products that want it. This is the
+    // supported way round when payment methods are managed from the dashboard.
+    excluded_payment_method_types: ["klarna"],
     allow_promotion_codes: true,
     subscription_data: {
       metadata: { app: "tada", user_id: user.id, plan },
