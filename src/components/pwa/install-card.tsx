@@ -35,8 +35,15 @@ export function InstallCard() {
       <div className="mb-1 flex items-center gap-2 text-xs font-semibold" style={{ color: C.navy2 }}>
         <Smartphone size={14} /> Install TaDa on this phone
       </div>
-      <p className="mb-3 text-xs" style={{ color: C.fade }}>
+      <p className="mb-2 text-xs" style={{ color: C.fade }}>
         Put TaDa on your home screen so it opens like an app, full screen, with its own icon. If you removed it before, this puts it back.
+      </p>
+      {/* A member went looking for TaDa in the Play Store, found somebody
+          else's app with the same name, and got a Play Protect warning about
+          old Android code. There is no TaDa to download anywhere: say so here,
+          where someone is actually trying to install it. */}
+      <p className="mb-3 text-xs font-semibold" style={{ color: C.ink }}>
+        TaDa installs from this page. Don&rsquo;t look for it in the Play Store or the App Store &mdash; anything you find there with our name is somebody else&rsquo;s app.
       </p>
 
       {done ? (
