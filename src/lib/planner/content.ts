@@ -136,7 +136,7 @@ export const HELP: { id: string; t: string; b: string[] }[] = [
     "Add a photo in Account and you get to place it: drag it around inside the circle, pinch or use the zoom slider, and what sits in the circle is what everyone sees. Change it whenever you like.",
   ]},
   { id: "install", t: "Installing on your phone", b: [
-    "TaDa is a web app, so there's nothing to find in an app store. If you do see something called TaDa in the Play Store or the App Store, it is not us, and you should not install it. Install the real one from your Account: scroll to Install TaDa on this phone and follow the steps for your device. It gets its own icon, opens full screen, and works like any other app.",
+    "On a Samsung phone, install TaDa from Chrome rather than Samsung Internet. Samsung's installer is broken at the moment and your phone will refuse the app and call it unsafe; the same app installs fine from Chrome. TaDa is a web app, so there's nothing to find in an app store. If you do see something called TaDa in the Play Store or the App Store, it is not us, and you should not install it. Install the real one from your Account: scroll to Install TaDa on this phone and follow the steps for your device. It gets its own icon, opens full screen, and works like any other app.",
     "On Android use Chrome, tap the three-dot menu, and choose Add to Home screen or Install app. On iPhone use Safari, tap Share, then Add to Home Screen.",
     "Removed it by accident? Open app.gettada.me in your browser, sign in, and install it again from Account. Your tasks are safe either way; they live in your account, not on the phone.",
   ]},

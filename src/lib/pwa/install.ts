@@ -72,3 +72,23 @@ export function isAndroidDevice() {
   if (typeof navigator === "undefined") return false;
   return /Android/i.test(navigator.userAgent);
 }
+
+/**
+ * Samsung Internet, the browser Samsung phones ship with.
+ *
+ * Installing a web app on Android does not just make a shortcut: the browser
+ * sends the manifest to its own minting server, which builds and signs a real
+ * APK (a WebAPK) for Android to install. Samsung's server has been stamping
+ * those with a targetSdkVersion below 34, so Android 14 and up refuse them -
+ * Play Protect says the app was built for an older version of Android and
+ * blocks it. Chrome's server stamps a current one, so the identical web app
+ * installs on the same phone without a murmur.
+ *
+ * Nothing here can fix that; the target belongs to Samsung's shell, not to our
+ * manifest. All we can do is send these phones to Chrome. Samsung's bug, open
+ * since April 2026: github.com/SamsungInternet/support/issues/123
+ */
+export function isSamsungInternet() {
+  if (typeof navigator === "undefined") return false;
+  return /SamsungBrowser/i.test(navigator.userAgent);
+}
