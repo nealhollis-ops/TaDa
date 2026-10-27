@@ -96,6 +96,17 @@ Self-assigned work is an ordinary assignment - same row, same star, category and
 
 Nothing changed in the database. `assignments_owner_insert` checks `from_user = auth.uid() and is_team_owner(team_id)`, and `assignments_select` allows `to_user = auth.uid() or is_team_owner(team_id)`; a row where the two are the same person satisfies both. The filter was the only thing in the way.
 
+## Your own work can be overdue now, not just assigned work
+
+Today selected personal tasks with `t.date === p.today`, an exact match, while assigned work has always used `a.date <= p.today` and carried a red Overdue chip. So a task dated earlier in the month and never ticked was invisible on Today and sat unmarked on Plan, inside a week nobody scrolls back to. It only resurfaced at the month flip, when `carryUnfinished` brings it over as undated. Members read that as the app losing their work.
+
+`isOverdue` in `src/lib/planner/tasks.ts` is the rule, and it is deliberately narrow:
+
+- **One-time tasks only.** `carryUnfinished` draws the same line at the month flip, and for the same reason - a missed day of a daily habit is a day gone, not a debt. Marking each one would turn a long streak into a wall of red.
+- **This month only**, which falls out of the store holding one month. Anything older has already been carried over as undated, so the Missed group cannot grow into an endless backlog.
+- The row says Overdue wherever it is read, Plan included, with the circle in coral. Today also gathers them into a **Missed** group above the time blocks, oldest first.
+- The group is **outside the day's "x of y done"**, exactly as the undated group is, so a score for today is not dragged down by work that was never meant for today. Today's empty state now only shows when there is nothing at all.
+
 ## Assigned work with no deadline
 
 It now shows on the member's Today page at the foot of Assigned to you, marked "No deadline". Before, the filter asked for a date before comparing it, so an assignment without one never appeared on Today at all - not deferred, invisible - and Boss Mode was the only place it existed. Assignments dated in the future still stay off Today.
