@@ -72,6 +72,11 @@ npm run test:rls
   from the `later` list that is already loaded, so no extra queries; it hides the dump, Organize and the
   Active/Completed tabs, all of which are defined against the month in `p.month`. `LaterGroup` takes a `first`
   prop so it starts after the tabbed months and nothing is listed twice.
+- The boot path loads what Today needs and no more. The month flip (`loadRepeatersFrom`,
+  `loadUnfinishedFrom`) is gated behind a `tada-rolled-<user>` marker in browser storage, since it can only
+  act once a month and both halves are idempotent. The community feed and the team room load from
+  `ensureFeed` / `ensureRoom` when Community and Partners first mount; `refreshShared` refreshes them only
+  once loaded, and `reloadFeed` bails when the feed was never fetched. 24 queries down to 15.
 - A boss can assign work to themselves: the Assign work dropdown lists the owner marked "(you)", as the
   task editor's reassign list and the holding tank always did. No schema change - `assignments_owner_insert`
   and `assignments_select` are both satisfied when `from_user` and `to_user` are the same person - and no

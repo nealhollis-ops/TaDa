@@ -96,6 +96,16 @@ Self-assigned work is an ordinary assignment - same row, same star, category and
 
 Nothing changed in the database. `assignments_owner_insert` checks `from_user = auth.uid() and is_team_owner(team_id)`, and `assignments_select` allows `to_user = auth.uid() or is_team_owner(team_id)`; a row where the two are the same person satisfies both. The filter was the only thing in the way.
 
+## What the app loads on the way in
+
+Opening the app used to run 24 queries before it could draw Today, most of them for screens nobody had asked for. It is 15 now. Worth knowing if the app ever feels slow again, because it says where the remaining cost is.
+
+- **The month flip is deferred to once a month.** `loadRepeatersFrom` and `loadUnfinishedFrom` can only do anything on the first visit of a new month, but they ran on every load forever. A marker in browser storage, `tada-rolled-<user>`, skips them for the rest of the month. It is deliberately not a database column: both halves are idempotent, so a cleared marker, a second device or blocked storage just repeats work that does nothing.
+- **The community feed and the team room load when their own screen opens.** Posts are four queries plus a page of member cards; seekers, team messages and read marks are three more. None of it is on Today. `refreshShared` still refreshes them once they have been loaded, and `reloadFeed` returns early so a realtime event cannot pull a feed for somebody who never opened Community.
+- Nothing else moved. Tasks, stats, assignments, teams, messages, categories, the banner and the bell still load on the way in, because Today and the bell need them.
+
+If a screen ever comes up empty where it used to have content, this is the first place to look: something that now loads lazily is not being asked for.
+
 ## Your own work can be overdue now, not just assigned work
 
 Today selected personal tasks with `t.date === p.today`, an exact match, while assigned work has always used `a.date <= p.today` and carried a red Overdue chip. So a task dated earlier in the month and never ticked was invisible on Today and sat unmarked on Plan, inside a week nobody scrolls back to. It only resurfaced at the month flip, when `carryUnfinished` brings it over as undated. Members read that as the app losing their work.
