@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Hand, Heart, HelpCircle, MessageCircle, Pencil, Pin, PinOff, RefreshCw, Send, SmilePlus, Trash2, Trophy, X } from "lucide-react";
 import { usePlanner } from "../store";
 import { Avatar, BadgeStrip, C, Chip, QuoteCard, inputStyle, renderRich } from "../ui";
@@ -12,6 +12,12 @@ const ICONS = { hi: Hand, question: HelpCircle, win: Trophy, boost: Heart };
 
 export function CommunityScreen() {
   const p = usePlanner();
+  // The feed is not fetched until someone comes to read it. Four queries and a
+  // page of member cards used to load behind every single visit to Today.
+  const { ensureFeed } = p;
+  useEffect(() => {
+    void ensureFeed();
+  }, [ensureFeed]);
   const [postType, setPostType] = useState<PostType>("win");
   const [postText, setPostText] = useState("");
   const [feedSort, setFeedSort] = useState<"active" | "new" | "top">("new");

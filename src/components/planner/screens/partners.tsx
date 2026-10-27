@@ -22,6 +22,12 @@ type Tab = "partners" | "teams" | "boss";
  */
 export function PartnersScreen() {
   const p = usePlanner();
+  // Same bargain as the feed: the team room and the open-to-partner list are
+  // only read on this screen, so they are only fetched when it opens.
+  const { ensureRoom } = p;
+  useEffect(() => {
+    void ensureRoom();
+  }, [ensureRoom]);
   const params = useSearchParams();
   const wanted = params.get("tab");
   const [tab, setTab] = useState<Tab>(wanted === "boss" || wanted === "teams" ? wanted : "partners");

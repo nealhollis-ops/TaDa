@@ -60,6 +60,8 @@ export type PlannerState = {
   removeCategory: (id: string) => Promise<void>;
   setTaskCategory: (assignmentId: string, categoryId: string | null) => Promise<void>;
   posts: Post[];
+  ensureFeed: () => Promise<void>;
+  ensureRoom: () => Promise<void>;
   blocked: string[];
   seekers: Member[];
   // ui
@@ -217,6 +219,12 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const [posts, setPosts] = useState<Post[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
   const [seekers, setSeekers] = useState<Member[]>([]);
+  // The community feed and the team room are the two heaviest things the app
+  // loads and neither is on the screen a member opens into. They are fetched
+  // when their own screen first asks, and refreshed with everything else only
+  // once that has happened.
+  const feedLoaded = useRef(false);
+  const roomLoaded = useRef(false);
 
   const [burst, setBurst] = useState<Burst | null>(null);
   const [bigMsg, setBigMsg] = useState(false);
@@ -243,11 +251,13 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   const tasksRef = useRef(tasks);
   const statsRef = useRef(stats);
   const membersRef = useRef(members);
+  const teamsRef = useRef(teams);
   useEffect(() => {
     tasksRef.current = tasks;
     statsRef.current = stats;
     membersRef.current = members;
-  }, [tasks, stats, members]);
+    teamsRef.current = teams;
+  }, [tasks, stats, members, teams]);
   const celebRef = useRef(0);
 
   // If the browser's sign-in changes underneath this tab (another tab signed in
@@ -394,12 +404,16 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         S.loadAssignmentNotes(sb).catch(() => [] as AssignmentNote[]),
         S.loadBanner(sb).catch(() => null),
         S.loadTeamCategories(sb).catch(() => [] as TeamCategory[]),
-        S.loadPosts(sb),
+        feedLoaded.current ? S.loadPosts(sb) : Promise.resolve(null),
         S.loadBlocks(sb, me.id),
-        S.loadSeekers(sb),
+        roomLoaded.current ? S.loadSeekers(sb) : Promise.resolve(null),
       ]);
-      const [tmsgs, outInv, reads] = await Promise.all([S.loadTeamMessages(sb, tms.map((t) => t.id)), S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id)), S.loadTeamReads(sb, me.id).catch(() => ({}))]);
-      setTeamReads(reads);
+      const [tmsgs, outInv, reads] = await Promise.all([
+        roomLoaded.current ? S.loadTeamMessages(sb, tms.map((t) => t.id)) : Promise.resolve(null),
+        S.loadOutgoingInvites(sb, tms.filter((t) => t.ownerId === me.id).map((t) => t.id)),
+        roomLoaded.current ? S.loadTeamReads(sb, me.id).catch(() => ({})) : Promise.resolve(null),
+      ]);
+      if (reads) setTeamReads(reads);
       setAssignmentNotes(notes);
       setTeamCategories(cats);
       setBanner(bnr);
@@ -410,32 +424,32 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
       setMyInvites(invs);
       setOutgoingInvites(outInv);
       setAssignments(asg);
-      setPosts(ps);
+      if (ps) setPosts(ps);
       setBlocked(blk);
-      setSeekers(seek);
-      setTeamMsgs(tmsgs);
+      if (seek) setSeekers(seek);
+      if (tmsgs) setTeamMsgs(tmsgs);
       const ids = new Set<string>();
       reqs.forEach((r) => (ids.add(r.fromUser), ids.add(r.toUser)));
       pairs.forEach((p) => (ids.add(p.aUser), ids.add(p.bUser)));
       msgs.forEach((m) => (ids.add(m.fromUser), ids.add(m.toUser)));
       tms.forEach((t) => t.members.forEach((id) => ids.add(id)));
       asg.forEach((a) => (ids.add(a.fromUser), a.toUser && ids.add(a.toUser)));
-      ps.forEach((p) => (ids.add(p.userId), p.replies.forEach((r) => ids.add(r.userId))));
-      tmsgs.forEach((m) => ids.add(m.userId));
-      seek.forEach((s) => ids.add(s.id));
+      ps?.forEach((p) => (ids.add(p.userId), p.replies.forEach((r) => ids.add(r.userId))));
+      tmsgs?.forEach((m) => ids.add(m.userId));
+      seek?.forEach((s) => ids.add(s.id));
       blk.forEach((b) => ids.add(b));
       ids.add(me.id);
       setMembers((m) => {
         const next = { ...m };
-        seek.forEach((x) => (next[x.id] = x));
+        seek?.forEach((x) => (next[x.id] = x));
         return next;
       });
       await ensureMembers(Array.from(ids));
       const cardIds = new Set<string>([me.id]);
       pairs.forEach((p) => (cardIds.add(p.aUser), cardIds.add(p.bUser)));
       tms.forEach((t) => t.members.forEach((id) => cardIds.add(id)));
-      seek.forEach((s) => cardIds.add(s.id));
-      ps.forEach((p) => cardIds.add(p.userId));
+      seek?.forEach((s) => cardIds.add(s.id));
+      ps?.forEach((p) => cardIds.add(p.userId));
       await loadCardsFor(Array.from(cardIds));
     } catch (e) {
       console.error(e);
@@ -449,7 +463,28 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
     (async () => {
       try {
         const prev = previousMonthPrefix(month);
-        const [cur, st, prevRep, prevOpen, ahead] = await Promise.all([P.loadTasks(sb, me.id, month.prefix), P.loadStats(sb, me.id), P.loadRepeatersFrom(sb, me.id, prev), P.loadUnfinishedFrom(sb, me.id, prev), P.loadLaterTasks(sb, me.id, month.prefix)]);
+        // The month flip can only do anything once a month, but both of its
+        // queries used to run on every single load, for every member, forever.
+        // A marker per device skips them for the rest of the month. Both halves
+        // are already idempotent - spawnRepeaters checks what the month holds
+        // and carryUnfinished tracks rootIds - so a cleared marker, a second
+        // device or blocked storage costs one extra pair of reads and nothing
+        // else. That is why this is kept out of the database: the cost of being
+        // wrong is a repeat of work that does nothing.
+        const rollKey = `tada-rolled-${me.id}`;
+        let rolled = false;
+        try {
+          rolled = localStorage.getItem(rollKey) === month.prefix;
+        } catch {
+          // Private mode or storage blocked: do the flip, as before.
+        }
+        const [cur, st, prevRep, prevOpen, ahead] = await Promise.all([
+          P.loadTasks(sb, me.id, month.prefix),
+          P.loadStats(sb, me.id),
+          rolled ? Promise.resolve([] as Task[]) : P.loadRepeatersFrom(sb, me.id, prev),
+          rolled ? Promise.resolve([] as Task[]) : P.loadUnfinishedFrom(sb, me.id, prev),
+          P.loadLaterTasks(sb, me.id, month.prefix),
+        ]);
         if (cancelled) return;
         laterRef.current = ahead;
         setLater(ahead);
@@ -460,6 +495,13 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
         const carried = carryUnfinished(month, prevOpen, list);
         if (carried.length) list = [...list, ...carried];
         if (spawned.length || carried.length) await P.syncTasks(sb, me.id, cur, list);
+        if (!rolled) {
+          try {
+            localStorage.setItem(rollKey, month.prefix);
+          } catch {
+            // Nothing to do: next load simply flips again, which is a no-op.
+          }
+        }
         tasksRef.current = list;
         setTasks(list);
         const s = { ...DEF_STATS, ...(st ?? {}) };
@@ -542,7 +584,48 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   // The community feed reloads as one unit when anything in it changes; a short
   // debounce folds a burst of events (a reply plus its notification) into one fetch.
   const feedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Community asks for this the first time it is opened. */
+  const ensureFeed = useCallback(async () => {
+    if (feedLoaded.current) return;
+    feedLoaded.current = true;
+    try {
+      const ps = await S.loadPosts(sb);
+      setPosts(ps);
+      const ids = ps.flatMap((x) => [x.userId, ...x.replies.map((r) => r.userId)]);
+      await ensureMembers(ids);
+      await loadCardsFor(ps.map((x) => x.userId));
+    } catch (e) {
+      // Let it be tried again rather than leaving the screen empty for good.
+      feedLoaded.current = false;
+      console.error(e);
+    }
+  }, [sb, ensureMembers, loadCardsFor]);
+
+  /** Partners asks for the team room and the open-to-partner list. */
+  const ensureRoom = useCallback(async () => {
+    if (roomLoaded.current) return;
+    roomLoaded.current = true;
+    try {
+      const ids = teamsRef.current.map((t) => t.id);
+      const [seek, tmsgs, reads] = await Promise.all([S.loadSeekers(sb), S.loadTeamMessages(sb, ids), S.loadTeamReads(sb, me.id).catch(() => ({}))]);
+      setSeekers(seek);
+      setTeamMsgs(tmsgs);
+      setTeamReads(reads);
+      setMembers((m) => {
+        const next = { ...m };
+        seek.forEach((x) => (next[x.id] = x));
+        return next;
+      });
+      await ensureMembers([...seek.map((x) => x.id), ...tmsgs.map((m) => m.userId)]);
+      await loadCardsFor(seek.map((x) => x.id));
+    } catch (e) {
+      roomLoaded.current = false;
+      console.error(e);
+    }
+  }, [sb, me.id, ensureMembers, loadCardsFor]);
+
   const reloadFeed = useCallback(() => {
+    if (!feedLoaded.current) return;
     if (feedTimer.current) clearTimeout(feedTimer.current);
     feedTimer.current = setTimeout(() => {
       void S.loadPosts(sb)
@@ -1807,7 +1890,7 @@ export function PlannerProvider({ initialMe, initialPlan, initialBilling = null,
   }, [sb, me.id]);
 
   const value: PlannerState & PlannerActions = {
-    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, assignmentNotes, banner, posts, blocked, seekers,
+    sb, me, plan, billing, month, today, currentWeek, loading, tasks, stats, myBadges, members, cards, requests, partnerships, messages, teams, myInvites, outgoingInvites, teamMsgs, assignments, assignmentNotes, banner, posts, blocked, seekers, ensureFeed, ensureRoom,
     burst, bigMsg, ceremony, editing, later, viewProfile, confirmRemove, showTour, onbOpen, showAdd, chatWith, openTeam, refreshing, cmdText, cmdBusy, cmdSay, toast, inbox, inboxOpen, unreadCount,
     myPartnerIds, incoming, outgoing, myTeams, bossSeatIds, seatCount, seatExtra, assignedToMe, activeChat, thread, onbItems, onbDoneCount, quote,
     set, nameOf, avatarOf, stripFor, isBlocked, inMyBossGroup,
