@@ -16,7 +16,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [x] Create the Stripe account and grab the TEST keys (live keys come in Phase 7)
 - [x] Create an Anthropic API key at console.anthropic.com for the brain dump and the talk-to-the-calendar bar
 - [x] Create a Resend account for app emails and verify a sending domain like mail.gettada.me (it gives you DNS records to add)
-- [ ] Record two assets while it's easy: Deb saying "TaDa!" as a one second mp3, and the welcome tour video. The tour video is done and live - the Voomly embed is wired to NEXT_PUBLIC_TOUR_URL and production serves it, confirmed on /help. Only the mp3 is outstanding
+- [x] Record two assets while it's easy: Deb saying "TaDa!" as a one second mp3, and the welcome tour video. Both are done and live: the Voomly embed is wired to NEXT_PUBLIC_TOUR_URL and production serves it, confirmed on /help, and the recording playing on every check-off was confirmed as the right one on October 27, 2026
 
 ## Phase 1: Scaffold the project with Claude Code
 
@@ -77,7 +77,7 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 
 - [x] Terms of service, privacy policy, and refund policy pages linked in the app footer, with a 13 and older line. All three live at /legal/terms, /legal/privacy and /legal/refunds on both app.gettada.me and the marketing site, linked from the foot of Account, the sign-in page, the paywall and Help. The age line is on the signup form, in Terms section 1 and in Privacy section 9. Audited October 7, 2026 against what the app actually does: referrals, the Voomly tour embed and note notifications were added, the claim that we email receipts was removed (Stripe sends those), and the governing-law clause now names South Carolina. Not reviewed by an attorney
 - [x] Transactional emails wired: welcome (on first confirmation) and trial reminder three days out. Receipts and failed-payment notices are left to Stripe rather than duplicated; partner requests and assigned work stay bell + push, so one event does not raise three alerts.
-- [ ] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice. The wiring is already there and a one second file ships at public/audio/tada.mp3 (NEXT_PUBLIC_TADA_URL overrides it); what cannot be checked from the code is whether that file is Deb's own recording or the placeholder, so this one needs her ear rather than a build
+- [x] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice. The file ships with the app at public/audio/tada.mp3 and NEXT_PUBLIC_TADA_URL can override it without a deploy. Confirmed by ear on October 27, 2026 that the recording playing in production is the right one - the one thing no code check could settle
 - [x] Drop the tour video link into the welcome checklist
 - [ ] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb
 
