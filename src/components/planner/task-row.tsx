@@ -5,14 +5,19 @@ import { usePlanner } from "./store";
 import { C, Chip } from "./ui";
 import { dayLabel, monthLabel, ord, WD } from "@/lib/planner/calendar";
 import { blockLabel, blockMeta } from "@/lib/planner/content";
+import { isOverdue } from "@/lib/planner/tasks";
 import type { Task } from "@/lib/planner/types";
 
 export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
   const p = usePlanner();
+  // Said on the row itself, not only in the group that gathers them, because a
+  // task read on Plan in the week it was meant for gave no hint it had been
+  // missed. Assigned work has always been marked this way.
+  const over = isOverdue(t, p.today);
   return (
     <div className="mb-2 flex items-start gap-3 rounded-xl px-3 py-3" style={{ background: "#fff", opacity: t.done ? 0.65 : 1 }}>
       <button onClick={() => p.toggleTask(t)} className="shrink-0" aria-label={t.done ? "Mark not done" : "Mark done"}>
-        {t.done ? <CheckCircle2 size={24} style={{ color: C.teal }} /> : <Circle size={24} style={{ color: C.fade }} />}
+        {t.done ? <CheckCircle2 size={24} style={{ color: C.teal }} /> : <Circle size={24} style={{ color: over ? C.coral : C.fade }} />}
       </button>
       <div className="min-w-0 flex-1">
         {/* Titles wrap rather than cut off: there is nowhere else to read the rest. */}
@@ -22,6 +27,11 @@ export function TaskRow({ t, showDay }: { t: Task; showDay: boolean }) {
         </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {showDay && <Chip>{t.date ? dayLabel(p.month, t.date) : "Day TBD"}</Chip>}
+          {over && (
+            <Chip color={C.coral} bg="#FDE2E2">
+              Overdue
+            </Chip>
+          )}
           <Chip color={blockMeta(t.block)?.text ?? C.fade} bg={blockMeta(t.block)?.tint ?? C.mist}>
             {t.block === "auto" ? "Time TBD" : blockLabel(t.block)}
           </Chip>

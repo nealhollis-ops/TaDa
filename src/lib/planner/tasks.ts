@@ -386,4 +386,15 @@ export function carryUnfinished(m: MonthInfo, previous: Task[], current: Task[])
     .map((t, i) => base(m, { title: t.title, big: !!t.big, date: null, block: t.block && t.block !== "auto" ? t.block : "auto", week: curW, repeat: "none", rootId: t.id, anchor: null, carriedFrom: t.month, sort: Date.now() + i }));
 }
 
+/**
+ * A task whose day has gone by with it still unticked.
+ *
+ * One-time tasks only, which is the same line `carryUnfinished` draws at the
+ * month flip: a missed day of a daily habit is not a debt you owe, it is a day
+ * that has gone, and branding every one of them overdue would turn a long
+ * streak into a wall of red. Something you meant to do on the 17th is a debt,
+ * and until now the app never said so anywhere.
+ */
+export const isOverdue = (t: Task, today: string) => !t.done && t.repeat === "none" && !!t.date && t.date < today;
+
 export const currentMonth = () => monthInfo(new Date());

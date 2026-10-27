@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Circle, CloudSun, Moon, Star, Sun } from "lucide-react";
 import { usePlanner } from "../store";
 import { AssignmentNotes } from "../assignment-notes";
 import { Banner } from "../banner";
@@ -12,7 +12,7 @@ import { CommandBar } from "../shell";
 import { Bar, C, Chip, QuoteCard } from "../ui";
 import { TaskRow } from "../task-row";
 import { dayLabel } from "@/lib/planner/calendar";
-import { taskWeek } from "@/lib/planner/tasks";
+import { isOverdue, taskWeek } from "@/lib/planner/tasks";
 import type { Assignment } from "@/lib/planner/types";
 
 const BLOCKS = [
@@ -77,6 +77,11 @@ export function TodayScreen() {
   // Work with no day on it never appeared here, only on Plan, so anything not
   // yet placed quietly aged out of view. It sits at the foot of the day now,
   // still needing doing and still asking for a day.
+  // A task dated earlier in the month and never ticked had nowhere to be seen:
+  // Today matches on the date exactly, so it stayed on the day it was meant for,
+  // on Plan, in a week nobody scrolls back to. Assigned work has always rolled
+  // forward and said Overdue. Your own work does now too.
+  const missed = p.tasks.filter((t) => isOverdue(t, p.today)).sort((a, b) => (a.date || "").localeCompare(b.date || "") || a.sort - b.sort);
   const noDay = p.tasks.filter((t) => !t.date && !t.done);
   // Ticking one off would otherwise drop it from the page altogether: it has no
   // day, so it belongs to no day's finished list. Judged on when it was
@@ -129,7 +134,26 @@ export function TodayScreen() {
       </div>
       <Bar pct={todays.length ? (todayDone / todays.length) * 100 : 0} color={C.teal} />
       <div className="mt-5">
-        {todays.length === 0 && (
+        {missed.length > 0 && (
+          <div className="mb-5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm font-bold" style={{ color: C.coral }}>
+                <AlertTriangle size={15} style={{ color: C.coral }} />
+                Missed
+              </span>
+              <span className="text-xs" style={{ color: C.fade }}>
+                {missed.length === 1 ? "1 task" : `${missed.length} tasks`}
+              </span>
+            </div>
+            <p className="mb-2 text-xs" style={{ color: C.fade }}>
+              The day you picked for these has gone by. Tick one off if it is done, tap the pencil to move it to another day, or let it go.
+            </p>
+            {missed.map((t) => (
+              <TaskRow key={t.id} t={t} showDay />
+            ))}
+          </div>
+        )}
+        {todays.length === 0 && missed.length === 0 && (
           <div className="rounded-2xl p-6 text-center text-sm" style={{ background: "#fff", color: C.fade }}>
             Nothing scheduled today. Enjoy the margin, or head to Plan and add something.
           </div>
