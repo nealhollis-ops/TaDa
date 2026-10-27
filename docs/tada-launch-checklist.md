@@ -79,14 +79,14 @@ Work top to bottom. Each phase depends on the one before it. Hand this file and 
 - [x] Transactional emails wired: welcome (on first confirmation) and trial reminder three days out. Receipts and failed-payment notices are left to Stripe rather than duplicated; partner requests and assigned work stay bell + push, so one event does not raise three alerts.
 - [x] Upload the TaDa mp3 and point the app at it so every check-off plays Deb's actual voice. The file ships with the app at public/audio/tada.mp3 and NEXT_PUBLIC_TADA_URL can override it without a deploy. Confirmed by ear on October 27, 2026 that the recording playing in production is the right one - the one thing no code check could settle
 - [x] Drop the tour video link into the welcome checklist
-- [ ] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb
+- [x] Read every daily power line and Help topic out loud once and adjust anything that doesn't sound like Deb. Reviewed October 27, 2026
 
 ## Phase 7: Deploy, verify, launch
 
 - [x] Push to GitHub. Vercel builds and the app answers with SSL. The app lives at https://app.gettada.me; the bare gettada.me is the marketing site, in its own Vercel project
 - [x] Swap Stripe to LIVE keys in Vercel, point the live webhook at the live URL, then run one real 17 dollar purchase on your own card and refund it. Done October 5, 2026, and the loop closed in both directions: a live Standard checkout wrote billing_customers and the entitlement, opened the paywall and sent the confirm, welcome and founder-alert emails; a scheduled cancellation kept access to its date as designed; an immediate cancellation set status to canceled, moved expires_at to now and shut the paywall at once, which is the refund and chargeback path. Nothing was charged, because a 14 day trial takes the card without billing it until day 15, so there was no payment to refund
-- [ ] Install the app to one Android phone and one iPhone home screen, then send a test push to each
-- [ ] Private beta: comp 10 to 20 Faith Hub Unleashed members through the admin invite, run two weeks, fix what they find
+- [x] Install the app to one Android phone and one iPhone home screen, then send a test push to each. Both validated October 27, 2026. Note for support: on a Samsung phone the app must be installed from Chrome, not Samsung Internet, which mints a WebAPK with an out-of-date target SDK that Play Protect blocks - the install card detects that browser and says so
+- [x] ~~Private beta: comp 10 to 20 Faith Hub Unleashed members through the admin invite, run two weeks, fix what they find~~ **Decided against on October 27, 2026** and went live without one. The admin comp-invite flow still exists and works if a cohort is ever wanted
 - [ ] Build the ClickFunnels sales page for the three tiers with checkout links, and add TaDa to the Faith Hub Unleashed package page as an included benefit
-- [ ] Confirm Supabase backups are on and clientcare@gettada.me reaches a real inbox
+- [ ] Confirm Supabase backups are on and clientcare@gettada.me reaches a real inbox. Backups confirmed October 27, 2026. The inbox is the outstanding half: gettada.me has an MX record, so mail is routed, but nobody has confirmed a message sent to clientcare@ actually lands somewhere a person reads. It is the support address printed in the Terms, the Privacy Policy, the Refund Policy and the Stripe customer portal, so it is worth one real test email
 - [ ] Launch, and check something off the list one last time just to hear the TaDa
